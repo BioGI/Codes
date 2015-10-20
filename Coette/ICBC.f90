@@ -160,13 +160,6 @@ ELSE
 		! Search the partition this particle belongs to
 		DO ipartition = 1_lng,NumSubsTotal 
 
-!			IF ((xp.GE.REAL(iMinDomain(ipartition),dbl)-0.5_dbl).AND.&
-!			(xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.5_dbl)).AND. &
-!			(yp.GE.REAL(jMinDomain(ipartition),dbl)-0.5_dbl).AND. &
-!			(yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.5_dbl)).AND. &
-!			(zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-!			(zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
-
 			IF ((xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
 			(xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
 			(yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
@@ -215,7 +208,6 @@ ELSE
 !		        !CALL interp(xp(i),yp(i),ss,nx,ny,vp(i))
 			! point to next node in the list
 			CurPar => CurPar%next
-			!write(*,*) i
 		END IF
 	END DO
      !END IF
@@ -378,21 +370,6 @@ IF(iter .EQ. phiStart) THEN
 
   END SELECT
 
-!  OPEN(6051,FILE='test-'//sub//'.dat')
-!  WRITE(6051,'(A60)') 'VARIABLES = "x" "y" "z" "phi"'
-!  WRITE(6051,'(A10,I4,A5,I4,A5,I4,A8)') 'ZONE I=',nxSub+2,' J=',nySub+2,' K=',nzSub+2,'F=POINT'
-!  
-!  DO k=0,nzSub+1
-!    DO j=0,nySub+1
-!      DO i=0,nxSub+1
-!  
-!        WRITE(6051,'(4E15.5)') x(i), y(j), z(k), phi(i,j,k)  
-!  
-!      END DO
-!    END DO 
-!  END DO
-!  
-!  CLOSE(6051)
 
   ! Calculate the intial amount of scalar
   phiTotal = 0.0_dbl
@@ -469,27 +446,15 @@ ELSE
 
   END SELECT
 
-!  OPEN(6051,FILE='test-'//sub//'.dat')
-!  WRITE(6051,'(A60)') 'VARIABLES = "x" "y" "z" "phi"'
-!  WRITE(6051,'(A10,I4,A5,I4,A5,I4,A8)') 'ZONE I=',nxSub+2,' J=',nySub+2,' K=',nzSub+2,'F=POINT'
-!  
-!  DO k=0,nzSub+1
-!    DO j=0,nySub+1
-!      DO i=0,nxSub+1
-!  
-!        WRITE(6051,'(4E15.5)') x(i), y(j), z(k), phi(i,j,k)  
-!  
-!      END DO
-!    END DO
-!  END DO
-!  
-!  CLOSE(6051)
 
 END IF	
 
 !------------------------------------------------
 END SUBROUTINE ScalarDistribution
 !------------------------------------------------
+
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			! implements the (moving) bounceback boundary conditions (1st order accurate - Ladd)
@@ -538,6 +503,10 @@ fmovingrhosum = fmovingrhosum + (6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) +
 !------------------------------------------------
 END SUBROUTINE BounceBackL
 !------------------------------------------------
+
+
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE BounceBack2(m,i,j,k,im1,jm1,km1,fbb)	! implements the (moving) bounceback boundary conditions (2nd order accurate - Lallemand)
@@ -633,6 +602,9 @@ END IF
 !------------------------------------------------
 END SUBROUTINE BounceBack2
 !------------------------------------------------
+
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE BounceBack2New(m,i,j,k,im1,jm1,km1,fbb)	! implements the (moving) bounceback boundary conditions (2nd order accurate - Lallemand)
 ! Implemented by Balaji 10/28/2014 using a method similar to Yanxing
