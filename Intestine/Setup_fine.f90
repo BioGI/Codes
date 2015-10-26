@@ -77,150 +77,137 @@ REAL(dbl) :: Delta									! scalar parameter
 
 ! MPI Arrays (arranged by descending size for storage efficiency)
 ! f_Comps(:,:)  - same as Setup
-INTEGER(lng), ALLOCATABLE :: Corner_SendIndex_fine(:,:)								! i, j, and k indices for each corner
-INTEGER(lng), ALLOCATABLE :: Corner_RecvIndex_fine(:,:)								! i, j, and k indices for each corner (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: Z_SendIndex_fine(:,:)									! i and j indices for each Z side 
-INTEGER(lng), ALLOCATABLE :: Z_RecvIndex_fine(:,:)									! i and j indices for each Z side (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: X_SendIndex_fine(:,:)									! j and k indices for each X side 
-INTEGER(lng), ALLOCATABLE :: X_RecvIndex_fine(:,:)									! j and k indices for each X side (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: Y_SendIndex_fine(:,:)									! i and k indices for each Y side 
-INTEGER(lng), ALLOCATABLE :: Y_RecvIndex_fine(:,:)									! i and k indices for each Y side (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: Corner_SendIndex_fine(:,:)						! i, j, and k indices for each corner
+INTEGER(lng), ALLOCATABLE :: Corner_RecvIndex_fine(:,:)						! i, j, and k indices for each corner (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: Z_SendIndex_fine(:,:)						! i and j indices for each Z side 
+INTEGER(lng), ALLOCATABLE :: Z_RecvIndex_fine(:,:)						! i and j indices for each Z side (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: X_SendIndex_fine(:,:)						! j and k indices for each X side 
+INTEGER(lng), ALLOCATABLE :: X_RecvIndex_fine(:,:)						! j and k indices for each X side (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: Y_SendIndex_fine(:,:)						! i and k indices for each Y side 
+INTEGER(lng), ALLOCATABLE :: Y_RecvIndex_fine(:,:)						! i and k indices for each Y side (phantom node for recieving data)
 INTEGER(lng), ALLOCATABLE :: YZ_SendIndex_fine(:)										! i index for each YZ face 
-INTEGER(lng), ALLOCATABLE :: YZ_RecvIndex_fine(:)										! i index for each YZ face (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: ZX_SendIndex_fine(:)										! j index for each ZX face 
-INTEGER(lng), ALLOCATABLE :: ZX_RecvIndex_fine(:)										! j index for each ZX face (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: YZ_RecvIndex_fine(:)						! i index for each YZ face (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: ZX_SendIndex_fine(:)						! j index for each ZX face 
+INTEGER(lng), ALLOCATABLE :: ZX_RecvIndex_fine(:)						! j index for each ZX face (phantom node for recieving data)
 INTEGER(lng), ALLOCATABLE :: XY_SendIndex_fine(:)										! k index for each XY face 
-INTEGER(lng), ALLOCATABLE :: XY_RecvIndex_fine(:)										! k index for each XY face (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: SubID(:)												! id number of neighboring subdomains (same as rank of processing unit working on domain)
-INTEGER(lng), ALLOCATABLE :: OppCommDir(:) 										! opposite MPI communication directions (like bounceback) 
-INTEGER(lng), ALLOCATABLE :: CommDataStart_f_fine(:)									! array of starting indices in the send arrays for the distribution functions from each communication direction 
-INTEGER(lng), ALLOCATABLE :: CommDataStart_rho_fine(:)								! array of starting indices in the send arrays for the density from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_phi_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_u_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_v_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_w_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: fSize_fine(:)												! array of the number of elements sent for each communication direction (distribution functions)
-INTEGER(lng), ALLOCATABLE :: dsSize_fine(:)												! array of the number of elements sent for each communication direction (density and scalar)
-INTEGER(lng), ALLOCATABLE :: uvwSize_fine(:)												! array of the number of elements sent for each communication direction (density and scalar)
-INTEGER(lng), ALLOCATABLE :: msgSize_fine(:)											! array of the number of elements sent for each communication direction (density and scalar)
-INTEGER(lng), ALLOCATABLE :: req_fine(:)													! array of MPI send/receive requests 
-INTEGER(lng), ALLOCATABLE :: waitStat_fine(:,:)										! array of MPI_WAITALL status objects
-
-REAL(dbl), ALLOCATABLE :: msgSend_fine(:)												! array of ALL of the sent information (total)
-REAL(dbl), ALLOCATABLE :: msgRecv_fine(:)												! array of ALL of the received information (total)
+INTEGER(lng), ALLOCATABLE :: XY_RecvIndex_fine(:)						! k index for each XY face (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: SubID_fine(:)							! id number of neighboring subdomains (same as rank of processing unit working on domain)
+INTEGER(lng), ALLOCATABLE :: OppCommDir_fine(:)							! opposite MPI communication directions (like bounceback) 
+INTEGER(lng), ALLOCATABLE :: CommDataStart_f_fine(:)						! array of starting indices in the send arrays for the distribution functions from each communication direction 
+INTEGER(lng), ALLOCATABLE :: CommDataStart_rho_fine(:)						! array of starting indices in the send arrays for the density from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_phi_fine(:)						! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_u_fine(:)						! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_v_fine(:)						! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_w_fine(:)						! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: fSize_fine(:)							! array of the number of elements sent for each communication direction (distribution functions)
+INTEGER(lng), ALLOCATABLE :: dsSize_fine(:)							! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: uvwSize_fine(:)							! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: msgSize_fine(:)							! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: req_fine(:)							! array of MPI send/receive requests 
+INTEGER(lng), ALLOCATABLE :: waitStat_fine(:,:)							! array of MPI_WAITALL status objects
+REAL(dbl), ALLOCATABLE :: msgSend_fine(:)							! array of ALL of the sent information (total)
+REAL(dbl), ALLOCATABLE :: msgRecv_fine(:)							! array of ALL of the received information (total)
 
 ! MPI Variables
 ! master = 0_lng - same as Setup
-INTEGER(lng) 				:: numprocs, myid, mySub 								! number of processing units, rank of current processing unit, subdomain of current processing unit
+INTEGER(lng) :: numprocs_fine, myid_fine, mySub_fine			! number of processing units, rank of current processing unit, subdomain of current processing unit
 
-REAL(dbl) 					:: CommTime_f0, CommTime_fEnd, CommTime_f			! communication time - distribution functions: start time, end time, current time
-REAL(dbl) 					:: CommTime_ds0, CommTime_dsEnd, CommTime_ds		! communication time - distribution functions: start time, end time, current time
+REAL(dbl) :: CommTime_f0_fine, CommTime_fEnd_fine, CommTime_f_fine	! communication time - distribution functions: start time, end time, current time
+REAL(dbl) :: CommTime_ds0_fine, CommTime_dsEnd_fine, CommTime_ds_fine   ! communication time - distribution functions: start time, end time, current time
 
 ! Number of Subdomains in each direction
-INTEGER(lng) :: NumSubsX																! number of subdomains in the X direction
-INTEGER(lng) :: NumSubsY																! number of subdomains in the Y direction
-INTEGER(lng) :: NumSubsZ																! number of subdomains in the Z direction
-INTEGER(lng) :: NumSubsTotal															! total number of subdomains
+INTEGER(lng) :: NumSubsX_fine				! number of subdomains in the X direction
+INTEGER(lng) :: NumSubsY_fine				! number of subdomains in the Y direction
+INTEGER(lng) :: NumSubsZ_fine				! number of subdomains in the Z direction
+INTEGER(lng) :: NumSubsTotal_fine			! total number of subdomains
 
 ! Starting/Ending indices for each subdomain
-INTEGER(lng) :: iMin																		! starting local i index
-INTEGER(lng) :: iMax																		! ending local i index
-INTEGER(lng) :: jMin																		! starting local j index
-INTEGER(lng) :: jMax																		! ending local j index
-INTEGER(lng) :: kMin																		! starting local k index
-INTEGER(lng) :: kMax																		! ending local k index
+INTEGER(lng) :: iMin_fine				! starting local i index
+INTEGER(lng) :: iMax_fine				! ending local i index
+INTEGER(lng) :: jMin_fine				! starting local j index
+INTEGER(lng) :: jMax_fine				! ending local j index
+INTEGER(lng) :: kMin_fine				! starting local k index
+INTEGER(lng) :: kMax_fine				! ending local k index
 
 ! extension for output files
-CHARACTER(5) :: sub																		! rank + 1 for output file extensions
+! sub	- same as Setup
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Geometry Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-REAL(dbl), ALLOCATABLE		:: villiLoc(:,:)			! location of each villous
-REAL(dbl), ALLOCATABLE 		:: x(:),y(:),z(:)			! physical coordinate arrays
-REAL(dbl), ALLOCATABLE		:: xx(:),yy(:),zz(:)		! x,y,z arrays (global)
-REAL(dbl), ALLOCATABLE 		:: ub(:),vb(:),wb(:)		! x,y, and z components of the solid boundary velocity vector
-REAL(dbl), ALLOCATABLE 		:: rDom0(:),rDom(:),r(:)! initial, and current radius at each z-location (global), radius at each location (local)
-REAL(dbl), ALLOCATABLE		:: velDom(:),vel(:)		! global and local wall velocities 
-REAL(dbl), ALLOCATABLE		:: rnd(:)					! array of random numbers for random villi phase angles
-INTEGER(lng), ALLOCATABLE	:: villiGroup(:)			! array of which groups the villi are in 
-REAL(dbl)		:: xcf, ycf, zcf							! length conversion factors
-REAL(dbl)		:: dcf, vcf, pcf							! density, velocity, pressure conversion factors
-REAL(dbl)		:: tcf										! time conversion factor
-REAL(dbl)		:: nPers										! number of time periods simulated
-REAL(dbl)		:: Lv											! length of the villi
-REAL(dbl)		:: Rv											! radius of the villi
-REAL(dbl)		:: villiAngle								! maximum angle of active villous travel
-INTEGER(lng)	:: iLv										! length of the villi in lattice units
-INTEGER(lng)	:: Ci,Cj,Ck									! center node location (global)
+REAL(dbl), ALLOCATABLE	:: villiLoc_fine(:,:)		    ! location of each villous
+REAL(dbl), ALLOCATABLE 	:: x_fine(:),y_fine(:),z_fine(:)    ! physical coordinate arrays
+REAL(dbl), ALLOCATABLE	:: xx_fine(:),yy_fine(:),zz_fine(:) ! x,y,z arrays (global)
+REAL(dbl), ALLOCATABLE 	:: ub_fine(:),vb_fine(:),wb_fine(:)		! x,y, and z components of the solid boundary velocity vector
+REAL(dbl), ALLOCATABLE 	:: rDom0_fine(:),rDom_fine(:),r_fine(:)        ! initial, and current radius at each z-location (global), radius at each location (local)
+REAL(dbl), ALLOCATABLE	:: velDom_fine(:),vel_fine(:)		! global and local wall velocities 
+REAL(dbl), ALLOCATABLE	:: rnd_fine(:)			! array of random numbers for random villi phase angles
+INTEGER(lng), ALLOCATABLE :: villiGroup_fine(:)		! array of which groups the villi are in 
+REAL(dbl)		:: xcf_fine, ycf_fine, zcf_fine	! length conversion factors
+REAL(dbl)		:: dcf_fine, vcf_fine, pcf_fine	! density, velocity, pressure conversion factors
+REAL(dbl)		:: tcf_fine			! time conversion factor
+REAL(dbl)		:: nPers_fine			! number of time periods simulated
+! Lv - same as Setup
+! Rv - same as Setup
+! villiAngle - same as Setup
+INTEGER(lng)	:: iLv_fine	! length of the villi in lattice units
+INTEGER(lng)	:: Ci_fine,Cj_fine,Ck_fine ! center node location (global)
 
-INTEGER(lng)	:: randORord								! flag to determine if the villous motion is random or ordered
-INTEGER(lng), PARAMETER :: RANDOM=1						! random flag for randORord
-INTEGER(lng), PARAMETER :: ORDERED=2					! ordered flag for randORord
+! randORord								! flag to determine if the villous motion is random or ordered
+! RANDOM=1  - same as Setup
+! ORDERED=2 - same as Setup
 
-REAL(dbl), PARAMETER :: PI = 3.1415926535897932384626433832					! Pi
-REAL(dbl) :: D, L												! diameter, length of the intestinal segment
-REAL(dbl) :: a1, a2											! half height of the passages
-REAL(dbl) :: eps1, eps2										! occlusional distances
-REAL(dbl) :: amp1, amp2										! amplitude of the waves
-REAL(dbl) :: epsOVERa1, epsOVERa2						! occlusional distance to half-height ratios
-REAL(dbl) :: aOVERlam1,	aOVERlam2						! half height to wavelength ratios
-REAL(dbl) :: lambda1, lambda2								! wavelengths
-REAL(dbl) :: kw1												! wave number (peristalsis)
-REAL(dbl) :: s1, s2	            						! mode velocities
-REAL(dbl) :: Ts, Tp											! segmental period, peristaltic period
-REAL(dbl) :: wc1, wc2										! weighting coefficients for the different modes
-REAL(dbl) :: Re1, Re2										! weighting coefficients for the different modes
-REAL(dbl) :: shift2											! amplitude of the segmental contraction
-REAL(dbl) :: Tmix												! calculated period (mix)
-REAL(dbl) :: period											! period of current simulation
-REAL(dbl) :: freqRatioT										! villous frequency to macroscopic contraction frequency (theta, azimuthal)
-REAL(dbl) :: freqRatioZ										! villous frequency to macroscopic contraction frequency (z, axial)
-REAL(dbl) :: vFreqT											! villous frequency in the theta direction (azimuthal)
-REAL(dbl) :: vFreqZ											! villous frequency in the z direction (axial)
-REAL(dbl) :: activeVflagT									! flag to turn on or off active villous motion in the theta direction (azimuthal)
-REAL(dbl) :: activeVflagZ									! flag to turn on or off active villous motion in the z direction (axial)
-INTEGER(lng) :: nlambda2									! wavelength - number of nodes (segmental)
-INTEGER(lng) :: numw1, numw2								! number of waves
-INTEGER(lng) :: nzSL, nzSR									! left and right indicies of scalar domain
-INTEGER(lng) :: segment										! length of the segments in the portions of the segmental contractions
-INTEGER(lng) :: seg1L, seg1R								! left/right point of slope segement 1
-INTEGER(lng) :: seg2L, seg2R								! left/right point of slope segement 2
-INTEGER(lng) :: numVilliZ, numVilliTheta				! number of villi rows in the axial direction, number of villi per row
-INTEGER(lng) :: numVilli, numVilliActual				! number of total villi, actual number of total villi
-INTEGER(lng) :: numVilliGroups							! number of groups of villi
+! PI = 3.1415926535897932384626433832 - same as Setup
+! D, L - same as Setup
+! a1, a2 - same as Setup
+! eps1, eps2 - same as Setup
+! amp1, amp2 - same as Setup
+! epsOVERa1, epsOVERa2 - same as Setup
+! aOVERlam1,	aOVERlam2 - same as Setup
+! lambda1, lambda2 - same as Setup
+! kw1 - same as Setup												! wave number (peristalsis)
+! s1, s2 - same as Setup
+! Ts, Tp - same as Setup
+! wc1, wc2 - same as Setup
+! Re1, Re2 - same as Setup
+! shift2 - same as Setup
+! Tmix - same as Setup
+! period - same as Setup
+! freqRatioT - same as Setup
+! freqRatioZ - same as Setup
+! vFreqT - same as Setup
+! vFreqZ - same as Setup
+! activeVflagT - same as Setup
+! activeVflagZ - same as Setup
+! nlambda2 - same as Setup
+! numw1, numw2 - same as Setup
+! nzSL, nzSR - same as Setup
+! segment - same as Setup
+! seg1L, seg1R - same as Setup
+! seg2L, seg2R - same as Setup
+! numVilliZ, numVilliTheta - same as Setup
+! numVilli, numVilliActual - same as Setup
+! numVilliGroups - same as Setup
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-REAL(dbl), ALLOCATABLE		:: radius(:,:)				! radius stored during output iterations
-INTEGER(lng), ALLOCATABLE 	:: filenum(:)				! array of output file numbers
-INTEGER(lng)    :: numOuts					! number of output files
-INTEGER(lng)	:: fileCount				! current output file number (out of total number of output files)
-INTEGER(lng)	:: outFlag					! specifies whether to output in readable format (1), binaries (2), or both (3)
-INTEGER(lng)    :: radcount					! counts the number of output iterations for storing the radius
+REAL(dbl), ALLOCATABLE	   :: radius_fine(:,:)  ! radius stored during output iterations
+INTEGER(lng), ALLOCATABLE  :: filenum_fine(:)   ! array of output file numbers
+INTEGER(lng)               :: numOuts_fine      ! number of output files
+INTEGER(lng)	           :: fileCount_fine    ! current output file number (out of total number of output files)
+INTEGER(lng)	           :: outFlag_fine      ! specifies whether to output in readable format (1), binaries (2), or both (3)
+INTEGER(lng)               :: radcount_fine     ! counts the number of output iterations for storing the radius
 
 ! System Clock Variables (for PrintStatus)
-INTEGER(lng)	:: start, current, final, rate				! timing varibles for SYSTEM_CLOCK()
-REAL(dbl)	:: tStart,tEnd,tTotal,tRecv,tSum,tAvg		! timing variables for parallel scalability [MPI_WTIME()]
+! start, current, final, rate - same as Setup
+! tStart,tEnd,tTotal,tRecv,tSum,tAvg - same as Setup
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Particle Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-INTEGER(lng)	:: ParticleTrack			! a flag to denote if particle track is on (1) or off (0) 
-INTEGER(lng), PARAMETER :: ParticleOn=1			! flag to signify Particle Tracking is on
-INTEGER(lng), PARAMETER :: ParticleOff=0		! flag for signify if particle tracking is off
-INTEGER(lng)    :: np					! number of particles
-REAL(dbl), ALLOCATABLE		:: xp(:),yp(:),zp(:)				! particle physical location coordinates
-INTEGER(lng), ALLOCATABLE 	:: ipar(:),jpar(:),kpar(:)			! particle computational nodal coordinates
-REAL(dbl), ALLOCATABLE		:: up(:),vp(:),wp(:)				! particle velocities
-REAL(dbl), ALLOCATABLE		:: rp(:),delNBbyCV(:),par_conc(:),bulk_conc(:),rpold(:)		! particle radius and drug release rate
-REAL(dbl), ALLOCATABLE		:: sh(:),gamma_cont(:)					! particle sherwood number
-!REAL(dbl), PARAMETER :: molarvol=2.65e-10,diffm=6.7e-10		! drug properties
-REAL(dbl), PARAMETER :: molarvol=2.65e-4_dbl,diffm=2.4e-7_dbl!1.2e-6		! drug properties
-
+!Removing all particle tracking variables
 !************************************************
 
 CONTAINS
