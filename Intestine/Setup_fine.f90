@@ -34,63 +34,63 @@ INTEGER(lng)	:: iter0,iter,nt		      ! initial time step, timestep index, total 
 ! SOLID - same as Setup
 INTEGER(lng), PARAMETER :: COARSEMESH		= -1_lng					! coarseMesh
 
-LOGICAL :: restart														! Restart Flag
+! restart - same as Setup
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Scalar Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-REAL(dbl), ALLOCATABLE :: phi(:,:,:)			! passive scalar
-REAL(dbl), ALLOCATABLE :: delphi_particle(:,:,:)	! passive scalar contribution from particles
-REAL(dbl), ALLOCATABLE :: phiTemp(:,:,:)		! temporary storage of passive scalar
-REAL(dbl) :: Sc 										! Schmidt number
-REAL(dbl) :: Dm,Dmcf									! binary molecular diffusivity (passive scalar in fluid), diffusivity conversion factor
+REAL(dbl), ALLOCATABLE :: phi_fine(:,:,:)			! passive scalar
+REAL(dbl), ALLOCATABLE :: delphi_particle_fine(:,:,:)	! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: phiTemp_fine(:,:,:)		! temporary storage of passive scalar
+! Sc - same as Setup
+! Dm,Dmcf - same as Setup
 REAL(dbl) :: Delta									! scalar parameter
-REAL(dbl) :: phiIC, phiWall						! values of scalar: initial, wall, contribution from boundary
-REAL(dbl) :: phiAbsorbed							! total amount of scalar absorbed up to current time
-REAL(dbl) :: phiAbsorbedS							! total amount of scalar absorbed up to current time - through the macroscopic surface
-REAL(dbl) :: phiAbsorbedV							! total amount of scalar absorbed up to current time - through the villi
-REAL(dbl) :: phiInOut								! total amount of scalar leaving/entering the domain
-REAL(dbl) :: phiTotal								! total intial amount of scalar in the domain
-REAL(dbl) :: sigma									! standard deviation for scalar distributions
-REAL(dbl) :: phiPer									! period at which to start the scalar
-INTEGER(lng) :: phiStart							! iteration to start scalar calculation scalar
-INTEGER(lng) :: sclrIC								! initial condition to use (BLOB, LINE, or INLET)
+! phiIC, phiWall - same as Setup
+! phiAbsorbed - same as Setup
+! phiAbsorbedS - same as Setup
+! phiAbsorbedV - same as Setup
+! phiInOut - same as Setup
+! phiTotal - same as Setup
+! sigma - same as Setup
+! phiPer - same as Setup
+! phiStart - same as Setup
+! sclrIC - same as Setup
 
-REAL(dbl), PARAMETER :: ee = 2.71828182846	! e^1
+! ee - same as Setup
 
-INTEGER(lng), PARAMETER :: BLOB=1				! scalar initial condition: circular gaussian distribution of scalar at the center of the domain
-INTEGER(lng), PARAMETER :: LINE=2				! scalar initial condition: gaussian distribution of scalar in the x,y-directions along the centerline
-INTEGER(lng), PARAMETER :: INLET=3				! scalar initial condition: gaussian distribution of scalar in the z-direction along the inlet
-INTEGER(lng), PARAMETER :: UNIFORM=4			! scalar initial condition: uniform scalar in the entire domain (phi=phiIC)
+! BLOB - same as Setup
+! LINE - same as Setup
+! INLET - same as Setup
+! UNIFORM - same as Setup
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Parallel (MPI) Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ! Number of communication directions (3D LBM)
-INTEGER(lng), PARAMETER :: NumCommDirs		= 26_lng								! number of communication directions (6 faces + 12 sides + 8 corners = 26)
-INTEGER(lng), PARAMETER :: MaxDistFns		= 5_lng								! maximum number of transfered distribution functions (actual number: 5 for faces, 2 for sides, 1 for corners)
-INTEGER(lng), PARAMETER :: NumFs_face		= 5_lng								! number of distribution functions transferred between neighboring faces
-INTEGER(lng), PARAMETER :: NumFs_side		= 2_lng								! number of distribution functions transferred between neighboring side
-INTEGER(lng), PARAMETER :: NumFs_corner	= 1_lng								! number of distribution functions transferred between neighboring corner
+! NumCommDirs           =  26_lng - same as Setup
+! MaxDistFns		= 5_lng	- same as Setup
+! NumFs_face		= 5_lng - same as Setup
+! NumFs_side		= 2_lng - same as Setup
+! NumFs_corner	        = 1_lng - same as Setup
 
 ! MPI Arrays (arranged by descending size for storage efficiency)
-INTEGER(lng), ALLOCATABLE :: f_Comps(:,:)											! specifies the components of the distribution functions to transfer in each MPI communication direction
-INTEGER(lng), ALLOCATABLE :: Corner_SendIndex(:,:)								! i, j, and k indices for each corner
-INTEGER(lng), ALLOCATABLE :: Corner_RecvIndex(:,:)								! i, j, and k indices for each corner (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: Z_SendIndex(:,:)									! i and j indices for each Z side 
-INTEGER(lng), ALLOCATABLE :: Z_RecvIndex(:,:)									! i and j indices for each Z side (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: X_SendIndex(:,:)									! j and k indices for each X side 
-INTEGER(lng), ALLOCATABLE :: X_RecvIndex(:,:)									! j and k indices for each X side (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: Y_SendIndex(:,:)									! i and k indices for each Y side 
-INTEGER(lng), ALLOCATABLE :: Y_RecvIndex(:,:)									! i and k indices for each Y side (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: YZ_SendIndex(:)										! i index for each YZ face 
-INTEGER(lng), ALLOCATABLE :: YZ_RecvIndex(:)										! i index for each YZ face (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: ZX_SendIndex(:)										! j index for each ZX face 
-INTEGER(lng), ALLOCATABLE :: ZX_RecvIndex(:)										! j index for each ZX face (phantom node for recieving data)
-INTEGER(lng), ALLOCATABLE :: XY_SendIndex(:)										! k index for each XY face 
-INTEGER(lng), ALLOCATABLE :: XY_RecvIndex(:)										! k index for each XY face (phantom node for recieving data)
+! f_Comps(:,:)  - same as Setup
+INTEGER(lng), ALLOCATABLE :: Corner_SendIndex_fine(:,:)								! i, j, and k indices for each corner
+INTEGER(lng), ALLOCATABLE :: Corner_RecvIndex_fine(:,:)								! i, j, and k indices for each corner (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: Z_SendIndex_fine(:,:)									! i and j indices for each Z side 
+INTEGER(lng), ALLOCATABLE :: Z_RecvIndex_fine(:,:)									! i and j indices for each Z side (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: X_SendIndex_fine(:,:)									! j and k indices for each X side 
+INTEGER(lng), ALLOCATABLE :: X_RecvIndex_fine(:,:)									! j and k indices for each X side (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: Y_SendIndex_fine(:,:)									! i and k indices for each Y side 
+INTEGER(lng), ALLOCATABLE :: Y_RecvIndex_fine(:,:)									! i and k indices for each Y side (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: YZ_SendIndex_fine(:)										! i index for each YZ face 
+INTEGER(lng), ALLOCATABLE :: YZ_RecvIndex_fine(:)										! i index for each YZ face (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: ZX_SendIndex_fine(:)										! j index for each ZX face 
+INTEGER(lng), ALLOCATABLE :: ZX_RecvIndex_fine(:)										! j index for each ZX face (phantom node for recieving data)
+INTEGER(lng), ALLOCATABLE :: XY_SendIndex_fine(:)										! k index for each XY face 
+INTEGER(lng), ALLOCATABLE :: XY_RecvIndex_fine(:)										! k index for each XY face (phantom node for recieving data)
 INTEGER(lng), ALLOCATABLE :: SubID(:)												! id number of neighboring subdomains (same as rank of processing unit working on domain)
 INTEGER(lng), ALLOCATABLE :: OppCommDir(:) 										! opposite MPI communication directions (like bounceback) 
 INTEGER(lng), ALLOCATABLE :: CommDataStart_f(:)									! array of starting indices in the send arrays for the distribution functions from each communication direction 
