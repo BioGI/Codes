@@ -10,28 +10,29 @@ IMPLICIT NONE
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LBM Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-INTEGER(lng), PARAMETER :: NumDistDirs	= 14_lng					! number of distribution function directions minus one (ex. D3Q15 -> 14)
+! NumDistDirs - same as Setup
 
-REAL(dbl),		ALLOCATABLE :: f(:,:,:,:)							! distribution function
-REAL(dbl), 		ALLOCATABLE :: fplus(:,:,:,:)						! post-collision distribution function
-REAL(dbl), 		ALLOCATABLE :: u(:,:,:),v(:,:,:),w(:,:,:)		! x,y, and z components of the fluid velocity vector
-REAL(dbl), 		ALLOCATABLE :: rho(:,:,:)							! density
-INTEGER(lng), 	ALLOCATABLE :: node(:,:,:)    					! node flags (FLUID/SOLID)
-REAL(dbl), 		ALLOCATABLE :: ex(:),ey(:),ez(:)					! LBM discretized velocity vectors
-INTEGER(lng), 	ALLOCATABLE :: bb(:), sym(:,:)					! bounceback and symmetry directions
-REAL(dbl), 		ALLOCATABLE :: wt(:)    							! weighting coefficients for the equilibrium distribution functions
+REAL(dbl),		ALLOCATABLE :: f_fine(:,:,:,:)							! distribution function
+REAL(dbl), 		ALLOCATABLE :: fplus_fine(:,:,:,:)						! post-collision distribution function
+REAL(dbl), 		ALLOCATABLE :: u_fine(:,:,:),v_fine(:,:,:),w_fine(:,:,:)		! x,y, and z components of the fluid velocity vector
+REAL(dbl), 		ALLOCATABLE :: rho_fine(:,:,:)							! density
+INTEGER(lng), 	ALLOCATABLE :: node_fine(:,:,:)    					! node flags (FLUID/SOLID)
+! ex(:),ey(:),ez(:) - same as Setup
+INTEGER(lng), 	ALLOCATABLE :: bb_fine(:), sym_fine(:,:)					! bounceback and symmetry directions
+REAL(dbl), 		ALLOCATABLE :: wt_fine(:)    							! weighting coefficients for the equilibrium distribution functions
 
-REAL(dbl)		:: den, denL											! density (physical, lattice units)
-REAL(dbl)		:: nu, nuL												! kinematic viscosity (physical, lattice units)
-REAL(dbl) 		:: cs														! speed of sound on the lattice
-REAL(dbl)		:: tau													! relaxation parameters of coarse and fine blocks
-REAL(dbl)		:: oneOVERtau											! reciprical of tau
-INTEGER(lng)	:: nx,ny,nz												! number of global nodes in the x, y, and z directions respectively
-INTEGER(lng)	:: nxSub,nySub,nzSub									! number of local nodes in the each direction
-INTEGER(lng)	:: iter0,iter,nt										! initial time step, timestep index, total number of timesteps
-INTEGER(lng)	:: domaintype												! a flag to denote domain type - 0 for 1/4th cylinder and 1 for full cylinder
-INTEGER(lng), PARAMETER :: FLUID		= 0_lng						! fluid
-INTEGER(lng), PARAMETER :: SOLID		= 1_lng						! solid
+! den, denL - same as Setup 
+! nu, nuL - same as Setup
+! cs - same as Setup
+REAL(dbl)		:: tau_fine            ! relaxation parameters of coarse and fine blocks
+REAL(dbl)		:: oneOVERtau_fine     ! reciprical of tau
+INTEGER(lng)	:: nx_fine,ny_fine,nz_fine     ! number of global nodes in the x, y, and z directions respectively
+INTEGER(lng)	:: nxSub_fine,nySub_fine,nzSub_fine   ! number of local nodes in the each direction
+INTEGER(lng)	:: iter0,iter,nt		      ! initial time step, timestep index, total number of timesteps
+! domaintype - same as Setup
+! FLUID - same as Setup
+! SOLID - same as Setup
+INTEGER(lng), PARAMETER :: COARSEMESH		= -1_lng					! coarseMesh
 
 LOGICAL :: restart														! Restart Flag
 
