@@ -18,7 +18,7 @@ REAL(dbl), 		ALLOCATABLE :: u_fine(:,:,:),v_fine(:,:,:),w_fine(:,:,:)		! x,y, an
 REAL(dbl), 		ALLOCATABLE :: rho_fine(:,:,:)							! density
 INTEGER(lng), 	ALLOCATABLE :: node_fine(:,:,:)    					! node flags (FLUID/SOLID)
 ! ex(:),ey(:),ez(:) - same as Setup
-INTEGER(lng), 	ALLOCATABLE :: bb_fine(:), sym_fine(:,:)					! bounceback and symmetry directions
+! bb_fine(:), sym_fine(:,:) - same as Setup
 REAL(dbl), 		ALLOCATABLE :: wt_fine(:)    							! weighting coefficients for the equilibrium distribution functions
 
 ! den, denL - same as Setup 
@@ -213,20 +213,23 @@ INTEGER(lng)               :: radcount_fine     ! counts the number of output it
 CONTAINS
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE Global_Setup		! sets up simulation
+SUBROUTINE Global_Setup_Fine		! sets up simulation
+! The new code will now call this routine instead of the older one in Setup.f90. Since this module 'uses' the older Setup module, it will call the subroutines of the older module instead.    
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-CALL ReadInput					! read input from file
+CALL ReadInput_fine			! read input from file
 CALL SubDomainSetup			! set up the MPI subdomains
+CALL SubDomainSetup_fine		! set up the MPI subdomains
 CALL AllocateArrays			! allocate global variable arrays
+CALL AllocateArrays_fine		! allocate global variable arrays
 
 !------------------------------------------------
-END SUBROUTINE Global_Setup
+END SUBROUTINE Global_Setup_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE ReadInput			! read the input file
+SUBROUTINE ReadInput_Fine			! read the input file
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -237,9 +240,17 @@ READ(10,*) nx	 				! number of nodes in the x-direction
 READ(10,*) ny					! number of nodes in the y-direction
 READ(10,*) nz					! number of nodes in the z-direction
 
+READ(10,*) nx_fine 				! number of nodes in the x-direction - fine mesh
+READ(10,*) ny_fine				! number of nodes in the y-direction - fine mesh
+READ(10,*) nz_fine				! number of nodes in the z-direction - fine mesh
+
 READ(10,*) NumSubsX			! number of subdomains in the X direction
 READ(10,*) NumSubsY			! number of subdomains in the Y direction
 READ(10,*) NumSubsZ			! number of subdomains in the Z direction
+
+READ(10,*) NumSubsX_fine		! number of subdomains in the X direction - fine mesh
+READ(10,*) NumSubsY_fine		! number of subdomains in the Y direction - fine mesh
+READ(10,*) NumSubsZ_fine		! number of subdomains in the Z direction - fine mesh
 
 READ(10,*) L					! length
 READ(10,*) D					! diameter
@@ -272,6 +283,7 @@ READ(10,*) villiAngle		! maximum angle of active villous travel (degrees)
 READ(10,*) den					! density
 READ(10,*) nu					! kinematic viscosity
 READ(10,*) tau					! relaxation parameter
+READ(10,*) tau_fine				! relaxation parameter - Fine mesh
 
 READ(10,*) Sc					! Schmidt number
 READ(10,*) sclrIC				! initial/maintained scalar distribution (1=BLOB,2=LINE,3=INLET,4=UNIFORM)
@@ -311,29 +323,29 @@ IF(MOD(numVilliZ,numVilliGroups) .NE. 0) THEN
 END IF
 
 !------------------------------------------------
-END SUBROUTINE ReadInput
+END SUBROUTINE ReadInput_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE SubDomainSetup	! generates the information (ID number, starting/ending indices) of each neighboring subdomain (using the subroutine SetSubIDBC in this module)
+SUBROUTINE SubDomainSetup_Fine	! generates the information (ID number, starting/ending indices) of each neighboring subdomain (using the subroutine SetSubIDBC in this module)
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
 ! Define local variables
-INTEGER(lng) :: CDx(NumCommDirs), CDy(NumCommDirs), CDz(NumCommDirs)		! communication direction vectors in the x, y, and z directions respectively
-INTEGER(lng) :: thisSub																	! ID of the current subdomain
-INTEGER(lng) :: iComm,iSub,jSub,kSub,iiSub,jjSub,kkSub						! index variables
-INTEGER(lng) :: quotientX, quotientY, quotientZ					 				! variables for determining the local subdomain bounds
+INTEGER(lng) :: CDx(NumCommDirs), CDy(NumCommDirs), CDz(NumCommDirs) ! communication direction vectors in the x, y, and z directions respectively
+INTEGER(lng) :: thisSub	 ! ID of the current subdomain
+INTEGER(lng) :: iComm,iSub,jSub,kSub,iiSub,jjSub,kkSub ! index variables
+INTEGER(lng) :: quotientX, quotientY, quotientZ	 ! variables for determining the local subdomain bounds
 
-ALLOCATE(SubID(NumCommDirs))															! id number of neighboring subdomains (same as rank of processing unit working on domain)
+ALLOCATE(SubID_fine(NumCommDirs)) ! id number of neighboring subdomains (same as rank of processing unit working on domain)
 
 ! fill out communication direction vectors
 CDx(1) =   1_lng
 CDy(1) =   0_lng
 CDz(1) =   0_lng
 
-CDx(2) =	 -1_lng
-CDy(2) =	  0_lng
+CDx(2) =  -1_lng
+CDy(2) =   0_lng
 CDz(2) =   0_lng
 
 CDx(3) =   0_lng
@@ -453,7 +465,7 @@ DO kSub=1,NumSubsZ
           jjSub = jSub + CDy(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
           kkSub = kSub + CDz(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
       
-          CALL SetSubID(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
+          CALL SetSubID_fine(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
 
         END DO
 
@@ -464,36 +476,36 @@ DO kSub=1,NumSubsZ
 END DO
 
 ! Define the local computational domain bounds (iMin:iMax,jMin:jMax,kMin:kMax)
-quotientX	= CEILING(REAL(nx)/NumSubsX)						! divide the number of nodes by the number of subdomains (round up)
-quotientY	= CEILING(REAL(ny)/NumSubsY)						! divide the number of nodes by the number of subdomains (round up)
-quotientZ	= CEILING(REAL(nz)/NumSubsZ)						! divide the number of nodes by the number of subdomains (round up)
+quotientX	= CEILING(REAL(nx_fine)/NumSubsX_fine)						! divide the number of nodes by the number of subdomains (round up)
+quotientY	= CEILING(REAL(ny_fine)/NumSubsY_fine)						! divide the number of nodes by the number of subdomains (round up)
+quotientZ	= CEILING(REAL(nz_fine)/NumSubsZ_fine)						! divide the number of nodes by the number of subdomains (round up)
 
-iMin = MOD(myid,NumSubsX)*quotientX + 1_lng					! starting local i index 
+iMin = MOD(myid,NumSubsX_fine)*quotientX + 1_lng					! starting local i index 
 iMax = iMin + (quotientX - 1_lng)								! ending local i index
 
-jMin = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1_lng	! starting local j index
+jMin = MOD((myid/NumSubsX_fine),NumSubsY_fine)*quotientY + 1_lng	! starting local j index
 jMax = jMin + (quotientY - 1_lng)								! ending local j index
 
-kMin = (myid/(NumSubsX*NumSubsY))*quotientZ + 1_lng		! starting local k index 
+kMin = (myid/(NumSubsX*NumSubsY_fine))*quotientZ_fine + 1_lng		! starting local k index 
 kMax = kMin + (quotientZ - 1_lng)								! ending local k index
 
 ! Check the bounds
 IF(iMax .GT. nx) THEN
-  iMax = nx																! if iMax is greater than nx, correct it
+  iMax = nx_fine																! if iMax is greater than nx, correct it
 END IF
 
 IF(jMax .GT. ny) THEN
-  jMax = ny																! if jMax is greater than ny, correct it
+  jMax = ny_fine																! if jMax is greater than ny, correct it
 END IF
 
 IF(kMax .GT. nz) THEN
-  kMax = nz																! if kMax is greater than nz, correct it
+  kMax = nz_fine																! if kMax is greater than nz, correct it
 END IF
 
 ! Determine the number of nodes in each direction
-nxSub = (iMax - iMin) + 1_lng
-nySub = (jMax - jMin) + 1_lng
-nzSub = (kMax - kMin) + 1_lng
+nxSub_fine = (iMax - iMin) + 1_lng
+nySub_fine = (jMax - jMin) + 1_lng
+nzSub_fine = (kMax - kMin) + 1_lng
 
 ! Write the local bounds to a file [TEST]
 !OPEN(171,FILE='localBounds-'//sub//'.dat')
@@ -502,7 +514,7 @@ nzSub = (kMax - kMin) + 1_lng
 !WRITE(171,*) 'kMin =', kMin, 'kMax=', kMax
 !WRITE(171,*) 
 !WRITE(171,*) 'nx =', nx, 'ny=', ny, 'nz=', nz
-!WRITE(171,*) 'nxSub =', nxSub, 'nySub=', nySub, 'nzSub=', nzSub
+!WRITE(171,*) 'nxSub_fine =', nxSub, 'nySub=', nySub, 'nzSub=', nzSub
 !WRITE(171,*) 
 !WRITE(171,*) 'quotientX =', quotientX
 !WRITE(171,*) 'quotientY =', quotientY
@@ -518,11 +530,11 @@ nzSub = (kMax - kMin) + 1_lng
 !STOP
 
 !------------------------------------------------
-END SUBROUTINE SubDomainSetup
+END SUBROUTINE SubDomainSetup_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE SetSubID(iComm,iiSub,jjSub,kkSub)									! sets SubID based on neighboring subdomains
+SUBROUTINE SetSubID_Fine(iComm,iiSub,jjSub,kkSub)									! sets SubID based on neighboring subdomains
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -534,162 +546,142 @@ IF(((jjSub .LT. 1) .OR. (jjSub .GT. NumSubsY))	.OR.	&
 !   ((kkSub .LT. 1) .OR. (kkSub .GT. NumSubsZ))	.OR. 	& 					! comment out for periodic BCs in the k-direction
    ((iiSub .LT. 1) .OR. (iiSub .GT. NumSubsX)))	THEN 
 
-  SubID(iComm) = 0_lng																! no neighbor
+  SubID_fine(iComm) = 0_lng																! no neighbor
 
 ELSE IF((kkSub .LT. 1)) THEN
 
   kkSub2 = NumSubsZ																	! reset kkSub for periodicity in the z-direction
   nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
-  SubID(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
+  SubID_fine(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
 
 ELSE IF((kkSub .GT. NumSubsZ)) THEN
 
   kkSub2 = 1_lng																		! reset kkSub for periodicity in the z-direction
   nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
-  SubID(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
+  SubID_fine(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
     
 ELSE
   
   nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub-1)*NumSubsX*NumSubsY		! neighboring subdomain ID
-  SubID(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
+  SubID_fine(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
 
 END IF
 
 !------------------------------------------------
-END SUBROUTINE SetSubID
+END SUBROUTINE SetSubID_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE AllocateArrays	! allocates array space
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-! Distribution Functions
-ALLOCATE(f(0:NumDistDirs,0:nxSub+1,0:nySub+1,0:nzSub+1),			&
-         fplus(0:NumDistDirs,0:nxSub+1,0:nySub+1,0:nzSub+1))
-! Velocity, Density
-ALLOCATE(u(0:nxSub+1,0:nySub+1,0:nzSub+1),							&
-         v(0:nxSub+1,0:nySub+1,0:nzSub+1),							&
-         w(0:nxSub+1,0:nySub+1,0:nzSub+1))
-ALLOCATE(rho(0:nxSub+1,0:nySub+1,0:nzSub+1))
-
-! Scalar
-ALLOCATE(phi(0:nxSub+1,0:nySub+1,0:nzSub+1), 						&
-         phiTemp(0:nxSub+1,0:nySub+1,0:nzSub+1))
-ALLOCATE(delphi_particle(0:nxSub+1,0:nySub+1,0:nzSub+1))
-
-! Node Flags
-ALLOCATE(node(0:nxSub+1,0:nySub+1,0:nzSub+1))
-
-! LBM Miscellaneous
-ALLOCATE(ex(0:NumDistDirs),ey(0:NumDistDirs),ez(0:NumDistDirs))
-ALLOCATE(bb(0:NumDistDirs),sym(0:NumDistDirs,0:NumDistDirs))
-ALLOCATE(wt(0:NumDistDirs))
-
-! MPI Communication Arrays
-ALLOCATE(f_Comps(NumCommDirs,MaxDistFns))					! specifies the components of the distribution functions to transfer in each MPI communication direction
-ALLOCATE(Corner_SendIndex(19:26,3))							! i, j, and k indices for each corner
-ALLOCATE(Corner_RecvIndex(19:26,3))							! i, j, and k indices for each corner (phantom node for recieving data)
-ALLOCATE(Z_SendIndex(7:10,2))									! i and j indices for each Z side 
-ALLOCATE(Z_RecvIndex(7:10,2))									! i and j indices for each Z side (phantom node for recieving data)
-ALLOCATE(X_SendIndex(11:14,2))								! j and k indices for each X side 
-ALLOCATE(X_RecvIndex(11:14,2))								! j and k indices for each X side (phantom node for recieving data)
-ALLOCATE(Y_SendIndex(15:18,2))								! i and k indices for each Y side 
-ALLOCATE(Y_RecvIndex(15:18,2))								! i and k indices for each Y side (phantom node for recieving data)
-ALLOCATE(YZ_SendIndex(1:2))									! i index for each YZ face 
-ALLOCATE(YZ_RecvIndex(1:2))									! i index for each YZ face (phantom node for recieving data)
-ALLOCATE(ZX_SendIndex(3:4))									! j index for each ZX face 
-ALLOCATE(ZX_RecvIndex(3:4))									! j index for each ZX face (phantom node for recieving data)
-ALLOCATE(XY_SendIndex(5:6))									! k index for each XY face 
-ALLOCATE(XY_RecvIndex(5:6))									! k index for each XY face (phantom node for recieving data)
-ALLOCATE(OppCommDir(NumCommDirs)) 							! opposite MPI communication directions (like bounceback) 
-ALLOCATE(CommDataStart_f(NumCommDirs))						! array of starting indices in the send arrays for the distribution functions from each communication direction 
-ALLOCATE(CommDataStart_rho(NumCommDirs))					! array of starting indices in the send arrays for the density from each communication direction
-ALLOCATE(CommDataStart_phi(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
-ALLOCATE(CommDataStart_u(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
-ALLOCATE(CommDataStart_v(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
-ALLOCATE(CommDataStart_w(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
-ALLOCATE(fSize(NumCommDirs))									! array of the number of elements sent for each communication direction (distribution functions)
-ALLOCATE(dsSize(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
-ALLOCATE(uvwSize(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
-ALLOCATE(msgSize(NumCommDirs))								! array of the number of elements sent for each communication direction (total)
-ALLOCATE(req(2*NumCommDirs))									! allocate the MPI send request array
-
-! Geometry Arrays
-ALLOCATE(rDom0(0:nz+1),rDom(0:nz+1),r(0:nzSub+1))		! intial and current radius (global), current radius (local)
-ALLOCATE(velDom(0:nz+1),vel(0:nzSub+1))					! global and local wall velocities
-ALLOCATE(x(0:nxSub+1),y(0:nySub+1),z(0:nzSub+1))		! x, y, z, physical coordinate arrays (local)
-ALLOCATE(xx(0:nx+1),yy(0:ny+1),zz(0:nz+1))				! x, y, z, physical coordinate arrays (global)
-
-!------------------------------------------------
-END SUBROUTINE AllocateArrays
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE DEAllocateArrays	! allocates array space
+SUBROUTINE AllocateArrays_Fine	! allocates array space
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
 ! Distribution Functions
-DEALLOCATE(f,fplus)
-
+ALLOCATE(f_fine(0:NumDistDirs,0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1),			&
+         fplus_fine(0:NumDistDirs,0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ! Velocity, Density
-DEALLOCATE(u,v,w,rho)
+ALLOCATE(u_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1),							&
+         v_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1),							&
+         w_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
+ALLOCATE(rho_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 
 ! Scalar
-DEALLOCATE(phi,phiTemp,delphi_particle)
+ALLOCATE(phi_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1), 						&
+         phiTemp_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
+ALLOCATE(delphi_particle_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 
 ! Node Flags
-DEALLOCATE(node)
-
-! LBM Miscellaneous
-DEALLOCATE(ex,ey,ez)
-DEALLOCATE(bb,sym)
-DEALLOCATE(wt)
+ALLOCATE(node_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 
 ! MPI Communication Arrays
-DEALLOCATE(f_Comps)					! specifies the components of the distribution functions to transfer in each MPI communication direction
-DEALLOCATE(Corner_SendIndex)		! i, j, and k indices for each corner
-DEALLOCATE(Corner_RecvIndex)		! i, j, and k indices for each corner (phantom node for recieving data)
-DEALLOCATE(Z_SendIndex)				! i and j indices for each Z side 
-DEALLOCATE(Z_RecvIndex)				! i and j indices for each Z side (phantom node for recieving data)
-DEALLOCATE(X_SendIndex)				! j and k indices for each X side 
-DEALLOCATE(X_RecvIndex)				! j and k indices for each X side (phantom node for recieving data)
-DEALLOCATE(Y_SendIndex)				! i and k indices for each Y side 
-DEALLOCATE(Y_RecvIndex)				! i and k indices for each Y side (phantom node for recieving data)
-DEALLOCATE(YZ_SendIndex)			! i index for each YZ face 
-DEALLOCATE(YZ_RecvIndex)			! i index for each YZ face (phantom node for recieving data)
-DEALLOCATE(ZX_SendIndex)			! j index for each ZX face 
-DEALLOCATE(ZX_RecvIndex)			! j index for each ZX face (phantom node for recieving data)
-DEALLOCATE(XY_SendIndex)			! k index for each XY face 
-DEALLOCATE(XY_RecvIndex)			! k index for each XY face (phantom node for recieving data)
-DEALLOCATE(OppCommDir) 				! opposite MPI communication directions (like bounceback) 
-DEALLOCATE(CommDataStart_f)		! array of starting indices in the send arrays for the distribution functions from each communication direction 
-DEALLOCATE(CommDataStart_rho)		! array of starting indices in the send arrays for the density from each communication direction
-DEALLOCATE(CommDataStart_phi)		! array of starting indices in the send arrays for the scalar from each communication direction
-DEALLOCATE(CommDataStart_u)		! array of starting indices in the send arrays for the scalar from each communication direction
-DEALLOCATE(CommDataStart_v)		! array of starting indices in the send arrays for the scalar from each communication direction
-DEALLOCATE(CommDataStart_w)		! array of starting indices in the send arrays for the scalar from each communication direction
-DEALLOCATE(fSize)						! array of the number of elements sent for each communication direction (distribution functions)
-DEALLOCATE(dsSize)					! array of the number of elements sent for each communication direction (density and scalar)
-DEALLOCATE(uvwSize)					! array of the number of elements sent for each communication direction (density and scalar)
-DEALLOCATE(msgSize)					! array of the number of elements sent for each communication direction (density and scalar)
-DEALLOCATE(req)						! array of MPI send/receive requests
-DEALLOCATE(waitStat)					! array of MPI_WAITALL requests
+ALLOCATE(Corner_SendIndex_fine(19:26,3))							! i, j, and k indices for each corner
+ALLOCATE(Corner_RecvIndex_fine(19:26,3))							! i, j, and k indices for each corner (phantom node for recieving data)
+ALLOCATE(Z_SendIndex_fine(7:10,2))									! i and j indices for each Z side 
+ALLOCATE(Z_RecvIndex_fine(7:10,2))									! i and j indices for each Z side (phantom node for recieving data)
+ALLOCATE(X_SendIndex_fine(11:14,2))								! j and k indices for each X side 
+ALLOCATE(X_RecvIndex_fine(11:14,2))								! j and k indices for each X side (phantom node for recieving data)
+ALLOCATE(Y_SendIndex_fine(15:18,2))								! i and k indices for each Y side 
+ALLOCATE(Y_RecvIndex_fine(15:18,2))								! i and k indices for each Y side (phantom node for recieving data)
+ALLOCATE(YZ_SendIndex_fine(1:2))									! i index for each YZ face 
+ALLOCATE(YZ_RecvIndex_fine(1:2))									! i index for each YZ face (phantom node for recieving data)
+ALLOCATE(ZX_SendIndex_fine(3:4))									! j index for each ZX face 
+ALLOCATE(ZX_RecvIndex_fine(3:4))									! j index for each ZX face (phantom node for recieving data)
+ALLOCATE(XY_SendIndex_fine(5:6))									! k index for each XY face 
+ALLOCATE(XY_RecvIndex_fine(5:6))									! k index for each XY face (phantom node for recieving data)
+ALLOCATE(CommDataStart_f_fine(NumCommDirs))						! array of starting indices in the send arrays for the distribution functions from each communication direction 
+ALLOCATE(CommDataStart_rho_fine(NumCommDirs))					! array of starting indices in the send arrays for the density from each communication direction
+ALLOCATE(CommDataStart_phi_fine(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
+ALLOCATE(CommDataStart_u_fine(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
+ALLOCATE(CommDataStart_v_fine(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
+ALLOCATE(CommDataStart_w_fine(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
+ALLOCATE(fSize_fine(NumCommDirs))									! array of the number of elements sent for each communication direction (distribution functions)
+ALLOCATE(dsSize_fine(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
+ALLOCATE(uvwSize_fine(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
+ALLOCATE(msgSize_fine(NumCommDirs))								! array of the number of elements sent for each communication direction (total)
+ALLOCATE(req_fine(2*NumCommDirs))									! allocate the MPI send request array
 
 ! Geometry Arrays
-DEALLOCATE(rDom0,rDom,r)			! intial and current radius (global), current radius (local)
-DEALLOCATE(velDom,vel)				! global and local wall velocities
-DEALLOCATE(x,y,z)						! x, y, z, physical coordinate arrays (local)
-DEALLOCATE(villiLoc)					! location of the villi
-IF(randORord .EQ. RANDOM) THEN
-  DEALLOCATE(rnd)						! array of random numbers for random villi phase angles
-END IF
-!Particle arrays
-DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNBbyCV)
-DEALLOCATE(par_conc,bulk_conc,sh,gamma_cont,rpold)
+ALLOCATE(rDom0_fine(0:nz_fine+1),rDom_fine(0:nz_fine+1),r_fine(0:nzSub_fine+1))		! intial and current radius (global), current radius (local)
+ALLOCATE(velDom(0:nz_fine+1),vel(0:nzSub_fine+1))					! global and local wall velocities
+ALLOCATE(x_fine(0:nxSub_fine+1),y_fine(0:nySub_fine+1),z_fine(0:nzSub_fine+1))		! x, y, z, physical coordinate arrays (local)
+ALLOCATE(xx_fine(0:nx_fine+1),yy_fine(0:ny_fine+1),zz_fine(0:nz_fine+1))				! x, y, z, physical coordinate arrays (global)
+
 !------------------------------------------------
-END SUBROUTINE DEAllocateArrays
+END SUBROUTINE AllocateArrays_Fine
+!------------------------------------------------
+
+!--------------------------------------------------------------------------------------------------
+SUBROUTINE DEAllocateArrays_Fine	! allocates array space
+!--------------------------------------------------------------------------------------------------
+IMPLICIT NONE
+
+! Distribution Functions
+DEALLOCATE(f_fine,fplus_fine)
+
+! Velocity, Density
+DEALLOCATE(u_fine,v_fine,w_fine,rho_fine)
+
+! Scalar
+DEALLOCATE(phi_fine,phiTemp_fine,delphi_particle_fine)
+
+! Node Flags
+DEALLOCATE(node_fine)
+
+! MPI Communication Arrays
+DEALLOCATE(Corner_SendIndex_fine)		! i, j, and k indices for each corner
+DEALLOCATE(Corner_RecvIndex_fine)		! i, j, and k indices for each corner (phantom node for recieving data)
+DEALLOCATE(Z_SendIndex_fine)				! i and j indices for each Z side 
+DEALLOCATE(Z_RecvIndex_fine)				! i and j indices for each Z side (phantom node for recieving data)
+DEALLOCATE(X_SendIndex_fine)				! j and k indices for each X side 
+DEALLOCATE(X_RecvIndex_fine)				! j and k indices for each X side (phantom node for recieving data)
+DEALLOCATE(Y_SendIndex_fine)				! i and k indices for each Y side 
+DEALLOCATE(Y_RecvIndex_fine)				! i and k indices for each Y side (phantom node for recieving data)
+DEALLOCATE(YZ_SendIndex_fine)			! i index for each YZ face 
+DEALLOCATE(YZ_RecvIndex_fine)			! i index for each YZ face (phantom node for recieving data)
+DEALLOCATE(ZX_SendIndex_fine)			! j index for each ZX face 
+DEALLOCATE(ZX_RecvIndex_fine)			! j index for each ZX face (phantom node for recieving data)
+DEALLOCATE(XY_SendIndex_fine)			! k index for each XY face 
+DEALLOCATE(XY_RecvIndex_fine)			! k index for each XY face (phantom node for recieving data)
+DEALLOCATE(OppCommDir_fine) 				! opposite MPI communication directions (like bounceback) 
+DEALLOCATE(CommDataStart_f_fine)		! array of starting indices in the send arrays for the distribution functions from each communication direction 
+DEALLOCATE(CommDataStart_rho_fine)		! array of starting indices in the send arrays for the density from each communication direction
+DEALLOCATE(CommDataStart_phi_fine)		! array of starting indices in the send arrays for the scalar from each communication direction
+DEALLOCATE(CommDataStart_u_fine)		! array of starting indices in the send arrays for the scalar from each communication direction
+DEALLOCATE(CommDataStart_v_fine)		! array of starting indices in the send arrays for the scalar from each communication direction
+DEALLOCATE(CommDataStart_w_fine)		! array of starting indices in the send arrays for the scalar from each communication direction
+DEALLOCATE(fSize_fine)						! array of the number of elements sent for each communication direction (distribution functions)
+DEALLOCATE(dsSize_fine)					! array of the number of elements sent for each communication direction (density and scalar)
+DEALLOCATE(uvwSize_fine)					! array of the number of elements sent for each communication direction (density and scalar)
+DEALLOCATE(msgSize_fine)					! array of the number of elements sent for each communication direction (density and scalar)
+DEALLOCATE(req_fine)						! array of MPI send/receive requests
+DEALLOCATE(waitStat_fine)					! array of MPI_WAITALL requests
+
+! Geometry Arrays
+DEALLOCATE(rDom0_fine,rDom_fine,r_fine)			! intial and current radius (global), current radius (local)
+DEALLOCATE(velDom_fine,vel_fine)				! global and local wall velocities
+DEALLOCATE(x_fine,y_fine,z_fine)						! x, y, z, physical coordinate arrays (local)
+!------------------------------------------------
+END SUBROUTINE DEAllocateArrays_Fine
 !------------------------------------------------
 
 !================================================
