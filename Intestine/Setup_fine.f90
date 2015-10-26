@@ -1,7 +1,8 @@
 !==================================================================================================
-MODULE Setup !Defines global variables, reads input from file, allocates arrays
+MODULE Setup_fine !Defines global variables, reads input from file, allocates arrays
 !==================================================================================================
 USE SetPrecision
+USE Setup
 
 IMPLICIT NONE
 
@@ -704,5 +705,5 @@ END SUBROUTINE DEAllocateArrays
 !------------------------------------------------
 
 !================================================
-END MODULE Setup
+END MODULE Setup_fine
 !================================================
