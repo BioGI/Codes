@@ -93,24 +93,24 @@ INTEGER(lng), ALLOCATABLE :: XY_SendIndex_fine(:)										! k index for each XY
 INTEGER(lng), ALLOCATABLE :: XY_RecvIndex_fine(:)										! k index for each XY face (phantom node for recieving data)
 INTEGER(lng), ALLOCATABLE :: SubID(:)												! id number of neighboring subdomains (same as rank of processing unit working on domain)
 INTEGER(lng), ALLOCATABLE :: OppCommDir(:) 										! opposite MPI communication directions (like bounceback) 
-INTEGER(lng), ALLOCATABLE :: CommDataStart_f(:)									! array of starting indices in the send arrays for the distribution functions from each communication direction 
-INTEGER(lng), ALLOCATABLE :: CommDataStart_rho(:)								! array of starting indices in the send arrays for the density from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_phi(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_u(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_v(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: CommDataStart_w(:)								! array of starting indices in the send arrays for the scalar from each communication direction
-INTEGER(lng), ALLOCATABLE :: fSize(:)												! array of the number of elements sent for each communication direction (distribution functions)
-INTEGER(lng), ALLOCATABLE :: dsSize(:)												! array of the number of elements sent for each communication direction (density and scalar)
-INTEGER(lng), ALLOCATABLE :: uvwSize(:)												! array of the number of elements sent for each communication direction (density and scalar)
-INTEGER(lng), ALLOCATABLE :: msgSize(:)											! array of the number of elements sent for each communication direction (density and scalar)
-INTEGER(lng), ALLOCATABLE :: req(:)													! array of MPI send/receive requests 
-INTEGER(lng), ALLOCATABLE :: waitStat(:,:)										! array of MPI_WAITALL status objects
+INTEGER(lng), ALLOCATABLE :: CommDataStart_f_fine(:)									! array of starting indices in the send arrays for the distribution functions from each communication direction 
+INTEGER(lng), ALLOCATABLE :: CommDataStart_rho_fine(:)								! array of starting indices in the send arrays for the density from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_phi_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_u_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_v_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_w_fine(:)								! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: fSize_fine(:)												! array of the number of elements sent for each communication direction (distribution functions)
+INTEGER(lng), ALLOCATABLE :: dsSize_fine(:)												! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: uvwSize_fine(:)												! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: msgSize_fine(:)											! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: req_fine(:)													! array of MPI send/receive requests 
+INTEGER(lng), ALLOCATABLE :: waitStat_fine(:,:)										! array of MPI_WAITALL status objects
 
-REAL(dbl), ALLOCATABLE :: msgSend(:)												! array of ALL of the sent information (total)
-REAL(dbl), ALLOCATABLE :: msgRecv(:)												! array of ALL of the received information (total)
+REAL(dbl), ALLOCATABLE :: msgSend_fine(:)												! array of ALL of the sent information (total)
+REAL(dbl), ALLOCATABLE :: msgRecv_fine(:)												! array of ALL of the received information (total)
 
 ! MPI Variables
-INTEGER(lng), PARAMETER :: master = 0_lng											! rank (id) of the master processing unit
+! master = 0_lng - same as Setup
 INTEGER(lng) 				:: numprocs, myid, mySub 								! number of processing units, rank of current processing unit, subdomain of current processing unit
 
 REAL(dbl) 					:: CommTime_f0, CommTime_fEnd, CommTime_f			! communication time - distribution functions: start time, end time, current time
