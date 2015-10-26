@@ -4,6 +4,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !==================================================================================================
 	USE SetPrecision 
    	USE Setup
+   	USE Setup_fine
 	USE Parallel    
 	USE LBM      
 	USE Geometry
@@ -23,7 +24,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simulation Setup ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	CALL Global_Setup													! set up the simulation {MODULE: Setup]
+	CALL Global_Setup_fine													! set up the simulation {MODULE: Setup]
 
 !OPEN(6678,FILE='debug.'//sub//'.txt')
 !WRITE(6678,*) 'hello from processor', myid

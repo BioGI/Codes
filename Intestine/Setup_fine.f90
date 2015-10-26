@@ -28,7 +28,7 @@ REAL(dbl)		:: tau_fine            ! relaxation parameters of coarse and fine blo
 REAL(dbl)		:: oneOVERtau_fine     ! reciprical of tau
 INTEGER(lng)	:: nx_fine,ny_fine,nz_fine     ! number of global nodes in the x, y, and z directions respectively
 INTEGER(lng)	:: nxSub_fine,nySub_fine,nzSub_fine   ! number of local nodes in the each direction
-INTEGER(lng)	:: iter0,iter,nt		      ! initial time step, timestep index, total number of timesteps
+INTEGER(lng)	:: iter0_fine,iter_fine,nt_fine	      ! initial time step, timestep index, total number of timesteps
 ! domaintype - same as Setup
 ! FLUID - same as Setup
 ! SOLID - same as Setup
@@ -45,7 +45,7 @@ REAL(dbl), ALLOCATABLE :: delphi_particle_fine(:,:,:)	! passive scalar contribut
 REAL(dbl), ALLOCATABLE :: phiTemp_fine(:,:,:)		! temporary storage of passive scalar
 ! Sc - same as Setup
 ! Dm,Dmcf - same as Setup
-REAL(dbl) :: Delta									! scalar parameter
+REAL(dbl) :: Delta_fine									! scalar parameter
 ! phiIC, phiWall - same as Setup
 ! phiAbsorbed - same as Setup
 ! phiAbsorbedS - same as Setup
@@ -486,7 +486,7 @@ iMax = iMin + (quotientX - 1_lng)								! ending local i index
 jMin = MOD((myid/NumSubsX_fine),NumSubsY_fine)*quotientY + 1_lng	! starting local j index
 jMax = jMin + (quotientY - 1_lng)								! ending local j index
 
-kMin = (myid/(NumSubsX*NumSubsY_fine))*quotientZ_fine + 1_lng		! starting local k index 
+kMin = (myid/(NumSubsX_fine*NumSubsY_fine))*quotientZ + 1_lng		! starting local k index 
 kMax = kMin + (quotientZ - 1_lng)								! ending local k index
 
 ! Check the bounds
