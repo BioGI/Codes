@@ -160,6 +160,7 @@ INTEGER(lng)	:: Ci_fine,Cj_fine,Ck_fine ! center node location (global)
 
 ! PI = 3.1415926535897932384626433832 - same as Setup
 ! D, L - same as Setup
+REAL(dbl) :: fractionDfine						! fraction of the diameter used for the fine mesh
 ! a1, a2 - same as Setup
 ! eps1, eps2 - same as Setup
 ! amp1, amp2 - same as Setup
@@ -254,6 +255,7 @@ READ(10,*) NumSubsZ_fine		! number of subdomains in the Z direction - fine mesh
 
 READ(10,*) L					! length
 READ(10,*) D					! diameter
+READ(10,*) fractionDfine			! fraction of the diameter used for the fine mesh
 
 READ(10,*) epsOVERa1			! peristaltic occlusion ratio (distance of occlusion/mean half-width)
 READ(10,*) s1					! peristaltic wave speed
