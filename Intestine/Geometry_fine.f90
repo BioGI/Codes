@@ -1,11 +1,12 @@
 !==================================================================================================
-MODULE Geometry	! Defines the geometry for the simulation
+MODULE Geometry_fine	! Defines the geometry for the fine mesh in the simulation
 						! Subroutines (NodeFlags, BoundaryVelocity)
 !==================================================================================================
 USE SetPrecision      
 USE Setup
-USE LBM
-USE ICBC
+USE Setup_fine
+USE LBM_fine
+USE ICBC_fine
 USE MPI
 
 IMPLICIT NONE 
@@ -13,7 +14,7 @@ IMPLICIT NONE
 CONTAINS
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE Geometry_Setup					! sets up the geometry
+SUBROUTINE Geometry_Setup_fine					! sets up the geometry
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -27,23 +28,23 @@ INTEGER(lng) :: xaxis,yaxis								! axes index variables
 
 ! Define the lattice <=> physical conversion factors
 IF(domaintype .EQ. 0) THEN
-        xcf 		= (0.5_lng*D)/(nx-1_lng)		! length conversion factor: x-direction
-        ycf 		= (0.5_lng*D)/(ny-1_lng)		! length conversion factor: y-direction
+        xcf_fine	= (0.5_lng*D)/(nx-1_lng)		! length conversion factor: x-direction
+        ycf_fine	= (0.5_lng*D)/(ny-1_lng)		! length conversion factor: y-direction
 ELSE
         ! begin Balaji added
-        xcf 		= (1.0_lng*D)/(nx-1_lng)		! length conversion factor: x-direction
-        ycf 		= (1.0_lng*D)/(ny-1_lng)		! length conversion factor: y-direction
+        xcf_fine	= (1.0_lng*D*fractionDfine)/(nx_fine-1_lng)		! length conversion factor: x-direction
+        ycf_fine	= (1.0_lng*D*fractionDfine)/(ny_fine-1_lng)		! length conversion factor: y-direction
         ! end Balaji added
 ENDIF
 
-zcf 		= L/nz								! length conversion factor: z-direction
-tcf 		= nuL*((xcf*xcf)/nu)				! time conversion factor
-dcf 		= den/denL							! density conversion factor
-vcf 		= xcf/tcf							! velocity conversion factor
-pcf 		= cs*cs*vcf*vcf					! pressure conversion factor
+zcf_fine 		= L/nz_fine					! length conversion factor: z-direction
+tcf_fine 		= nuL*((xcf_fine*xcf_fine)/nu)				! time conversion factor
+dcf_fine 		= den/denL							! density conversion factor
+vcf_fine 		= xcf_fine/tcf_fine							! velocity conversion factor
+pcf_fine 		= cs*cs*vcf_fine*vcf_fine					! pressure conversion factor
 
 ! Determine the number of time steps to run
-nt = ANINT((nPers*Tmix)/tcf)
+nt = ANINT((nPers*Tmix)/tcf_fine)
 
 ! Initialize arrays
 node		= -99_lng							! node flag array
@@ -52,11 +53,11 @@ r			= 0.0_dbl							! temporary radius array for entire computational domain
 velDom	= 0.0_dbl							! wall velocity at each z-location (global)
 vel		= 0.0_dbl							! wall velocity at each z-location (local)
 
-! Check to ensure xcf=ycf=zcf (LBM grid must be cubic)
-IF((ABS(xcf-ycf) .GE. 1E-8) .OR. (ABS(xcf-zcf) .GE. 1E-8) .OR. (ABS(ycf-zcf) .GE. 1E-8)) THEN
+! Check to ensure xcf_fine=ycf_fine=zcf_fine (LBM grid must be cubic)
+IF((ABS(xcf_fine-ycf_fine) .GE. 1E-8) .OR. (ABS(xcf_fine-zcf_fine) .GE. 1E-8) .OR. (ABS(ycf_fine-zcf_fine) .GE. 1E-8)) THEN
   OPEN(1000,FILE="error.txt")
   WRITE(1000,*) "Conversion factors not equal... Geometry_Setup.f90: Line 93."
-  WRITE(1000,*) "xcf=", xcf, "ycf=", ycf, "zcf=", zcf
+  WRITE(1000,*) "xcf_fine=", xcf_fine, "ycf_fine=", ycf_fine, "zcf_fine=", zcf_fine
   WRITE(1000,*) "L=", L, "D=", D
   WRITE(1000,*) "nx=", nx, "ny=", ny, "nz=", nz
   CLOSE(1000)
@@ -68,28 +69,28 @@ END IF
 IF(domaintype .EQ. 0) THEN 
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub+1
-        x(i) = ((iMin - 1_lng) + (i-1_lng))*xcf
+        x(i) = ((iMin - 1_lng) + (i-1_lng))*xcf_fine
       END DO
       
       DO j=0,nySub+1
-        y(j) = ((jMin - 1_lng) + (j-1_lng))*ycf
+        y(j) = ((jMin - 1_lng) + (j-1_lng))*ycf_fine
       END DO
       
       DO k=0,nzSub+1
-        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf
+        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
       DO i=0,nx+1
-        xx(i) = (i-1_lng)*xcf
+        xx(i) = (i-1_lng)*xcf_fine
       END DO
       
       DO j=0,ny+1
-        yy(j) = (j-1_lng)*ycf
+        yy(j) = (j-1_lng)*ycf_fine
       END DO
       
       DO k=0,nz+1
-        zz(k) = (k - 0.5_dbl)*zcf
+        zz(k) = (k - 0.5_dbl)*zcf_fine
       END DO
       
       ! Center node locations
@@ -105,28 +106,28 @@ ELSE
       
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub+1
-        x(i) = ((iMin - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf
+        x(i) = ((iMin - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf_fine
       END DO
       
       DO j=0,nySub+1
-        y(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf
+        y(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf_fine
       END DO
       
       DO k=0,nzSub+1
-        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf
+        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
       DO i=0,nx+1
-        xx(i) = (i-1_lng-(xaxis-1_lng))*xcf
+        xx(i) = (i-1_lng-(xaxis-1_lng))*xcf_fine
       END DO
       
       DO j=0,ny+1
-        yy(j) = (j-1_lng-(yaxis-1_lng))*ycf
+        yy(j) = (j-1_lng-(yaxis-1_lng))*ycf_fine
       END DO
       
       DO k=0,nz+1
-        zz(k) = (k - 0.5_dbl)*zcf
+        zz(k) = (k - 0.5_dbl)*zcf_fine
       END DO
       
       ! Center node locations
@@ -304,7 +305,7 @@ h2 	= 0.0_dbl						! mode 2 height
 rDom	= 0.0_dbl						! summed height
 
 ! Current Physical Time
-time	= iter*tcf
+time	= iter*tcf_fine
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz-1
@@ -441,7 +442,7 @@ r(0:nzSub+1) = rDom(kMin-1:kMax+1)
 !END IF
 !
 !OPEN(697,FILE='r-'//sub//'.dat',POSITION='APPEND')
-!WRITE(697,*) 'ZONE T="', (iter*tcf)/Tmix, '" I=', nzSub+2,' F=POINT'
+!WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub+2,' F=POINT'
 !
 !DO k=0,nzSub+1
 !  WRITE(697,*) z(k), r(k)
@@ -472,7 +473,7 @@ IF(myid .EQ. master) THEN
 !    END IF
 !
 !    OPEN(697,FILE='rZones.dat',POSITION='APPEND')
-!    WRITE(697,*) 'ZONE T="', (iter*tcf)/Tmix, '" I=', nzSub+2,' F=POINT'
+!    WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub+2,' F=POINT'
 !
 !    DO kk=0,nzSub+1
 !      WRITE(697,*) zz(kk), rDom(kk)
@@ -569,7 +570,7 @@ n = 0_lng
 DO nvz=1,numVilliZ
 
   vz 	= L*(REAL(nvz - 0.5_dbl)/(REAL(numVilliZ)))							! z location of the villus (real)
-  ivz	= NINT(vz/zcf)																	! k location of the villus (integer)												
+  ivz	= NINT(vz/zcf_fine)																	! k location of the villus (integer)												
 
   DO nvt=1,numVilliTheta 
       
@@ -609,7 +610,7 @@ REAL(dbl) :: time							! time
 DO n=1,numVilli
 
   ! current time
-  time = iter*tcf
+  time = iter*tcf_fine
 
   ! store thetaR and thetaX from the previous iteration
   villiLoc(n,9) = villiLoc(n,5)		! thetaR at previous timestep
@@ -621,7 +622,7 @@ DO n=1,numVilli
   vz = villiLoc(n,3)
 
   ! ---------------- passive movement from "riding" on the intestinal wall ------------------------
-  ivz = vz/zcf									! k node location (along axial direction)
+  ivz = vz/zcf_fine									! k node location (along axial direction)
   rL = rDom(ivz-1)							! radius of the node to the left of the current villus (k-1)
   rR = rDom(ivz+1)							! radius of the node to the right of the current villus (k+1)
   zL = zz(ivz-1)								! axial distance of the node to the left of the current villus (k-1)
@@ -724,7 +725,7 @@ v1			= 0.0_dbl						! mode 1 velocity
 v2 		= 0.0_dbl						! mode 2 velocity				
 
 ! Current Physical Time
-time = iter*tcf
+time = iter*tcf_fine
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 !DO i=1,nz
@@ -813,7 +814,7 @@ END DO
 !----------------------------------------------------------------------------
 
 ! Fill out the local velocity array
-vel(0:nzSub+1) = velDom(kMin-1:kMax+1)/vcf
+vel(0:nzSub+1) = velDom(kMin-1:kMax+1)/vcf_fine
 
 !IF(iter .EQ. 1) THEN
 !  OPEN(698,FILE='vel-'//sub//'.dat')
@@ -822,7 +823,7 @@ vel(0:nzSub+1) = velDom(kMin-1:kMax+1)/vcf
 !END IF
 !
 !OPEN(698,FILE='vel-'//sub//'.dat',POSITION='APPEND')
-!WRITE(698,*) 'ZONE T="', (iter*tcf)/T, '" I=', nzSub+2,' F=POINT'
+!WRITE(698,*) 'ZONE T="', (iter*tcf_fine)/T, '" I=', nzSub+2,' F=POINT'
 !
 !DO kk=0,nzSub+1
 !  WRITE(698,*) z(kk), vel(kk)
@@ -1018,7 +1019,7 @@ ENDIF
 !
 !IF((MOD(iter,(nt/100))) .EQ. 0 .OR. (iter .EQ. 1)) THEN
 !  OPEN(699,FILE='flag-'//sub//'.dat',POSITION='APPEND')
-!  WRITE(699,'(A8,E15.5,3(A5,I4),A9)') 'ZONE T="', (iter*tcf)/Tmix, '" I=', nxSub+2,' J=', nySub+2,' K=', nzSub+2,' F=POINT'
+!  WRITE(699,'(A8,E15.5,3(A5,I4),A9)') 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nxSub+2,' J=', nySub+2,' K=', nzSub+2,' F=POINT'
 !  DO k=0,nzSub+1
 !    DO j=0,nySub+1
 !      DO i=0,nxSub+1
@@ -1065,12 +1066,12 @@ DO nvz=1,numVilliZ
 
       n = (nvz-1_lng)*numVilliTheta + nvt										! villus number
 
-      iminV = MIN(villiLoc(n,1)/xcf, villiLoc(n,6)/xcf) - INT(ANINT(1.5_dbl*Rv/xcf))
-      imaxV = MAX(villiLoc(n,1)/xcf, villiLoc(n,6)/xcf) + INT(ANINT(1.5_dbl*Rv/xcf))
-      jminV = MIN(villiLoc(n,2)/ycf, villiLoc(n,7)/ycf) - INT(ANINT(1.5_dbl*Rv/ycf))
-      jmaxV = MAX(villiLoc(n,2)/ycf, villiLoc(n,7)/ycf) + INT(ANINT(1.5_dbl*Rv/ycf))
-      kminV = MIN((villiLoc(n,3)/zcf+0.5_dbl), (villiLoc(n,8)/zcf+0.5_dbl)) - INT(ANINT(1.5_dbl*Rv/zcf))
-      kmaxV = MAX((villiLoc(n,3)/zcf+0.5_dbl), (villiLoc(n,8)/zcf+0.5_dbl)) + INT(ANINT(1.5_dbl*Rv/zcf))
+      iminV = MIN(villiLoc(n,1)/xcf_fine, villiLoc(n,6)/xcf_fine) - INT(ANINT(1.5_dbl*Rv/xcf_fine))
+      imaxV = MAX(villiLoc(n,1)/xcf_fine, villiLoc(n,6)/xcf_fine) + INT(ANINT(1.5_dbl*Rv/xcf_fine))
+      jminV = MIN(villiLoc(n,2)/ycf_fine, villiLoc(n,7)/ycf_fine) - INT(ANINT(1.5_dbl*Rv/ycf_fine))
+      jmaxV = MAX(villiLoc(n,2)/ycf_fine, villiLoc(n,7)/ycf_fine) + INT(ANINT(1.5_dbl*Rv/ycf_fine))
+      kminV = MIN((villiLoc(n,3)/zcf_fine+0.5_dbl), (villiLoc(n,8)/zcf_fine+0.5_dbl)) - INT(ANINT(1.5_dbl*Rv/zcf_fine))
+      kmaxV = MAX((villiLoc(n,3)/zcf_fine+0.5_dbl), (villiLoc(n,8)/zcf_fine+0.5_dbl)) + INT(ANINT(1.5_dbl*Rv/zcf_fine))
 
       DO kk=kminV,kmaxV
         DO jj=jminV,jmaxV
