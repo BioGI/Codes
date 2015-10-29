@@ -8,6 +8,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	USE Parallel    
 	USE LBM      
 	USE Geometry
+	USE Geometry_fine
 	USE PassiveScalar
 	USE ICBC	
 	USE Output

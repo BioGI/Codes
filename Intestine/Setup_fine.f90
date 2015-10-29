@@ -47,11 +47,11 @@ REAL(dbl), ALLOCATABLE :: phiTemp_fine(:,:,:)		! temporary storage of passive sc
 ! Dm,Dmcf - same as Setup
 REAL(dbl) :: Delta_fine									! scalar parameter
 ! phiIC, phiWall - same as Setup
-! phiAbsorbed - same as Setup
-! phiAbsorbedS - same as Setup
-! phiAbsorbedV - same as Setup
-! phiInOut - same as Setup
-! phiTotal - same as Setup
+REAL(dbl) :: phiAbsorbed_fine							! total amount of scalar absorbed up to current time
+REAL(dbl) :: phiAbsorbedS_fine							! total amount of scalar absorbed up to current time - through the macroscopic surface
+REAL(dbl) :: phiAbsorbedV_fine							! total amount of scalar absorbed up to current time - through the villi
+REAL(dbl) :: phiInOut_fine							! total amount of scalar leaving/entering the domain
+REAL(dbl) :: phiTotal_fine							! total intial amount of scalar in the domain
 ! sigma - same as Setup
 ! phiPer - same as Setup
 ! phiStart - same as Setup

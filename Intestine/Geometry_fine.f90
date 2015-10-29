@@ -429,7 +429,7 @@ DO k=1,nzSub_fine
 
       IF(rijk .LT. r(k)) THEN
 
-         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+         IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
@@ -473,7 +473,7 @@ DO iComm=1,2
 
       IF(rijk .LT. r(k)) THEN
 
-         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+         IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
@@ -504,7 +504,7 @@ DO iComm=3,4
 
       IF(rijk .LT. r(k)) THEN
 
-         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+         IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
@@ -536,7 +536,7 @@ DO iComm=5,6
 
       IF(rijk .LT. r(k)) THEN
 
-         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+         IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
@@ -553,13 +553,6 @@ DO iComm=5,6
   END DO
 
 END DO
-
-! Balaji added to make domain full 3D
-IF(domaintype .EQ. 0) THEN  ! only needed when planes of symmetry exist
-	CALL SymmetryBC																						!	ensure symmetric node placement
-	!CALL SymmetryBC_NODE																				!	ensure symmetric node placement
-ENDIF
-
 
 !------------------------------------------------
 END SUBROUTINE SetNodes_fine
@@ -621,7 +614,7 @@ phi_fine(i,j,k)	= phiWall							! scalar
 
 ! distribution functions (set to equilibrium)
 DO m=0,NumDistDirs
-  CALL Equilibrium_LOCAL(m,rho_fine(i,j,k),u_fine(i,j,k),v_fine(i,j,k),w_fine(i,j,k),feq)	! distribution functions
+  CALL Equilibrium_LOCAL_fine(m,rho_fine(i,j,k),u_fine(i,j,k),v_fine(i,j,k),w_fine(i,j,k),feq)	! distribution functions
   f_fine(m,i,j,k) = feq
 END DO
 

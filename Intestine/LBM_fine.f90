@@ -153,7 +153,7 @@ DO k=2,nzSub_fine-1
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN														 ! macro- boundary
             ! CALL BounceBack2(m,i,j,k,im1,jm1,km1,fbb)					  										 ! implement the bounceback BCs [MODULE: ICBC]
 	    ! Balaji added after commenting out the earlier method
-            CALL BounceBack2New(m,i,j,k,im1,jm1,km1,fbb)					  										! implement the bounceback BCs [MODULE: ICBC]
+            CALL BounceBack2New_fine(m,i,j,k,im1,jm1,km1,fbb)					  										! implement the bounceback BCs [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
@@ -201,7 +201,7 @@ DO k=1,nzSub_fine,(nzSub_fine-1)
             f_fine(m,i,j,k) = fplus_fine(m,im1,jm1,km1)            
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN
             ! macro- boundary
-            CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  												! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
+            CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)			  												! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
@@ -244,7 +244,7 @@ DO j=1,nySub_fine,(nySub_fine-1)
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
             f_fine(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
-            CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
+            CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
@@ -286,7 +286,7 @@ DO i=1,nxSub_fine,(nxSub_fine-1)
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN 
             f_fine(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
-            CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
+            CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
@@ -377,7 +377,7 @@ DO k=1,nzSub_fine
           WRITE(1001,'(8E15.5,I6)') x_fine(i), y_fine(j), z_fine(k), u_fine(i,j,k), v_fine(i,j,k), w_fine(i,j,k), (rho_fine(i,j,k)-denL)*dcf_fine*pcf_fine, phi_fine(i,j,k), node_fine(i,j,k)
           CLOSE(1001)
 
-          CALL PrintFieldsTEST										! output the velocity, density, and scalar fields [MODULE: Output]
+          CALL PrintFieldsTEST_fine										! output the velocity, density, and scalar fields [MODULE: Output]
 
           STOP
 

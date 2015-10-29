@@ -62,8 +62,8 @@ ELSE															! clean start
 	! Balaji added
 	! distribution functions (set to equilibrium)
 	DO m=0,NumDistDirs
-	  CALL Equilibrium_LOCAL(m,rho(i,j,k),u(i,j,k),v(i,j,k),w(i,j,k),feq)	! distribution functions
-	  f(m,i,j,k) = feq
+	  CALL Equilibrium_LOCAL_fine(m,rho_fine(i,j,k),u_fine(i,j,k),v_fine(i,j,k),w_fine(i,j,k),feq)	! distribution functions
+	  f_fine(m,i,j,k) = feq
 	END DO
 
       END DO
@@ -75,11 +75,11 @@ ELSE															! clean start
   !iter0 = 0_lng
 
   ! Initialize scalar values
-  phiAbsorbed	= 0.0_dbl								! total amount of scalar absorbed
-  phiAbsorbedS	= 0.0_dbl								! total amount of scalar absorbed through the macroscopic surface
-  phiAbsorbedV	= 0.0_dbl								! total amount of scalar absorbed through the villi
-  phiInOut	= 0.0_dbl								! total amount of scalar leaving the inlet/outlet
-  delphi_particle = 0.0_dbl								! Initialize the scalar contirbution from particles to 0.0. Once the particle
+  phiAbsorbed_fine	= 0.0_dbl								! total amount of scalar absorbed
+  phiAbsorbedS_fine	= 0.0_dbl								! total amount of scalar absorbed through the macroscopic surface
+  phiAbsorbedV_fine	= 0.0_dbl								! total amount of scalar absorbed through the villi
+  phiInOut_fine	= 0.0_dbl								! total amount of scalar leaving the inlet/outlet
+  delphi_particle_fine = 0.0_dbl								! Initialize the scalar contirbution from particles to 0.0. Once the particle
 											! data is read, we can interpolate to get the delphi_particle. In any event, thi
 										! variable is designed to store temporary data. 
 
@@ -638,5 +638,5 @@ END SUBROUTINE Equilibrium_LOCAL_fine
 !------------------------------------------------
 
 !================================================
-END MODULE ICBC
+END MODULE ICBC_FINE
 !================================================
