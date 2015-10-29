@@ -98,8 +98,8 @@ IF(domaintype .EQ. 0) THEN
 ELSE
       ! begin Balaji added 
       !INTEGER(lng) :: xaxis,yaxis								! axes index variables
-      xaxis=ANINT(0.5_dbl*(nx_fine+1))
-      yaxis=ANINT(0.5_dbl*(ny_fine+1))
+      ! xaxis=ANINT(0.5_dbl*(nx_fine+1))
+      ! yaxis=ANINT(0.5_dbl*(ny_fine+1))
       
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub_fine+1
@@ -128,9 +128,9 @@ ELSE
       END DO
       
       ! Center node locations
-      Ci = xaxis
-      Cj = yaxis
-      Ck = ANINT(0.5_dbl*nz)
+      ! Ci = xaxis
+      ! Cj = yaxis
+      ! Ck = ANINT(0.5_dbl*nz)
       ! end Balaji added 
 ENDIF
 ! Mode 1 - Peristalsis
