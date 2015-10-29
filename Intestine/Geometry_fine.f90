@@ -361,7 +361,7 @@ END SUBROUTINE SurfaceArea
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE BoundaryVelocity			! defines the velocity of the solid boundaries (fills "ub", "vb", and "wb" arrays)
+SUBROUTINE BoundaryVelocity_fine	! defines the velocity of the solid boundaries (fills "ub", "vb", and "wb" arrays)
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE 
 
@@ -372,27 +372,22 @@ INTEGER(lng) :: i,j,ii					! indices
 
 ! Initialize Variables
 time		= 0.0_dbl						! time
-velDom	= 0.0_dbl						! summed velocity
-v1			= 0.0_dbl						! mode 1 velocity
+velDom_fine	= 0.0_dbl						! summed velocity
+v1		= 0.0_dbl						! mode 1 velocity
 v2 		= 0.0_dbl						! mode 2 velocity				
 
 ! Current Physical Time
-time = iter*tcf_fine
+time = iter*tcf
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 !DO i=1,nz
-DO i=0,nz-1 ! Balaji added to ensure periodicity just like in h1. 
+DO i=0,nz_fine-1 ! Balaji added to ensure periodicity just like in h1. 
 
-  v1(i)	= kw1*s1*amp1*(SIN(kw1*(zz(i) - (s1*time))))
-  !v1(i)	= -kw1*s1*amp1*(SIN(kw1*(zz(i) - (s1*time))))
-!! Yanxing's expression
-!  v1(i)         = -kw1*s1*amp1*cos(2.0_dbl*PI*((real(i,dbl)-0.5_dbl)/real(nz,dbl)-0.1_dbl*iter/real(nz,dbl))+pi/2.0_dbl)
+  v1(i)	= kw1*s1*amp1*(SIN(kw1*(zz_fine(i) - (s1*time))))
 
 END DO
 
 ! Balaji added
-!v1(0)=v1(nz)
-!v1(nz+1)=v1(1)
 v1(nz)=v1(0)
 v1(nz+1)=v1(1)
 !----------------------------------------------------------------------------
@@ -422,19 +417,19 @@ DO i=seg2R,nlambda2
 END DO
 
 ! First Cos Piece
-lambdaC	= 2.0_dbl*(zz(seg1L)-zz(seg1R))
+lambdaC	= 2.0_dbl*(zz_fine(seg1L)-zz_fine(seg1R))
 DO i=seg1L+1,seg1R-1
 
-  v2(i) = (0.5_dbl*(v2(seg1L)-v2(seg1R)))*COS((2.0_dbl*PI/lambdaC)*(zz(i)-zz(seg1L))) &
+  v2(i) = (0.5_dbl*(v2(seg1L)-v2(seg1R)))*COS((2.0_dbl*PI/lambdaC)*(zz_fine(i)-zz_fine(seg1L))) &
         + (0.5_dbl*(v2(seg1L)+v2(seg1R)))
     
 END DO
 
 ! Second Cos Piece
-lambdaC	= 2.0_dbl*(zz(seg2L)-zz(seg2R))
+lambdaC	= 2.0_dbl*(zz_fine(seg2L)-zz(seg2R))
 DO i=seg2L+1,seg2R-1
 
-  v2(i) = (0.5_dbl*(v2(seg2L)-v2(seg2R)))*COS((2.0_dbl*PI/lambdaC)*(zz(i)-zz(seg2L))) &
+  v2(i) = (0.5_dbl*(v2(seg2L)-v2(seg2R)))*COS((2.0_dbl*PI/lambdaC)*(zz_fine(i)-zz_fine(seg2L))) &
         + (0.5_dbl*(v2(seg2L)+v2(seg2R)))
 
 END DO
@@ -452,7 +447,7 @@ END DO
 ! "fudging" to make sure that the whole domain is filled (and periodic) - more logic (and computational expense would be
 ! necessary to do this correctly: ideally, one would determine if an even or odd number of waves was specified
 ! and then work from either end, and meet in the middle to ensure a symetric domain...
-v2(nz-1:nz+1) = v2(1)
+v2(nz_fine-1:nz_fine+1) = v2(1)
 
 !----------------------------------------------------------------------------
 
@@ -460,34 +455,20 @@ v2(nz-1:nz+1) = v2(1)
 
 ! Sum the modes in a weighted linear combination
 DO i=0,nz+1
-  velDom(i) = wc1*v1(i) + wc2*v2(i)
+  velDom_fine(i) = wc1*v1(i) + wc2*v2(i)
 END DO
 
 !----------------------------------------------------------------------------
 
 ! Fill out the local velocity array
-vel(0:nzSub_fine+1) = velDom(kMin-1:kMax+1)/vcf_fine
-
-!IF(iter .EQ. 1) THEN
-!  OPEN(698,FILE='vel-'//sub//'.dat')
-!  WRITE(698,*) 'VARIABLES = z, "vel(z)"'
-!  CLOSE(698)
-!END IF
-!
-!OPEN(698,FILE='vel-'//sub//'.dat',POSITION='APPEND')
-!WRITE(698,*) 'ZONE T="', (iter*tcf_fine)/T, '" I=', nzSub_fine+2,' F=POINT'
-!
-!DO kk=0,nzSub_fine+1
-!  WRITE(698,*) z(kk), vel(kk)
-!END DO
-!CLOSE(698)  
+vel(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
 
 !------------------------------------------------
-END SUBROUTINE BoundaryVelocity
+END SUBROUTINE BoundaryVelocity_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE SetNodes					! defines the geometry via the "node" array of flags
+SUBROUTINE SetNodes_fine					! defines the geometry via the "node" array of flags
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE 
 
@@ -501,41 +482,41 @@ DO k=1,nzSub_fine
   DO j=1,nySub_fine
     DO i=1,nxSub_fine
 
-      rijk = SQRT(x(i)*x(i) + y(j)*y(j))
+      rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
       IF(rijk .LT. r(k)) THEN
 
-        IF(node(i,j,k) .EQ. SOLID) THEN														! just came into the domain
+        IF(node_fine(i,j,k) .EQ. SOLID) THEN														! just came into the domain
           
           ! calculate the wall velocity (boundary)
 
-          ubx = vel(k)*(x(i)/rijk)
-          uby = vel(k)*(y(j)/rijk)
+          ubx = vel(k)*(x_fine(i)/rijk)
+          uby = vel(k)*(y_fine(j)/rijk)
           ubz = 0.0_dbl
           
 	  !! Balaji added
-	  !CALL NeighborVelocity(i,j,k,ubx,uby,ubz)
+	  !CALL NeighborVelocity_fine(i,j,k,ubx,uby,ubz)
 	  !IF (ubx.EQ.0.0_dbl .AND. uby.EQ.0.0_dbl) THEN
-          !ubx = vel(k)*(x(i)/rijk)
-          !uby = vel(k)*(y(j)/rijk)
+          !ubx = vel(k)*(x_fine(i)/rijk)
+          !uby = vel(k)*(y_fine(j)/rijk)
           !ubz = 0.0_dbl
 	  !ENDIF
 
-          CALL SetProperties(i,j,k,ubx,uby,ubz)
+          CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
 
         END IF
 	
-        node(i,j,k)	= FLUID																		! reset the SOLID node that just came in to FLUID
+        node_fine(i,j,k)	= FLUID																		! reset the SOLID node that just came in to FLUID
 
       ELSE
 
-        node(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
 	!! Balaji added
-	!rho(i,j,k)=0.0_dbl
-	!u(i,j,k)=0.0_dbl
-	!v(i,j,k)=0.0_dbl
-	!w(i,j,k)=0.0_dbl
+	!rho_fine(i,j,k)=0.0_dbl
+	!u_fine(i,j,k)=0.0_dbl
+	!v_fine(i,j,k)=0.0_dbl
+	!w_fine(i,j,k)=0.0_dbl
 
 
       END IF
@@ -552,27 +533,27 @@ DO iComm=1,2
  	
   DO j=0,nySub_fine+1_lng
 
-    rijk = SQRT(x(i)*x(i) + y(j)*y(j))
+    rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
     DO k=0,nzSub_fine+1_lng
 
       IF(rijk .LT. r(k)) THEN
-        node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+        node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
 
 	  !! Balaji added
-	  !ubx = vel(k)*(x(i)/rijk)
-          !uby = vel(k)*(y(j)/rijk)
+	  !ubx = vel(k)*(x_fine(i)/rijk)
+          !uby = vel(k)*(y_fine(j)/rijk)
           !ubz = 0.0_dbl
-          !CALL SetProperties(i,j,k,ubx,uby,ubz)
+          !CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
       ELSE
-        node(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
 
 	!! Balaji added
-	!rho(i,j,k)=0.0_dbl
-	!u(i,j,k)=0.0_dbl
-	!v(i,j,k)=0.0_dbl
-	!w(i,j,k)=0.0_dbl
+	!rho_fine(i,j,k)=0.0_dbl
+	!u_fine(i,j,k)=0.0_dbl
+	!v_fine(i,j,k)=0.0_dbl
+	!w_fine(i,j,k)=0.0_dbl
       END IF
         
     END DO
@@ -587,27 +568,27 @@ DO iComm=3,4
 
   DO i=0,nxSub_fine+1_lng
 
-    rijk = SQRT(x(i)*x(i) + y(j)*y(j))
+    rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
     DO k=0,nzSub_fine+1_lng
 
       IF(rijk .LT. r(k)) THEN
-        node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+        node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
 	  
 	  !! Balaji added
-	  !ubx = vel(k)*(x(i)/rijk)
-          !uby = vel(k)*(y(j)/rijk)
+	  !ubx = vel(k)*(x_fine(i)/rijk)
+          !uby = vel(k)*(y_fine(j)/rijk)
           !ubz = 0.0_dbl
-          !CALL SetProperties(i,j,k,ubx,uby,ubz)
+          !CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
       ELSE
-        node(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
 
 	!! Balaji added
-	!rho(i,j,k)=0.0_dbl
-	!u(i,j,k)=0.0_dbl
-	!v(i,j,k)=0.0_dbl
-	!w(i,j,k)=0.0_dbl
+	!rho_fine(i,j,k)=0.0_dbl
+	!u_fine(i,j,k)=0.0_dbl
+	!v_fine(i,j,k)=0.0_dbl
+	!w_fine(i,j,k)=0.0_dbl
       END IF
         
     END DO
@@ -619,41 +600,24 @@ END DO
 ! XY Faces
 DO iComm=5,6
 
-  k = XY_RecvIndex(OppCommDir(iComm))															! k index of the phantom nodes
+  k = XY_RecvIndex(OppCommDir_fine(iComm))															! k index of the phantom nodes
 
   DO j=0,nySub_fine+1_lng
     DO i=0,nxSub_fine+1_lng
 
-      rijk = SQRT(x(i)*x(i) + y(j)*y(j))
+      rijk = SQRT(x(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
       IF(rijk .LT. r(k)) THEN
-        node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
-
-	  !! Balaji added
-	  !ubx = vel(k)*(x(i)/rijk)
-          !uby = vel(k)*(y(j)/rijk)
-          !ubz = 0.0_dbl
-          !CALL SetProperties(i,j,k,ubx,uby,ubz)
+        node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
       ELSE
-        node(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
-
-	!! Balaji added
-	!rho(i,j,k)=0.0_dbl
-	!u(i,j,k)=0.0_dbl
-	!v(i,j,k)=0.0_dbl
-	!w(i,j,k)=0.0_dbl
       END IF
 
     END DO
   END DO
 
 END DO
-
-CALL SetNodesVilli																					!  set the villi node flags
-
-!CALL SymmetryBC																						!	ensure symmetric node placement
-!!CALL SymmetryBC_NODE																				!	ensure symmetric node placement
 
 ! Balaji added to make domain full 3D
 IF(domaintype .EQ. 0) THEN  ! only needed when planes of symmetry exist
@@ -662,146 +626,8 @@ IF(domaintype .EQ. 0) THEN  ! only needed when planes of symmetry exist
 ENDIF
 
 
-!! Write the node flags to file
-!IF(iter .EQ. 0) THEN
-!  OPEN(699,FILE='flag-'//sub//'.dat')
-!  WRITE(699,*) 'VARIABLES = "i", "j", "k", "node"'
-!  CLOSE(699)
-!END IF
-!
-!IF((MOD(iter,(nt/100))) .EQ. 0 .OR. (iter .EQ. 1)) THEN
-!  OPEN(699,FILE='flag-'//sub//'.dat',POSITION='APPEND')
-!  WRITE(699,'(A8,E15.5,3(A5,I4),A9)') 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nxSub_fine+2,' J=', nySub_fine+2,' K=', nzSub_fine+2,' F=POINT'
-!  DO k=0,nzSub_fine+1
-!    DO j=0,nySub_fine+1
-!      DO i=0,nxSub_fine+1
-!
-!        WRITE(699,*) x(i), y(j), z(k), node(i,j,k)
-!
-!      END DO
-!    END DO
-!  END DO
-!  CLOSE(699)  
-!  CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)														! synchronize all processing units before next loop [Intrinsic]
-!  STOP
-!END IF
-
 !------------------------------------------------
-END SUBROUTINE SetNodes
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE SetNodesVilli					! defines the geometry of the villi via the "node" array of flags
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE 
-
-INTEGER(lng)	:: n,i,j,k					! index variables
-INTEGER(lng)	:: ii,jj,kk					! index variables
-INTEGER(lng)   :: nvz,nvt					! index variables
-INTEGER(lng)	:: iminV,imaxV				! i-indices of the current block to be checked
-INTEGER(lng)	:: jminV,jmaxV				! j-indices of the current block to be checked
-INTEGER(lng)	:: kminV,kmaxV				! k-indices of the current block to be checked
-REAL(dbl)		:: villiVec(3)				! vector from each villus base to the top of the villus cylinder
-REAL(dbl)		:: pointVec(3)				! vector from each villus base to the current point
-REAL(dbl)		:: dotProd, crossProd	! dot and cross products between the current point and the current villus
-REAL(dbl)		:: sinTheta, cosTheta	! sine and cosine of the angles between the two vectors
-REAL(dbl)		:: magVilli, magPoint	! magnitudes of the two vectors
-REAL(dbl)		:: dist						! distance from the current point to the villus
-REAL(dbl)		:: Cx,Cy,Cz					! vector between villous base and point on the villus closest to the current point
-REAL(dbl)		:: uV,vV,wV					! velocity used at the uncovered nodes
-
-DO nvz=1,numVilliZ
-
-  IF((MOD(nvz,(numVilliZ/numVilliGroups)) .NE. 0) .OR. (numVilliGroups .EQ. 1)) THEN		! skip a row of villi between groups (unless only 1 group)
-
-    DO nvt=1,numVilliTheta
-
-      n = (nvz-1_lng)*numVilliTheta + nvt										! villus number
-
-      iminV = MIN(villiLoc(n,1)/xcf_fine, villiLoc(n,6)/xcf_fine) - INT(ANINT(1.5_dbl*Rv/xcf_fine))
-      imaxV = MAX(villiLoc(n,1)/xcf_fine, villiLoc(n,6)/xcf_fine) + INT(ANINT(1.5_dbl*Rv/xcf_fine))
-      jminV = MIN(villiLoc(n,2)/ycf_fine, villiLoc(n,7)/ycf_fine) - INT(ANINT(1.5_dbl*Rv/ycf_fine))
-      jmaxV = MAX(villiLoc(n,2)/ycf_fine, villiLoc(n,7)/ycf_fine) + INT(ANINT(1.5_dbl*Rv/ycf_fine))
-      kminV = MIN((villiLoc(n,3)/zcf_fine+0.5_dbl), (villiLoc(n,8)/zcf_fine+0.5_dbl)) - INT(ANINT(1.5_dbl*Rv/zcf_fine))
-      kmaxV = MAX((villiLoc(n,3)/zcf_fine+0.5_dbl), (villiLoc(n,8)/zcf_fine+0.5_dbl)) + INT(ANINT(1.5_dbl*Rv/zcf_fine))
-
-      DO kk=kminV,kmaxV
-        DO jj=jminV,jmaxV
-          DO ii=iminV,imaxV
-
-            ! check to if the point is in the subdomain
-            IF(((ii .GE. iMin-1_lng) .AND. (ii .LE. iMax+1_lng)) .AND.	&
-               ((jj .GE. jMin-1_lng) .AND. (jj .LE. jMax+1_lng)) .AND.	&
-               ((kk .GE. kMin-1_lng) .AND. (kk .LE. kMax+1_lng))) THEN
-
-              ! transform into local subdomain coordinates
-              i = ii - (iMin - 1_lng)
-              j = jj - (jMin - 1_lng)
-              k = kk - (kMin - 1_lng)
-
-              ! ignore the solid nodes
-              IF(node(i,j,k) .NE. SOLID) THEN
-
-                ! define a vector between the villus base and the current point
-                pointVec(1) = (xx(ii)-villiLoc(n,1))					! x-coordinate
-                pointVec(2) = (yy(jj)-villiLoc(n,2))					! y-coordinate
-                pointVec(3) = (zz(kk)-villiLoc(n,3))					! z-coordinate
-
-                ! define a vector between the villus base and the top of the villus cylinder
-                villiVec(1) = (villiLoc(n,6)-villiLoc(n,1))			! x-coordinate
-                villiVec(2) = (villiLoc(n,7)-villiLoc(n,2))			! y-coordinate
-                villiVec(3) = (villiLoc(n,8)-villiLoc(n,3))			! z-coordinate
-
-                ! compute the dot product of villiVec and pointVec
-                dotProd = villiVec(1)*pointVec(1) + villiVec(2)*pointVec(2) + villiVec(3)*pointVec(3)
-          
-                ! calculate the magnitudes of villiVec and pointVec
-                magVilli = SQRT(villiVec(1)*villiVec(1) + villiVec(2)*villiVec(2) + villiVec(3)*villiVec(3))
-                magPoint = SQRT(pointVec(1)*pointVec(1) + pointVec(2)*pointVec(2) + pointVec(3)*pointVec(3))
-
-                ! get the cosine of the angle between the two vectors
-                cosTheta = dotProd/(magVilli*magPoint)
-
-                ! check to see if the point is above or below the top of the villus cylinder and calculate the proper distance between the point and the villus
-                IF(magPoint*cosTheta .LE. magVilli) THEN				! below
-                  ! calcualte the shortest distance between the point and the centerline of the villus cylinder
-                  sinTheta = SQRT(1.0_dbl-cosTheta*cosTheta)		! sine of the angle between the two vectors
-                  dist = magPoint*sinTheta								! distance between the point and the CL
-                ELSE																! above
-                  ! calculate the distance between the current point and the top of the villus cylinder (base of hemisphere)
-                  dist = SQRT((xx(ii)-villiLoc(n,6))**2 + (yy(jj)-villiLoc(n,7))**2 + (zz(kk)-villiLoc(n,8))**2)
-                END IF
-
-                ! check to see if the villus is covering the node
-                IF(dist .LE. Rv) THEN				! covers
-                  node(i,j,k) = -n					! flag the node as being covered by the nth villus (-n)
-                ELSE
-                  IF(node(i,j,k) .EQ. -n) THEN
-                    ! find the influence of villous velocity on the current point
-                    CALL CalcC(i,j,k,n,Cx,Cy,Cz)
-                    CALL VilliVelocity(n,Cx,Cy,Cz,uV,vV,wV)
-!                    CALL NeighborVelocity(i,j,k,uV,vV,wV)
-                    CALL SetProperties(i,j,k,uV,vV,wV)
-                    node(i,j,k) = FLUID				! fluid node that was covered last time step
-                  END IF
-                END IF
-
-              END IF
- 
-            END IF
-
-          END DO
-        END DO
-      END DO
-
-    END DO 
-
-  END IF
-
-END DO
-
-!------------------------------------------------
-END SUBROUTINE SetNodesVilli
+END SUBROUTINE SetNodes_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
