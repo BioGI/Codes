@@ -43,23 +43,20 @@ dcf_fine 		= den/denL							! density conversion factor
 vcf_fine 		= xcf_fine/tcf_fine							! velocity conversion factor
 pcf_fine 		= cs*cs*vcf_fine*vcf_fine					! pressure conversion factor
 
-! Determine the number of time steps to run
-nt = ANINT((nPers*Tmix)/tcf_fine)
-
 ! Initialize arrays
-node		= -99_lng							! node flag array
-rDom		= 0.0_dbl							! radius at each z-location
-r			= 0.0_dbl							! temporary radius array for entire computational domain
-velDom	= 0.0_dbl							! wall velocity at each z-location (global)
-vel		= 0.0_dbl							! wall velocity at each z-location (local)
+node_fine	= -99_lng							! node flag array
+rDom_fine	= 0.0_dbl							! radius at each z-location
+r_fine		= 0.0_dbl							! temporary radius array for entire computational domain
+velDom_fine	= 0.0_dbl							! wall velocity at each z-location (global)
+vel_fine	= 0.0_dbl							! wall velocity at each z-location (local)
 
 ! Check to ensure xcf_fine=ycf_fine=zcf_fine (LBM grid must be cubic)
 IF((ABS(xcf_fine-ycf_fine) .GE. 1E-8) .OR. (ABS(xcf_fine-zcf_fine) .GE. 1E-8) .OR. (ABS(ycf_fine-zcf_fine) .GE. 1E-8)) THEN
   OPEN(1000,FILE="error.txt")
   WRITE(1000,*) "Conversion factors not equal... Geometry_Setup.f90: Line 93."
   WRITE(1000,*) "xcf_fine=", xcf_fine, "ycf_fine=", ycf_fine, "zcf_fine=", zcf_fine
-  WRITE(1000,*) "L=", L, "D=", D
-  WRITE(1000,*) "nx=", nx, "ny=", ny, "nz=", nz
+  WRITE(1000,*) "L=", L, "D=", D, " Fraction of dimeter for fine mesh = ", fractionDfine
+  WRITE(1000,*) "nx_fine=", nx_fine, "ny_fine=", ny_fine, "nz_fine=", nz_fine
   CLOSE(1000)
   STOP
 END IF
@@ -68,52 +65,52 @@ END IF
 ! IF CONDITION TO CHECK IF THE DOMAIN TO BE MODELLED IS FULL CYLINDER OR JUST A QUARTER OF A CYLINDER
 IF(domaintype .EQ. 0) THEN 
       ! Fill out x,y,z arrays (local)
-      DO i=0,nxSub+1
-        x(i) = ((iMin - 1_lng) + (i-1_lng))*xcf_fine
+      DO i=0,nxSub_fine+1
+        x_fine(i) = ((iMin - 1_lng) + (i-1_lng))*xcf_fine
       END DO
       
-      DO j=0,nySub+1
-        y(j) = ((jMin - 1_lng) + (j-1_lng))*ycf_fine
+      DO j=0,nySub_fine+1
+        y_fine(j) = ((jMin - 1_lng) + (j-1_lng))*ycf_fine
       END DO
       
-      DO k=0,nzSub+1
-        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
+      DO k=0,nzSub_fine+1
+        z_fine(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
-      DO i=0,nx+1
-        xx(i) = (i-1_lng)*xcf_fine
+      DO i=0,nx_fine+1
+        xx_fine(i) = (i-1_lng)*xcf_fine
       END DO
       
-      DO j=0,ny+1
-        yy(j) = (j-1_lng)*ycf_fine
+      DO j=0,ny_fine+1
+        yy_fine(j) = (j-1_lng)*ycf_fine
       END DO
       
-      DO k=0,nz+1
-        zz(k) = (k - 0.5_dbl)*zcf_fine
+      DO k=0,nz_fine+1
+        zz_fine(k) = (k - 0.5_dbl)*zcf_fine
       END DO
       
       ! Center node locations
       Ci = 1	
       Cj = 1
-      Ck = ANINT(0.5_dbl*nz)
+      Ck = ANINT(0.5_dbl*nz_fine)
 
 ELSE
       ! begin Balaji added 
       !INTEGER(lng) :: xaxis,yaxis								! axes index variables
-      xaxis=ANINT(0.5_dbl*(nx+1))
-      yaxis=ANINT(0.5_dbl*(ny+1))
+      xaxis=ANINT(0.5_dbl*(nx_fine+1))
+      yaxis=ANINT(0.5_dbl*(ny_fine+1))
       
       ! Fill out x,y,z arrays (local)
-      DO i=0,nxSub+1
-        x(i) = ((iMin - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf_fine
+      DO i=0,nxSub_fine+1
+        x_fine(i) = ((iMin - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf_fine
       END DO
       
-      DO j=0,nySub+1
+      DO j=0,nySub_fine+1
         y(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf_fine
       END DO
       
-      DO k=0,nzSub+1
+      DO k=0,nzSub_fine+1
         z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
       END DO
       
@@ -433,7 +430,7 @@ END DO
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r(0:nzSub+1) = rDom(kMin-1:kMax+1)
+r(0:nzSub_fine+1) = rDom(kMin-1:kMax+1)
 
 !IF(iter .EQ. 1) THEN
 !  OPEN(697,FILE='r-'//sub//'.dat')
@@ -442,9 +439,9 @@ r(0:nzSub+1) = rDom(kMin-1:kMax+1)
 !END IF
 !
 !OPEN(697,FILE='r-'//sub//'.dat',POSITION='APPEND')
-!WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub+2,' F=POINT'
+!WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub_fine+2,' F=POINT'
 !
-!DO k=0,nzSub+1
+!DO k=0,nzSub_fine+1
 !  WRITE(697,*) z(k), r(k)
 !END DO
 !CLOSE(697)
@@ -473,9 +470,9 @@ IF(myid .EQ. master) THEN
 !    END IF
 !
 !    OPEN(697,FILE='rZones.dat',POSITION='APPEND')
-!    WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub+2,' F=POINT'
+!    WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub_fine+2,' F=POINT'
 !
-!    DO kk=0,nzSub+1
+!    DO kk=0,nzSub_fine+1
 !      WRITE(697,*) zz(kk), rDom(kk)
 !    END DO
 !    CLOSE(697)
@@ -814,7 +811,7 @@ END DO
 !----------------------------------------------------------------------------
 
 ! Fill out the local velocity array
-vel(0:nzSub+1) = velDom(kMin-1:kMax+1)/vcf_fine
+vel(0:nzSub_fine+1) = velDom(kMin-1:kMax+1)/vcf_fine
 
 !IF(iter .EQ. 1) THEN
 !  OPEN(698,FILE='vel-'//sub//'.dat')
@@ -823,9 +820,9 @@ vel(0:nzSub+1) = velDom(kMin-1:kMax+1)/vcf_fine
 !END IF
 !
 !OPEN(698,FILE='vel-'//sub//'.dat',POSITION='APPEND')
-!WRITE(698,*) 'ZONE T="', (iter*tcf_fine)/T, '" I=', nzSub+2,' F=POINT'
+!WRITE(698,*) 'ZONE T="', (iter*tcf_fine)/T, '" I=', nzSub_fine+2,' F=POINT'
 !
-!DO kk=0,nzSub+1
+!DO kk=0,nzSub_fine+1
 !  WRITE(698,*) z(kk), vel(kk)
 !END DO
 !CLOSE(698)  
@@ -845,9 +842,9 @@ REAL(dbl)      :: ubx,uby,ubz		! boundary velocity
 INTEGER(lng) :: mpierr										! MPI standard error variable 
 
 ! Flag the interior nodes and give values to nodes that just came in
-DO k=1,nzSub
-  DO j=1,nySub
-    DO i=1,nxSub
+DO k=1,nzSub_fine
+  DO j=1,nySub_fine
+    DO i=1,nxSub_fine
 
       rijk = SQRT(x(i)*x(i) + y(j)*y(j))
 
@@ -898,11 +895,11 @@ DO iComm=1,2
 
   i = YZ_RecvIndex(OppCommDir(iComm))															! i index of the phantom nodes
  	
-  DO j=0,nySub+1_lng
+  DO j=0,nySub_fine+1_lng
 
     rijk = SQRT(x(i)*x(i) + y(j)*y(j))
 
-    DO k=0,nzSub+1_lng
+    DO k=0,nzSub_fine+1_lng
 
       IF(rijk .LT. r(k)) THEN
         node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
@@ -933,11 +930,11 @@ DO iComm=3,4
 
   j = ZX_RecvIndex(OppCommDir(iComm))															! j index of the phantom nodes
 
-  DO i=0,nxSub+1_lng
+  DO i=0,nxSub_fine+1_lng
 
     rijk = SQRT(x(i)*x(i) + y(j)*y(j))
 
-    DO k=0,nzSub+1_lng
+    DO k=0,nzSub_fine+1_lng
 
       IF(rijk .LT. r(k)) THEN
         node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
@@ -969,8 +966,8 @@ DO iComm=5,6
 
   k = XY_RecvIndex(OppCommDir(iComm))															! k index of the phantom nodes
 
-  DO j=0,nySub+1_lng
-    DO i=0,nxSub+1_lng
+  DO j=0,nySub_fine+1_lng
+    DO i=0,nxSub_fine+1_lng
 
       rijk = SQRT(x(i)*x(i) + y(j)*y(j))
 
@@ -1019,10 +1016,10 @@ ENDIF
 !
 !IF((MOD(iter,(nt/100))) .EQ. 0 .OR. (iter .EQ. 1)) THEN
 !  OPEN(699,FILE='flag-'//sub//'.dat',POSITION='APPEND')
-!  WRITE(699,'(A8,E15.5,3(A5,I4),A9)') 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nxSub+2,' J=', nySub+2,' K=', nzSub+2,' F=POINT'
-!  DO k=0,nzSub+1
-!    DO j=0,nySub+1
-!      DO i=0,nxSub+1
+!  WRITE(699,'(A8,E15.5,3(A5,I4),A9)') 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nxSub_fine+2,' J=', nySub_fine+2,' K=', nzSub_fine+2,' F=POINT'
+!  DO k=0,nzSub_fine+1
+!    DO j=0,nySub_fine+1
+!      DO i=0,nxSub_fine+1
 !
 !        WRITE(699,*) x(i), y(j), z(k), node(i,j,k)
 !
@@ -1256,9 +1253,9 @@ DO m=1,NumDistDirs
   jj = j + ey(m)
   kk = k + ez(m)
 
-  IF(((ii .GE. 0) .AND. (ii .LE. nxSub+1_lng)) .AND.	&
-     ((jj .GE. 0) .AND. (jj .LE. nySub+1_lng)) .AND.	&
-     ((kk .GE. 0) .AND. (kk .LE. nzSub+1_lng))) THEN
+  IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
+     ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
+     ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
 
     IF(node(ii,jj,kk) .EQ. FLUID) THEN
       uSum = uSum + u(ii,jj,kk)
@@ -1299,9 +1296,9 @@ ELSE
     jj = j + ey(m)
     kk = k + ez(m)  
 
-    IF(((ii .GE. 0) .AND. (ii .LE. nxSub+1_lng)) .AND.	&
-       ((jj .GE. 0) .AND. (jj .LE. nySub+1_lng)) .AND.	&
-       ((kk .GE. 0) .AND. (kk .LE. nzSub+1_lng))) THEN
+    IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
+       ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
+       ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
    
       WRITE(6679,*) 'ii,jj,kk:', ii,jj,kk
       WRITE(6679,*) 'node(ii,jj,kk)', node(ii,jj,kk)
@@ -1362,9 +1359,9 @@ DO m=1,NumDistDirs
   jj = j + ey(m)
   kk = k + ez(m)
 
-  IF(((ii .GE. 0) .AND. (ii .LE. nxSub+1_lng)) .AND.	&
-     ((jj .GE. 0) .AND. (jj .LE. nySub+1_lng)) .AND.	&
-     ((kk .GE. 0) .AND. (kk .LE. nzSub+1_lng))) THEN
+  IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
+     ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
+     ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
 
     IF(node(ii,jj,kk) .EQ. FLUID) THEN
       rhoSum = rhoSum + rho(ii,jj,kk)
@@ -1405,9 +1402,9 @@ ELSE
 !    jj = j + ey(m)
 !    kk = k + ez(m)  
 !
-!    IF(((ii .GE. 0) .AND. (ii .LE. nxSub+1_lng)) .AND.	&
-!       ((jj .GE. 0) .AND. (jj .LE. nySub+1_lng)) .AND.	&
-!       ((kk .GE. 0) .AND. (kk .LE. nzSub+1_lng))) THEN
+!    IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
+!       ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
+!       ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
 !   
 !      WRITE(6679,*) 'ii,jj,kk:', ii,jj,kk
 !      WRITE(6679,*) 'node(ii,jj,kk)', node(ii,jj,kk)

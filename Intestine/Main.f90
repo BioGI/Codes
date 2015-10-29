@@ -31,7 +31,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	CALL MPI_Setup														! set up MPI component of the simulation [MODULE: Parallel]
         CALL LBM_Setup														! set up LBM simulation [MODULE: LBM]
-	CALL Geometry_Setup												! set up the geometry of the physcial simulation [MODULE: Geometry]
+	CALL Geometry_Setup												! set up the geometry of the physical simulation [MODULE: Geometry]
+ 	CALL Geometry_Setup_Fine											! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry]
 	CALL Scalar_Setup													! set up the passive scalar component of the simluation [MODULE: Scalar]
 	CALL Output_Setup													! set up the output [MODULE: Output]
 
