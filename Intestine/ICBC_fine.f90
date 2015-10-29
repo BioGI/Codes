@@ -554,7 +554,7 @@ END SUBROUTINE PrintFieldsTEST_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)								! implements the scalar BCs 
+SUBROUTINE ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC)								! implements the scalar BCs 
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -568,13 +568,13 @@ REAL(dbl) :: phiijk_m																! contribution of scalar streamed in the mt
 REAL(dbl) :: cosTheta, sinTheta													! COS(theta), SIN(theta)
 REAL(dbl) :: ub, vb, wb																! wall velocity (x-, y-, z- components)
 
-CALL qCalc(m,i,j,k,im1,jm1,km1,q)												! calculate q	
+CALL qCalc_fine(m,i,j,k,im1,jm1,km1,q)												! calculate q	
 
-cosTheta = x(im1)/r(km1)															! COS(theta)
-sinTheta = y(jm1)/r(km1)															! SIN(theta)
+cosTheta = x_fine(im1)/r_fine(km1)															! COS(theta)
+sinTheta = y_fine(jm1)/r_fine(km1)															! SIN(theta)
 
-ub = vel(km1)*cosTheta																! x-component of the velocity at i,j,k
-vb = vel(km1)*sinTheta																! y-component of the velocity at i,j,k
+ub = vel_fine(km1)*cosTheta																! x-component of the velocity at i,j,k
+vb = vel_fine(km1)*sinTheta																! y-component of the velocity at i,j,k
 wb = 0.0_dbl	
 
 ! neighboring node (fluid side)	
@@ -590,15 +590,15 @@ IF(node(ip1,jp1,kp1) .NE. FLUID) THEN
 END IF	
 
 ! assign values to boundary (density, scalar, f)
-rhoB = (rho(i,j,k) - rho(ip1,jp1,kp1))*(1+q) + rho(ip1,jp1,kp1)		! extrapolate the density
-CALL Equilibrium_LOCAL(m,rhoB,ub,vb,wb,feq_m)			        ! calculate the equibrium distribution function in the mth direction
+rhoB = (rho_fine(i,j,k) - rho_fine(ip1,jp1,kp1))*(1+q) + rho_fine(ip1,jp1,kp1)		! extrapolate the density
+CALL Equilibrium_LOCAL_fine(m,rhoB,ub,vb,wb,feq_m)			        ! calculate the equibrium distribution function in the mth direction
 
 !! Balaji added for sero flux BC. Otherwise set to constant value for Dirichlet BC
 !phiWall = (phi(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) - (phi(ip1,jp1,kp1)*q*q/(1.0+2.0*q)) 	! calculate phiWall for flux BC (eq. 28 in paper)
 
 ! find the contribution of scalar streamed from the wall to the current node (i,j,k), and from the current node to the next neighboring node (ip1,jp1,kp1)
 phiB		= (feq_m/rhoB - wt(m)*Delta)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
-phiijk_m	= (fplus(m,i,j,k)/rho(i,j,k) - wt(m)*Delta)*phiTemp(i,j,k)	! contribution from the current node to the next node in the mth direction
+phiijk_m	= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta)*phiTemp_fine(i,j,k)	! contribution from the current node to the next node in the mth direction
 
 ! if q is too small, the extrapolation to phiBC can create a large error...
 IF(q .LT. 0.25) THEN
@@ -609,7 +609,7 @@ END IF
 phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at the solid node, using q
 
 !------------------------------------------------
-END SUBROUTINE ScalarBC
+END SUBROUTINE ScalarBC_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
