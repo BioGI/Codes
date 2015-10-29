@@ -98,8 +98,8 @@ IF(domaintype .EQ. 0) THEN
 ELSE
       ! begin Balaji added 
       !INTEGER(lng) :: xaxis,yaxis								! axes index variables
-      ! xaxis=ANINT(0.5_dbl*(nx_fine+1))
-      ! yaxis=ANINT(0.5_dbl*(ny_fine+1))
+      xaxis=ANINT(0.5_dbl*(nx_fine+1))
+      yaxis=ANINT(0.5_dbl*(ny_fine+1))
       
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub_fine+1
@@ -429,23 +429,29 @@ DO k=1,nzSub_fine
 
       IF(rijk .LT. r(k)) THEN
 
-        IF(node_fine(i,j,k) .EQ. SOLID) THEN														! just came into the domain
-          
-          ! calculate the wall velocity (boundary)
+         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
-          ubx = vel(k)*(x_fine(i)/rijk)
-          uby = vel(k)*(y_fine(j)/rijk)
-          ubz = 0.0_dbl
-          
-          CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
+            node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
-        END IF
+         ELSE
+
+            IF(node_fine(i,j,k) .EQ. SOLID) THEN   ! just came into the domain
+               ! calculate the wall velocity (boundary)
+               
+               ubx = vel(k)*(x_fine(i)/rijk)
+               uby = vel(k)*(y_fine(j)/rijk)
+               ubz = 0.0_dbl
+               
+               CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
+
+            END IF
 	
-        node_fine(i,j,k)	= FLUID																		! reset the SOLID node that just came in to FLUID
+            node_fine(i,j,k)	= FLUID ! reset the SOLID node that just came in to FLUID
+         END IF
 
       ELSE
 
-        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID        ! if rijk is GT r(k) then it's a SOLID node
 
       END IF
 
@@ -466,7 +472,15 @@ DO iComm=1,2
     DO k=0,nzSub_fine+1_lng
 
       IF(rijk .LT. r(k)) THEN
-        node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+
+         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+
+            node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
+
+         ELSE
+
+            node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+         END IF
       ELSE
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
@@ -489,7 +503,16 @@ DO iComm=3,4
     DO k=0,nzSub_fine+1_lng
 
       IF(rijk .LT. r(k)) THEN
-        node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+
+         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+
+            node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
+
+         ELSE
+
+            node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+
+         END IF
       ELSE
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
@@ -512,7 +535,16 @@ DO iComm=5,6
       rijk = SQRT(x(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
       IF(rijk .LT. r(k)) THEN
-        node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+
+         IF(rijk .GT. (0.5*fracDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+            
+            node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
+
+         ELSE
+         
+            node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+         END IF
+         
       ELSE
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
       END IF
