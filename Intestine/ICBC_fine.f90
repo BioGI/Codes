@@ -81,58 +81,16 @@ ELSE															! clean start
   phiInOut	= 0.0_dbl								! total amount of scalar leaving the inlet/outlet
   delphi_particle = 0.0_dbl								! Initialize the scalar contirbution from particles to 0.0. Once the particle
 											! data is read, we can interpolate to get the delphi_particle. In any event, thi
-											! variable is designed to store temporary data. 
+										! variable is designed to store temporary data. 
 
 END IF
 
 !------------------------------------------------
-END SUBROUTINE ICs
-!------------------------------------------------
-
-!------------------------------------------------
-SUBROUTINE IniParticles
-!------------------------------------------------
-IMPLICIT NONE
-INTEGER(lng)   :: i
-IF (restart) THEN
-	! Read particle number and position along with it's radius,concentration.
-	! Interpolate to calculate particle velocities.
-	! Interpolate particle concentration to nodes into delphi_particle.
-
-ELSE
-	OPEN(60,FILE='particle.dat')
-	read(60,*) np
-	ALLOCATE(xp(np),yp(np),zp(np),up(np),vp(np),wp(np),ipar(np),jpar(np),kpar(np),rp(np),delNBbyCV(np),par_conc(np))
-	ALLOCATE(bulk_conc(np),sh(np),gamma_cont(np),rpold(np))
-	!ALLOCATE(duxp(np),duyp(np),duzp(np),dvxp(np),dvyp(np),dvzp(np),dwxp(np),dwyp(np),dwzp(np))
-	DO i=1,np
-		!ALLOCATE(duxp(np),duyp(np),duzp(np),dvxp(np),dvyp(np),dvzp(np),dwxp(np),dwyp(np),dwzp(np))
-		read(60,*) xp(i),yp(i),zp(i)
-		up(i) = 0.0_dbl
-		vp(i) = 0.0_dbl
-		wp(i) = 0.0_dbl
-		rp(i) = 0.00005_dbl
-		rpold(i) = 0.00005_dbl
-		par_conc(i) = 0.89_dbl
-		gamma_cont(i) = 0.0000_dbl
-		sh(i) = 1.0000_dbl/(1.0_dbl-gamma_cont(i))
-		bulk_conc(i) = 0.0000_dbl
-		delNBbyCV(i)= 0.00000_dbl
-		!WRITE(*,*) "Particle Initializing ",i,xp(i),yp(i),zp(i)
- 		!ss(:,:)=uu(:,:,(nz+1)/2)
-	        !CALL interp(xp(i),yp(i),ss,nx,ny,up(i))
-	        !ss(:,:)=vv(:,:,(nz+1)/2)
-	        !CALL interp(xp(i),yp(i),ss,nx,ny,vp(i))
-	END DO
-	
-	close(60)
-ENDIF
-!------------------------------------------------
-END SUBROUTINE IniParticles
+END SUBROUTINE ICs_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE ScalarDistribution		! Sets/Maintains initial distributions of scalar
+SUBROUTINE ScalarDistribution_fine		! Sets/Maintains initial distributions of scalar
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -147,11 +105,11 @@ IF(iter .EQ. phiStart) THEN
       
     CASE(BLOB)							! blob of scalar at the center of the domain
       
-      DO k=0,nzSub+1
-        DO j=0,nySub+1
-          DO i=0,nxSub+1
+      DO k=0,nzSub_fine+1
+        DO j=0,nySub_fine+1
+          DO i=0,nxSub_fine+1
 
-            phi(i,j,k) = phiIC*ee**(-((x(i)**2 + y(j)**2 + (z(k)-0.5_dbl*L)**2)/(2.0_dbl*sigma**2)))		! 3D Gaussian Distribution
+            phi_fine(i,j,k) = phiIC*ee**(-((x_fine(i)**2 + y_fine(j)**2 + (z_fine(k)-0.5_dbl*L)**2)/(2.0_dbl*sigma**2)))		! 3D Gaussian Distribution
 
           END DO
         END DO
@@ -159,11 +117,11 @@ IF(iter .EQ. phiStart) THEN
 
     CASE(LINE) 						! line of scalar along axis
   
-      DO k=0,nzSub+1
-        DO j=0,nySub+1
-          DO i=0,nxSub+1
+      DO k=0,nzSub_fine+1
+        DO j=0,nySub_fine+1
+          DO i=0,nxSub_fine+1
 
-            phi(i,j,k) = phiIC*ee**(-((x(i)**2 + y(j)**2)/(2.0_dbl*sigma**2)))									! 2D Gaussian Distribution in x and y
+            phi_fine(i,j,k) = phiIC*ee**(-((x_fine(i)**2 + y_fine(j)**2)/(2.0_dbl*sigma**2)))									! 2D Gaussian Distribution in x and y
 
           END DO
         END DO
@@ -171,11 +129,11 @@ IF(iter .EQ. phiStart) THEN
 
     CASE(INLET) 						! line of scalar at the inlet
   
-      DO k=0,nzSub+1
-        DO j=0,nySub+1
-          DO i=0,nxSub+1
+      DO k=0,nzSub_fine+1
+        DO j=0,nySub_fine+1
+          DO i=0,nxSub_fine+1
 
-            phi(i,j,k) = phiIC*ee**(-((z(k)**2)/(2.0_dbl*sigma**2)))													! 1D Gaussian Distribution in z
+            phi_fine(i,j,k) = phiIC*ee**(-((z_fine(k)**2)/(2.0_dbl*sigma**2)))													! 1D Gaussian Distribution in z
 
           END DO
         END DO
@@ -184,7 +142,7 @@ IF(iter .EQ. phiStart) THEN
     CASE(UNIFORM)						! uniform initial distribution
 	    !write(*,*) "balaji"
 	    !pause
-      phi(:,:,:) = phiIC			! set the full scalar field to phiIC
+      phi_fine(:,:,:) = phiIC			! set the full scalar field to phiIC
 
     CASE DEFAULT
    
@@ -196,30 +154,14 @@ IF(iter .EQ. phiStart) THEN
 
   END SELECT
 
-!  OPEN(6051,FILE='test-'//sub//'.dat')
-!  WRITE(6051,'(A60)') 'VARIABLES = "x" "y" "z" "phi"'
-!  WRITE(6051,'(A10,I4,A5,I4,A5,I4,A8)') 'ZONE I=',nxSub+2,' J=',nySub+2,' K=',nzSub+2,'F=POINT'
-!  
-!  DO k=0,nzSub+1
-!    DO j=0,nySub+1
-!      DO i=0,nxSub+1
-!  
-!        WRITE(6051,'(4E15.5)') x(i), y(j), z(k), phi(i,j,k)  
-!  
-!      END DO
-!    END DO 
-!  END DO
-!  
-!  CLOSE(6051)
-
   ! Calculate the intial amount of scalar
   phiTotal = 0.0_dbl
-  DO k=1,nzSub
-    DO j=1,nySub
-      DO i=1,nxSub
+  DO k=1,nzSub_fine
+    DO j=1,nySub_fine
+      DO i=1,nxSub_fine
 
-        IF(node(i,j,k) .EQ. FLUID) THEN
-          phiTotal = phiTotal + phi(i,j,k)
+        IF(node_fine(i,j,k) .EQ. FLUID) THEN
+          phiTotal = phiTotal + phi_fine(i,j,k)
         END IF
 
       END DO
@@ -306,11 +248,11 @@ ELSE
 END IF	
 
 !------------------------------------------------
-END SUBROUTINE ScalarDistribution
+END SUBROUTINE ScalarDistribution_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			! implements the (moving) bounceback boundary conditions (1st order accurate - Ladd)
+SUBROUTINE BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)			! implements the (moving) bounceback boundary conditions (1st order accurate - Ladd)
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -320,88 +262,23 @@ REAL(dbl) :: cosTheta, sinTheta								! COS(theta), SIN(theta)
 REAL(dbl) :: ub, vb, wb											! wall velocity (x-, y-, z- components)
 REAL(dbl) :: rijk													! radius of current node
 
-rijk = SQRT(x(im1)*x(im1) + y(jm1)*y(jm1))				! radius at current location
+rijk = SQRT(x_fine(im1)*x_fine(im1) + y_fine(jm1)*y_fine(jm1))				! radius at current location
 
-cosTheta = x(im1)/rijk											! COS(theta)
-sinTheta = y(jm1)/rijk											! SIN(theta)
+cosTheta = x_fine(im1)/rijk											! COS(theta)
+sinTheta = y_fine(jm1)/rijk											! SIN(theta)
 
-ub = vel(km1)*cosTheta											! x-component of the velocity at i,j,k
-vb = vel(km1)*sinTheta											! y-component of the velocity at i,j,k
+ub = vel_fine(km1)*cosTheta											! x-component of the velocity at i,j,k
+vb = vel_fine(km1)*sinTheta											! y-component of the velocity at i,j,k
 wb = 0.0_dbl														! no z-component in this case			
 
-fbb = fplus(bb(m),i,j,k) + 6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))	! bounced back distribution function with added momentum
+fbb = fplus_fine(bb(m),i,j,k) + 6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))	! bounced back distribution function with added momentum
 
 !------------------------------------------------
-END SUBROUTINE BounceBackL
+END SUBROUTINE BounceBackL_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE BounceBack2(m,i,j,k,im1,jm1,km1,fbb)	! implements the (moving) bounceback boundary conditions (2nd order accurate - Lallemand)
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1			! index variables
-REAL(dbl), INTENT(OUT) :: fbb									! bounced back distribution function
-INTEGER(lng) :: ip1,jp1,kp1,ip2,jp2,kp2					! index variables
-REAL(dbl) :: cosTheta, sinTheta								! COS(theta), SIN(theta)
-REAL(dbl) :: ub, vb, wb											! wall velocity (x-, y-, z- components)
-REAL(dbl) :: q														! local wall distance ratio [(distance from current node to wall)/(distance to next node in that direction)]
-REAL(dbl) :: rijk													! radius of current node
-
-ip1 = i + ex(m)													! i location of 1st neighbor in the m direction
-jp1 = j + ey(m)													! j location of 1st neighbor in the m direction
-kp1 = k + ez(m)													! k location of 1st neighbor in the m direction
-
-ip2 = i + 2_lng*ex(m)											! i location of 2nd neighbor in the m direction
-jp2 = j + 2_lng*ey(m)											! j location of 2nd neighbor in the m direction
-kp2 = k + 2_lng*ez(m)											! k location of 2nd neighbor in the m direction
-
-
-IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! continue with 2nd order BB if the two positive neighbors are in the fluid (most cases)
-
-  rijk = SQRT(x(im1)*x(im1) + y(jm1)*y(jm1))				! radius at current location
-
-  cosTheta = x(im1)/rijk										! COS(theta)
-  sinTheta = y(jm1)/rijk										! SIN(theta)
-  !cosTheta = x(im1)/r(km1)									! COS(theta)
-  !sinTheta = y(jm1)/r(km1)									! SIN(theta)
-
-  ub = vel(km1)*cosTheta										! x-component of the velocity at i,j,k
-  vb = vel(km1)*sinTheta										! y-component of the velocity at i,j,k
-  wb = 0.0_dbl														! no z-component in this case)
-
-  CALL qCalc(m,i,j,k,im1,jm1,km1,q)							! calculate q					
-
-  ! bounced back distribution function with added momentum
-  IF((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN
-    fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus(bb(m),i,j,k) 															&
-        + (1.0_dbl - 4.0_dbl*q*q)*fplus(bb(m),ip1,jp1,kp1) 													& 
-        - q*(1.0_dbl - 2.0_dbl*q)*fplus(bb(m),ip2,jp2,kp2) 													&
-        + 6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))
-  ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
-    fbb = fplus(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
-        + ((2.0_dbl*q - 1.0_dbl)*fplus(m,i,j,k))/q																&
-        - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus(m,ip1,jp1,kp1)							&
-        + (6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
-  ELSE
-    OPEN(1000,FILE='error-'//sub//'.txt')
-    WRITE(1000,*) "Error in BounceBack2() in ICBC.f90 (line 137): q is not (0<=q<=1)...? Aborting."
-    WRITE(1000,*) "q=",q,"(i,j,k):",i,j,k
-    CLOSE(1000)
-    STOP
-  END IF
-
-ELSE
-
-  CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)
-
-END IF
-
-!------------------------------------------------
-END SUBROUTINE BounceBack2
-!------------------------------------------------
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE BounceBack2New(m,i,j,k,im1,jm1,km1,fbb)	! implements the (moving) bounceback boundary conditions (2nd order accurate - Lallemand)
+SUBROUTINE BounceBack2New_fine(m,i,j,k,im1,jm1,km1,fbb)	! implements the (moving) bounceback boundary conditions (2nd order accurate - Lallemand)
 ! Implemented by Balaji 10/28/2014 using a method similar to Yanxing
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
@@ -425,18 +302,18 @@ jp2 = j + 2_lng*ey(m)											! j location of 2nd neighbor in the m direction
 kp2 = k + 2_lng*ez(m)											! k location of 2nd neighbor in the m direction
 
 
-IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! continue with 2nd order BB if the two positive neighbors are in the fluid (most cases)
+IF((node_fine(ip1,jp1,kp1) .EQ. FLUID) .AND. (node_fine(ip2,jp2,kp2) .EQ. FLUID)) THEN		! continue with 2nd order BB if the two positive neighbors are in the fluid (most cases)
 
 !*****************************************************************************
 		 ! Initial fluid node guess
-                 x1=x(i)
-                 y1=y(j)
-                 z1=z(k)
+                 x1=x_fine(i)
+                 y1=y_fine(j)
+                 z1=z_fine(k)
                 
 		 ! Initial solid node guess
-                 x2=x(im1)
-                 y2=y(jm1)
-                 z2=z(km1)
+                 x2=x_fine(im1)
+                 y2=y_fine(jm1)
+                 z2=z_fine(km1)
                  
 	 IF (k.NE.km1) THEN
                  DO it=1,10
@@ -448,7 +325,7 @@ IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! 
       		   rt = SQRT(xt*xt + yt*yt)
 		   !Write(*,*) 'test'
 		   !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-		   ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+		   ht = ((zt-z_fine(k))*r_fine(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
 		   !ht = (r(km1)+r(k))/2.0_dbl
 
                    IF(rt.GT.ht) then
@@ -462,13 +339,13 @@ IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! 
                    END IF
 				   
                  END DO
-		 x1=x(i)
-                 y1=y(j)
-                 z1=z(k)
+		 x1=x_fine(i)
+                 y1=y_fine(j)
+                 z1=z_fine(k)
                  
-                 x2=x(im1)
-                 y2=y(jm1)
-                 z2=z(km1)
+                 x2=x_fine(im1)
+                 y2=y_fine(jm1)
+                 z2=z_fine(km1)
  
                  q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
 		 !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
@@ -483,7 +360,7 @@ IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! 
 		   !Write(*,*) 'test'
 		   !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
 		   !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
-		   ht = (r(km1)+r(k))/2.0_dbl
+		   ht = (r_fine(km1)+r_fine(k))/2.0_dbl
 
                    IF(rt.GT.ht) then
                      x2=xt
@@ -496,13 +373,13 @@ IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! 
                    END IF
 				   
                  END DO
-		 x1=x(i)
-                 y1=y(j)
-                 z1=z(k)
+		 x1=x_fine(i)
+                 y1=y_fine(j)
+                 z1=z_fine(k)
                  
-                 x2=x(im1)
-                 y2=y(jm1)
-                 z2=z(km1)
+                 x2=x_fine(im1)
+                 y2=y_fine(jm1)
+                 z2=z_fine(km1)
  
                  q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
 		 !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
@@ -511,45 +388,25 @@ IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! 
 		 sinTheta=yt/rt
 	 IF (k.NE.km1) THEN
 		 !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
-		 vt = ((zt-z(k))*vel(km1)+(z(km1)-zt)*vel(k))/(z(km1)-z(k))
+		 vt = ((zt-z_fine(k))*vel_fine(km1)+(z_fine(km1)-zt)*vel_fine(k))/(z_fine(km1)-z_fine(k))
 	 ELSE
-		 vt = (vel(k)+vel(km1))*0.5_dbl
+		 vt = (vel_fine(k)+vel_fine(km1))*0.5_dbl
 	 ENDIF
 		 ub = vt*cosTheta										! x-component of the velocity at i,j,k
 		 vb = vt*sinTheta										! y-component of the velocity at i,j,k
 		 wb = 0.0_dbl											! no z-component in this case)
-		 !write(*,*) 'ht',ht,rt
-		 !write(*,*) 'q-yanxing',q,i,j,k,im1,jm1,km1
-!*****************************************************************************
-!*****************************************************************************
-!! Original method used by Gino
-!  rijk = SQRT(x(im1)*x(im1) + y(jm1)*y(jm1))				! radius at current location
-!
-!  cosTheta = x(im1)/rijk										! COS(theta)
-!  sinTheta = y(jm1)/rijk										! SIN(theta)
-!  !cosTheta = x(im1)/r(km1)									! COS(theta)
-!  !sinTheta = y(jm1)/r(km1)									! SIN(theta)
-!
-!  ub = vel(km1)*cosTheta										! x-component of the velocity at i,j,k
-!  vb = vel(km1)*sinTheta										! y-component of the velocity at i,j,k
-!  wb = 0.0_dbl														! no z-component in this case)
-!
-!  CALL qCalc(m,i,j,k,im1,jm1,km1,q)							! calculate q					
-!*****************************************************************************
-		 !write(*,*) 'q-Gino',q,i,j,k,im1,jm1,km1
-
 
   ! bounced back distribution function with added momentum
   IF((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN
-    fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus(bb(m),i,j,k) 															&
-        + (1.0_dbl - 4.0_dbl*q*q)*fplus(bb(m),ip1,jp1,kp1) 													& 
-        - q*(1.0_dbl - 2.0_dbl*q)*fplus(bb(m),ip2,jp2,kp2) 													&
+    fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus_fine(bb(m),i,j,k) 															&
+        + (1.0_dbl - 4.0_dbl*q*q)*fplus_fine(bb(m),ip1,jp1,kp1) 													& 
+        - q*(1.0_dbl - 2.0_dbl*q)*fplus_fine(bb(m),ip2,jp2,kp2) 													&
         + 6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))
   ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
-    fbb = fplus(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
-        + ((2.0_dbl*q - 1.0_dbl)*fplus(m,i,j,k))/q																&
-        - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus(m,ip1,jp1,kp1)							&
-        + (6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
+    fbb = fplus_fine(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
+        + ((2.0_dbl*q - 1.0_dbl)*fplus_fine(m,i,j,k))/q																&
+        - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus_fine(m,ip1,jp1,kp1)							&
+        + (6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
   ELSE
     OPEN(1000,FILE='error-'//sub//'.txt')
     WRITE(1000,*) "Error in BounceBack2() in ICBC.f90 (line 137): q is not (0<=q<=1)...? Aborting."
@@ -560,12 +417,12 @@ IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! 
 
 ELSE
 
-  CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)
+  CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)
 
 END IF
 
 !------------------------------------------------
-END SUBROUTINE BounceBack2New
+END SUBROUTINE BounceBack2New_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
@@ -653,278 +510,6 @@ END IF
 
 !------------------------------------------------
 END SUBROUTINE qCalc
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE BounceBackVL(m,i,j,k,im1,jm1,km1,vNum,fbb)	! implements the (moving) bounceback boundary conditions (1st order accurate - Ladd)
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1			! index variables
-INTEGER(lng), INTENT(IN) :: vNum								! number of the current villus
-REAL(dbl), INTENT(OUT) :: fbb									! bounced back distribution function
-REAL(dbl) :: Cx,Cy,Cz,Vx,Vy,Vz								! vector between villous base and current node, vector between villous base and villous tip
-REAL(dbl) :: uV,vV,wV											! villus wall velocity at actual coordinate system
-REAL(dbl) :: q														! local wall distance ratio [(distance from current node to wall)/(distance to next node in that direction)]
-
-! find C and V
-CALL qCalcV(m,i,j,k,im1,jm1,km1,vNum,q,Cx,Cy,Cz,Vx,Vy,Vz,1)
-
-! find the influence of villous velocity on the current point
-CALL VilliVelocity(vNum,Cx,Cy,Cz,uV,vV,wV)
-
-! calculate bounced back distribution function with added momentum
-fbb = fplus(bb(m),i,j,k) + 6.0_dbl*wt(m)*rho(i,j,k)*(uV*ex(m) + vV*ey(m) + wV*ez(m))	
-
-!------------------------------------------------
-END SUBROUTINE BounceBackVL
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE BounceBackV2(m,i,j,k,im1,jm1,km1,vNum,fbb)	! implements the (moving) bounceback boundary conditions (2nd order accurate - Lallemand)
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1			! index variables
-INTEGER(lng), INTENT(IN) :: vNum								! number of the current villus
-REAL(dbl), INTENT(OUT) :: fbb									! bounced back distribution function
-INTEGER(lng) :: ip1,jp1,kp1,ip2,jp2,kp2					! index variables
-REAL(dbl) :: Cx,Cy,Cz,Vx,Vy,Vz								! vector between villous base and current node, vector between villous base and villous tip
-REAL(dbl) :: uV,vV,wV											! villus wall velocity at actual coordinate system
-REAL(dbl) :: q														! local wall distance ratio [(distance from current node to wall)/(distance to next node in that direction)]
-
-! neighboring nodes
-ip1 = i + ex(m)													! i location of 1st neighbor in the m direction
-jp1 = j + ey(m)													! j location of 1st neighbor in the m direction
-kp1 = k + ez(m)													! k location of 1st neighbor in the m direction
-
-ip2 = i + 2_lng*ex(m)											! i location of 2nd neighbor in the m direction
-jp2 = j + 2_lng*ey(m)											! j location of 2nd neighbor in the m direction
-kp2 = k + 2_lng*ez(m)											! k location of 2nd neighbor in the m direction
-
-IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! continue with 2nd order BB if the two positive neighbors are in the fluid (most cases)
-
-  ! find q (and C and V)
-  CALL qCalcV(m,i,j,k,im1,jm1,km1,vNum,q,Cx,Cy,Cz,Vx,Vy,Vz,1)
-
-  ! find the influence of villous velocity on the current point
-  CALL VilliVelocity(vNum,Cx,Cy,Cz,uV,vV,wV)
-
-  ! bounced back distribution function with added momentum
-  IF((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN
-    fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus(bb(m),i,j,k) 															&
-        + (1.0_dbl - 4.0_dbl*q*q)*fplus(bb(m),ip1,jp1,kp1) 													& 
-        - q*(1.0_dbl - 2.0_dbl*q)*fplus(bb(m),ip2,jp2,kp2) 													&
-        + 6.0_dbl*wt(m)*rho(i,j,k)*(uV*ex(m) + vV*ey(m) + wV*ez(m))
-  ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
-    fbb = fplus(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
-        + ((2.0_dbl*q - 1.0_dbl)*fplus(m,i,j,k))/q																&
-        - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus(m,ip1,jp1,kp1)							&
-        + (6.0_dbl*wt(m)*rho(i,j,k)*(uV*ex(m) + vV*ey(m) + wV*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
-  ELSE
-    OPEN(1000,FILE='error-'//sub//'.txt')
-    WRITE(1000,*) "Error in BounceBackV2() in ICBC.f90 (line 516): q is not (0<=q<=1)...? Aborting."
-    WRITE(1000,*) "q=",q,"(i,j,k):",i,j,k
-    CLOSE(1000)
-    STOP
-  END IF
-
-ELSE			! must be a case close to two boundaries (villi and surface) - use 1st order BB
-
-  CALL BounceBackVL(m,i,j,k,im1,jm1,km1,vNum,fbb)
-
-END IF
-
-!------------------------------------------------
-END SUBROUTINE BounceBackV2
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE VilliVelocity(vNum,Cx,Cy,Cz,uV,vV,wV)					! calculates the influence of the velocity of the villi on point (i,j,k)
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: vNum											! number of the current villus
-REAL(dbl), INTENT(IN) :: Cx,Cy,Cz										! vector between villous base and current node
-REAL(dbl), INTENT(OUT) :: uV,vV,wV										! villus velocity
-REAL(dbl) :: ubx,uby,rijk													! wall velocity, radius at current villous base location
-REAL(dbl) :: omegaX, omegaY, omegaZ, omegaT							! angular velocity components - x,y,z, and azimuthal directions
-REAL(dbl) :: alpha															! angle made between the x-axis and the base of the villus													
-
-! find the angular velocity components
-omegaT	= (villiLoc(vNum,5) - villiLoc(vNum,9))/tcf				! angular velocity in the aziumthal direction
-alpha		= ATAN(villiLoc(vNum,2)/villiLoc(vNum,1))					! angle made between the x-axis and the base of the villus
-omegaX	= -omegaT*SIN(alpha)												! angular velocity in the x-direction
-omegaY	= omegaT*COS(alpha)												! angular velocity in the y-direction
-omegaZ	= (villiLoc(vNum,4) - villiLoc(vNum,10))/tcf				! angular velocity in the z-direction
-
-! find the villous velocity components from the cross product of omega and C
-uV = (omegaY*Cz - omegaZ*Cy)/vcf											! x-component
-vV = (omegaZ*Cx - omegaX*Cz)/vcf											! y-component
-wV = (omegaX*Cy - omegaY*Cx)/vcf											! z-component
-
-! add the components from the wall to the u and v velocity
-!rijk = SQRT(villiLoc(vNum,1)**2 + villiLoc(vNum,2)**2)						! radius at the villous base
-!ubx = (velDom(NINT(villiLoc(vNum,3)/zcf))/vcf)*(villiLoc(vNum,1)/rijk)	! x-component of the wall velocity
-!uby = (velDom(NINT(villiLoc(vNum,3)/zcf))/vcf)*(villiLoc(vNum,2)/rijk)	! y-component of the wall velocity
-
-uV = uV + (velDom(NINT(villiLoc(vNum,3)/zcf))/vcf)*COS(alpha)	! active villous velocity component + wall velocity component (x-direction)
-vV = vV + (velDom(NINT(villiLoc(vNum,3)/zcf))/vcf)*SIN(alpha)	! active villous velocity component + wall velocity component (y-direction)
-
-!uV = uV + ubx																	! active villous velocity component + wall velocity component (x-direction)
-!vV = vV + uby																	! active villous velocity component + wall velocity component (y-direction)
-
-!------------------------------------------------
-END SUBROUTINE VilliVelocity
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE qCalcV(m,i,j,k,im1,jm1,km1,vNum,q,Cx,Cy,Cz,Vx,Vy,Vz,scalarORfluid)	! calculates q (boundary distance ratio) using "ray tracing" - see wikipedia article
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1	! current node, and neighboring node
-INTEGER(lng), INTENT(IN) :: vNum						! number of the current villus
-REAL(dbl), INTENT(OUT) :: q,Cx,Cy,Cz,Vx,Vy,Vz	! distance ratio
-REAL(dbl) :: Ax,Ay,Az									! current node
-REAL(dbl) :: Bx,By,Bz									! solid node
-REAL(dbl) :: ABx,ABy,ABz								! vector between nodes
-REAL(dbl) :: dx,dy,dz									! unit vector pointing from A to B
-REAL(dbl) :: AB,AP										! distances between current and solid nodes, and between current node and the wall
-REAL(dbl) :: term1,term2,term3						! terms used in the solution of AP
-REAL(dbl) :: t1,t2										! two solutions for AP (AP is the smaller one)
-REAL(dbl) :: dotAV,AMag,cosThetaAV,sinThetaAV	! dot product of A and V, magnitudes of A and V, cosine and sine of the angle between A and V
-REAL(dbl) :: dotBV,BMag,cosThetaBV					! dot product of B and V, magnitudes of B, angle between B and V
-REAL(dbl) :: VMag											! magnitudes of V
-INTEGER(lng) :: cylORsphere							! flag to tell whether the solid node is in the cylinder or the sphere (1 for cyl, 2 for sphere)
-INTEGER(lng) :: scalarORfluid							! flag to tell whether qCalcV was called for scalar or fluid BC
-INTEGER(lng) :: mpierr									! MPI standard error variable
-
-! find the vector between the villous base and the current node (shift coordinate system)
-Ax = (x(i) - villiLoc(vNum,1))						! x-coordinate
-Ay = (y(j) - villiLoc(vNum,2))						! y-coordinate
-Az = (z(k) - villiLoc(vNum,3))						! z-coordinate
-
-! find the vector between the villous base and the solid node (shift coordinate system)
-Bx = (x(im1) - villiLoc(vNum,1))						! x-coordinate
-By = (y(jm1) - villiLoc(vNum,2))						! y-coordinate
-Bz = (z(km1) - villiLoc(vNum,3))						! z-coordinate
-
-! find the vector between the current node and the solid node
-ABx = x(im1) - x(i)										! x-coordinate 
-ABy = y(jm1) - y(j)										! y-coordinate 				
-ABz = z(km1) - z(k)										! z-coordinate 
-AB = SQRT(ABx*ABx + ABy*ABy + ABz*ABz)				! magnitude of AB
-
-! find the vector between the villous base and the villous tip
-Vx = (villiLoc(vNum,6)-villiLoc(vNum,1))			! x-coordinate
-Vy = (villiLoc(vNum,7)-villiLoc(vNum,2))			! y-coordinate
-Vz = (villiLoc(vNum,8)-villiLoc(vNum,3))			! z-coordinate
-
-! find the (unit) vector between the current node and solid node
-dx = ABx/AB													! x-coordinate
-dy = ABy/AB													! y-coordinate
-dz = ABz/AB													! z-coordinate
-
-! determine if the point is above or below the top of the villous cylinder (touching a solid node within the hemi-sphere or the within the cylinder)
-!		and calculate the distance from the current node to the wall accordingly
-dotAV	= Ax*Vx + Ay*Vy + Az*Vz							! dot product of A and V
-dotBV	= Bx*Vx + By*Vy + Bz*Vz							! dot product of A and V
-AMag	= SQRT(Ax*Ax + Ay*Ay + Az*Az)					! magnitude of A
-BMag	= SQRT(Bx*Bx + By*By + Bz*Bz)					! magnitude of B
-VMag	= SQRT(Vx*Vx + Vy*Vy + Vz*Vz)					! magnitude of V
-cosThetaAV = dotAV/(AMag*VMag)						! cosine of angle between A and V
-sinThetaAV = SQRT(1-cosThetaAV*cosThetaAV)		! sine of the angle between A and V
-cosThetaBV = dotBV/(BMag*VMag)						! cosine of angle between B and V
-IF((AMag*cosThetaAV .GE. VMag) .AND. ((BMag*cosThetaBV .GE. VMag) .OR. (AMag*sinThetaAV .LE. Rv))) THEN	! the solid node is in the sphere
-  ! Calculate the distance from the current node (point A) to the wall (point P) (mathematica solution)  						
-  term1 = (Ax - Vx)*dx + (Ay - Vy)*dy + (Az - Vz)*dz
-  term2 = term1*term1
-  term3 = (Ax - Vx)*(Ax - Vx) + (Ay - Vy)*(Ay - Vy) + (Az - Vz)*(Az - Vz) - Rv*Rv
-  t1 = -term1 + SQRT(term2 - term3)
-  t2 = -term1 - SQRT(term2 - term3)
-  AP = MIN(t1,t2)											! distance from the current node (point A) to the villus (point P)							
-  q = AP/AB													! distance ratio  
-  cylORsphere = 2_lng
-ELSE															! solid node is in the cylinder
-  ! Calculate the distance from the current node (point A) to the wall (point P) (mathematica solution)
-  term1 = Ay*dy*Vx*Vx + Az*dz*Vx*Vx - Ay*dx*Vx*Vy - Ax*dy*Vx*Vy + Ax*dx*Vy*Vy + Az*dz*Vy*Vy - Az*dx*Vx*Vz - Ax*dz*Vx*Vz	&
-        - Az*dy*Vy*Vz - Ay*dz*Vy*Vz + Ax*dx*Vz*Vz + Ay*dy*Vz*Vz
-  term2 = 0.5_dbl*SQRT((2.0_dbl*Ay*dy*Vx*Vx + 2.0_dbl*Az*dz*Vx*Vx - 2.0_dbl*Ay*dx*Vx*Vy - 2.0_dbl*Ax*dy*Vx*Vy + 2.0_dbl*Ax*dx*Vy*Vy &
-        + 2.0_dbl*Az*dz*Vy*Vy - 2.0_dbl*Az*dx*Vx*Vz - 2.0_dbl*Ax*dz*Vx*Vz - 2.0_dbl*Az*dy*Vy*Vz - 2.0_dbl*Ay*dz*Vy*Vz &
-        + 2.0_dbl*Ax*dx*Vz*Vz + 2.0_dbl*Ay*dy*Vz*Vz)**2 - 4.0_dbl*(dy*dy*Vx*Vx + dz*dz*Vx*Vx - 2.0_dbl*dx*dy*Vx*Vy + dx*dx*Vy*Vy &
-        + dz*dz*Vy*Vy - 2.0_dbl*dx*dz*Vx*Vz - 2.0_dbl*dy*dz*Vy*Vz + dx*dx*Vz*Vz + dy*dy*Vz*Vz)*(Ay*Ay*Vx*Vx + Az*Az*Vx*Vx &
-        - 2.0_dbl*Ax*Ay*Vx*Vy + Ax*Ax*Vy*Vy + Az*Az*Vy*Vy - 2.0_dbl*Ax*Az*Vx*Vz - 2.0_dbl*Ay*Az*Vy*Vz + Ax*Ax*Vz*Vz + Ay*Ay*Vz*Vz &
-        - Rv*Rv*Vx*Vx - Rv*Rv*Vy*Vy - Rv*Rv*Vz*Vz))
-  term3 = dy*dy*Vx*Vx + dz*dz*Vx*Vx - 2.0_dbl*dx*dy*Vx*Vy + dx*dx*Vy*Vy + dz*dz*Vy*Vy - 2.0_dbl*dx*dz*Vx*Vz - 2.0_dbl*dy*dz*Vy*Vz 	&
-        + dx*dx*Vz*Vz + dy*dy*Vz*Vz
-  t1 = -(term1 + term2)/term3
-  t2 = -(term1 - term2)/term3
-  AP = MIN(t1,t2)											! distance from the current node (point A) to the villus (point P)							
-  q = AP/AB													! distance ratio
-  cylORsphere = 1_lng
-END IF
-
-! fix slight discrepencies in calculation of q and node tracking
-IF((q .LT. 0_lng) .AND. (q .GT. -0.3_dbl)) THEN
-  q = 0.00000001_dbl
-ELSE IF ((q .GT. 1_lng) .AND. (q .LT. 1.3_dbl)) THEN
-  q = 0.99999999_dbl
-!ELSE IF(((q .LT. -0.3_dbl) .AND. (q .GT. -2.0_dbl)) .OR. ((q .GT. 1.3_dbl) .AND. (q .LT. 2.0_dbl))) THEN
-ELSE
-  q = 0.5_dbl
-END IF 
-
-!! make sure 0<q<1
-!IF((q .LT. 0_lng) .OR. (q .GT. 1_lng)) THEN 
-!
-!  OPEN(1000,FILE='error.'//sub//'.txt')
-!  WRITE(1000,'(A50)') "error in ICBC.f90 at Line 753: q is out of range"
-!  WRITE(1000,*) "iter",iter
-!  WRITE(1000,*) "vNum",vNum
-!  WRITE(1000,*) "m=",m
-!  WRITE(1000,*) "i=",i,"j=",j,"k=",k
-!  WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
-!  WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-!  WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
-!  WRITE(1000,*) "node(i,j,k)=",node(i,j,k)
-!  WRITE(1000,*) "node(im1,jm1,km1)=",node(im1,jm1,km1)
-!  WRITE(1000,*) "Ax=",Ax,"Ay=",Ay,"Az=",Az
-!  WRITE(1000,*) "Bx=",Bx,"By=",By,"Bz=",Bz
-!  WRITE(1000,*) "ABx=",ABx,"ABy=",ABy,"ABz=",ABz
-!  WRITE(1000,*) "Vx=",Vx,"Vy=",Vy,"Vz=",Vz
-!  WRITE(1000,*) "villiLoc(vNum,1)=",villiLoc(vNum,1),"villiLoc(vNum,2)=",villiLoc(vNum,2),"villiLoc(vNum,3)=",villiLoc(vNum,3)  
-!  WRITE(1000,*) "villiLoc(vNum,6)=",villiLoc(vNum,6),"villiLoc(vNum,7)=",villiLoc(vNum,7),"villiLoc(vNum,8)=",villiLoc(vNum,8)
-!  WRITE(1000,*) "dx=",dx,"dy=",dy,"dz=",dz
-!  WRITE(1000,*) "term1=",term1,"term2=",term2,"term3=",term3
-!  WRITE(1000,*) "t1=",t1,"t2=",t2
-!  WRITE(1000,*) "AB=",AB,"AP=",AP
-!  WRITE(1000,*) "q=",q
-!  WRITE(1000,*) "cylORsphere=",cylORsphere
-!  WRITE(1000,*) "scalarORfluid=",scalarORfluid
-!  CLOSE(1000)
-!
-!  OPEN(1001,FILE='ABV.'//sub//'.dat')
-!  WRITE(1001,'(A60)') 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-!  WRITE(1001,'(3E15.5,6I6)') x(i), y(j), z(k), 0, 0, 0, 0, 0, -vNum
-!  WRITE(1001,'(3E15.5,6I6)') x(im1), y(jm1), z(km1), 0, 0, 0, 0, 0, -vNum
-!  WRITE(1001,'(3E15.5,6I6)') villiLoc(vNum,1), villiLoc(vNum,2), villiLoc(vNum,3), 0, 0, 0, 0, 0, -vNum
-!  WRITE(1001,'(3E15.5,6I6)') villiLoc(vNum,6), villiLoc(vNum,7), villiLoc(vNum,8), 0, 0, 0, 0, 0, -vNum
-!  CLOSE(1001)
-!
-!  CALL PrintFieldsTEST										! output the velocity, density, and scalar fields [MODULE: Output]
-!
-!  STOP
-!
-!END IF						
-
-! find the vector from the base of the villus to the point P		
-Cx = Ax + AP*dx											! x-coordinate
-Cy = Ay + AP*dy											! y-coordinate
-Cz = Az + AP*dz											! z-coordinate								
-
-!------------------------------------------------
-END SUBROUTINE qCalcV
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
@@ -1181,60 +766,6 @@ phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at th
 
 !------------------------------------------------
 END SUBROUTINE ScalarBC
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE ScalarBCV(m,i,j,k,im1,jm1,km1,vNum,phiBC)						! implements the scalar BCs for the villi
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1								! index variables
-INTEGER(lng), INTENT(IN) :: vNum													! number of the current villus
-REAL(dbl), INTENT(OUT) :: phiBC     											! scalar contribution from the boundary condition
-INTEGER(dbl) :: ip1,jp1,kp1 														! neighboring nodes (2 away from the wall)
-REAL(dbl) :: Cx,Cy,Cz,Vx,Vy,Vz													! vector between villous base and current node, vector between villous base and villous tip
-REAL(dbl) :: uV,vV,wV																! villus wall velocity at actual coordinate system
-REAL(dbl) :: q																			! distance ratio from the current node to the solid node
-REAL(dbl) :: rhoB,phiB																! values of density and at the boundary, and contribution of scalar from the boundary and solid nodes
-REAL(dbl) :: feq_m																	! equilibrium distribution function in the mth direction
-REAL(dbl) :: phiijk_m																! contribution of scalar streamed in the mth direction to (ip1,jp1,kp1)
-
-! find C and V
-CALL qCalcV(m,i,j,k,im1,jm1,km1,vNum,q,Cx,Cy,Cz,Vx,Vy,Vz,2)
-
-! find the influence of villous velocity on the current point
-CALL VilliVelocity(vNum,Cx,Cy,Cz,uV,vV,wV)
-
-! neighboring node (fluid side)	
-ip1 = i + ex(m) 																		! i + 1
-jp1 = j + ey(m)																		! j + 1
-kp1 = k + ez(m)																		! k + 1		
-
-! if (ip1,jp1,kp1) is not in the fluid domain, use values from the current node as an approximation
-IF(node(ip1,jp1,kp1) .NE. FLUID) THEN
-  ip1 = i
-  jp1 = j
-  kp1 = k
-END IF	
-
-! assign values to boundary (density, scalar, f)
-rhoB = (rho(i,j,k) - rho(ip1,jp1,kp1))*(1+q) + rho(ip1,jp1,kp1)		! extrapolate the density
-CALL Equilibrium_LOCAL(m,rhoB,uV,vV,wV,feq_m)								! calculate the equibrium distribution function in the mth direction
-
-! find the contribution of scalar streamed from the wall to the current node (i,j,k), and from the current node to the next neighboring node (ip1,jp1,kp1)
-phiB		= (feq_m/rhoB - wt(m)*Delta)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
-phiijk_m	= (fplus(m,i,j,k)/rho(i,j,k) - wt(m)*Delta)*phiTemp(i,j,k)	! contribution from the current node to the next node in the mth direction
-
-! if q is too small, the extrapolation to phiBC can create a large error...
-IF(q .LT. 0.25) THEN
-  q = 0.25_dbl  																		! approximate the distance ratio as 0.25
-END IF
-
-! extrapolate using phiB and phijk_m to obtain contribution from the solid node to the current node
-phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at the solid node, using q
-
-!------------------------------------------------
-END SUBROUTINE ScalarBCV
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
