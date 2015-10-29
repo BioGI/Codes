@@ -1,15 +1,16 @@
 !==================================================================================================
-MODULE ICBC		! Sets Initial and Boundary Conditions
+MODULE ICBC_fine		! Sets Initial and Boundary Conditions
 					! Contains setup subroutines (ICs,BounceBack,IniParticles)
 !==================================================================================================
 USE SetPrecision
-USE Setup  
+USE Setup
+USE Setup_fine  
 USE mpi
 
 CONTAINS
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE ICs	! sets the initial conditions
+SUBROUTINE ICs_fine	! sets the initial conditions
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE  
 
@@ -19,31 +20,31 @@ REAL(dbl) :: feq
 
 IF(restart) THEN											! restart from  file 
   
-  OPEN(50,FILE='restart.'//sub)						! open correct restart file
+  OPEN(50,FILE='restart_fine.'//sub)						! open correct restart file
   
-  DO k=0,nzSub+1_lng
-    DO j=0,nySub+1_lng
-      DO i=0,nxSub+1_lng
+  DO k=0,nzSub_fine+1_lng
+    DO j=0,nySub_fine+1_lng
+      DO i=0,nxSub_fine+1_lng
 
-        READ(50,*) node(i,j,k)
-        READ(50,*) u(i,j,k)
-        READ(50,*) v(i,j,k)
-        READ(50,*) w(i,j,k)
-        READ(50,*) rho(i,j,k)
-        READ(50,*) phi(i,j,k)
+        READ(50,*) node_fine(i,j,k)
+        READ(50,*) u_fine(i,j,k)
+        READ(50,*) v_fine(i,j,k)
+        READ(50,*) w_fine(i,j,k)
+        READ(50,*) rho_fine(i,j,k)
+        READ(50,*) phi_fine(i,j,k)
 
         DO m=0,NumDistDirs
-          READ(50,*) f(m,i,j,k)
+          READ(50,*) f_fine(m,i,j,k)
         END DO
 
       END DO
     END DO
   END DO
 
-  READ(50,*) phiAbsorbed
-  READ(50,*) phiAbsorbedS
-  READ(50,*) phiAbsorbedV
-  READ(50,*) phiInOut
+  READ(50,*) phiAbsorbed_fine
+  READ(50,*) phiAbsorbedS_fine
+  READ(50,*) phiAbsorbedV_fine
+  READ(50,*) phiInOut_fine
  
   CLOSE(50)
 
