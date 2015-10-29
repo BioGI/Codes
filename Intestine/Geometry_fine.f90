@@ -494,14 +494,6 @@ DO k=1,nzSub_fine
           uby = vel(k)*(y_fine(j)/rijk)
           ubz = 0.0_dbl
           
-	  !! Balaji added
-	  !CALL NeighborVelocity_fine(i,j,k,ubx,uby,ubz)
-	  !IF (ubx.EQ.0.0_dbl .AND. uby.EQ.0.0_dbl) THEN
-          !ubx = vel(k)*(x_fine(i)/rijk)
-          !uby = vel(k)*(y_fine(j)/rijk)
-          !ubz = 0.0_dbl
-	  !ENDIF
-
           CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
 
         END IF
@@ -511,13 +503,6 @@ DO k=1,nzSub_fine
       ELSE
 
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
-
-	!! Balaji added
-	!rho_fine(i,j,k)=0.0_dbl
-	!u_fine(i,j,k)=0.0_dbl
-	!v_fine(i,j,k)=0.0_dbl
-	!w_fine(i,j,k)=0.0_dbl
-
 
       END IF
 
@@ -539,21 +524,9 @@ DO iComm=1,2
 
       IF(rijk .LT. r(k)) THEN
         node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
-
-	  !! Balaji added
-	  !ubx = vel(k)*(x_fine(i)/rijk)
-          !uby = vel(k)*(y_fine(j)/rijk)
-          !ubz = 0.0_dbl
-          !CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
       ELSE
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
-
-	!! Balaji added
-	!rho_fine(i,j,k)=0.0_dbl
-	!u_fine(i,j,k)=0.0_dbl
-	!v_fine(i,j,k)=0.0_dbl
-	!w_fine(i,j,k)=0.0_dbl
       END IF
         
     END DO
@@ -574,21 +547,9 @@ DO iComm=3,4
 
       IF(rijk .LT. r(k)) THEN
         node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
-	  
-	  !! Balaji added
-	  !ubx = vel(k)*(x_fine(i)/rijk)
-          !uby = vel(k)*(y_fine(j)/rijk)
-          !ubz = 0.0_dbl
-          !CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
       ELSE
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
 
-
-	!! Balaji added
-	!rho_fine(i,j,k)=0.0_dbl
-	!u_fine(i,j,k)=0.0_dbl
-	!v_fine(i,j,k)=0.0_dbl
-	!w_fine(i,j,k)=0.0_dbl
       END IF
         
     END DO
@@ -611,7 +572,6 @@ DO iComm=5,6
         node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
       ELSE
         node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
-
       END IF
 
     END DO
