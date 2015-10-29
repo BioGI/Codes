@@ -512,7 +512,7 @@ END SUBROUTINE qCalc_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintFieldsTEST	! print velocity, density, and scalar to output files
+SUBROUTINE PrintFieldsTEST_fine	! print velocity, density, and scalar to output files
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -531,17 +531,17 @@ CHARACTER(7)	:: iter_char				! iteration stored as a character
   WRITE(60,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
   WRITE(60,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',nxSub,' J=',nySub,' K=',nzSub,'F=POINT'
 
-  DO k=1,nzSub
-    DO j=1,nySub
-      DO i=1,nxSub
+  DO k=1,nzSub_fine
+    DO j=1,nySub_fine
+      DO i=1,nxSub_fine
 
          ! convert local i,j,k, to global ii,jj,kk
          ii = ((iMin - 1_lng) + i)
          jj = ((jMin - 1_lng) + j)
          kk = ((kMin - 1_lng) + k)
 
-         WRITE(60,'(8E15.5,I6)') xx(ii), yy(jj), zz(kk), u(i,j,k)*vcf, v(i,j,k)*vcf, w(i,j,k)*vcf, (rho(i,j,k)-denL)*dcf*pcf,	&
-                                 phi(i,j,k), node(i,j,k)
+         WRITE(60,'(8E15.5,I6)') xx_fine(ii), yy_fine(jj), zz_fine(kk), u_fine(i,j,k)*vcf_fine, v_fine(i,j,k)*vcf_fine, w_fine(i,j,k)*vcf_fine, (rho_fine(i,j,k)-denL)*dcf_fine*pcf_fine,	&
+                                 phi_fine(i,j,k), node_fine(i,j,k)
 
       END DO
     END DO
@@ -549,28 +549,8 @@ CHARACTER(7)	:: iter_char				! iteration stored as a character
 
   CLOSE(60)
 
-!  ! print villi locations
-!  IF(myid .EQ. master) THEN
-!
-!    OPEN(607,FILE='villi-'//iter_char//'.dat')
-!    OPEN(608,FILE='villi2-'//iter_char//'.dat')
-!    WRITE(607,'(A60)') 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-!    WRITE(608,'(A60)') 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-!
-!    DO n=1,numVilli
-!
-!      WRITE(607,'(3E15.5,6I4)') villiLoc(n,1), villiLoc(n,2), villiLoc(n,3), 0, 0, 0, 0, 0, 0
-!      WRITE(608,'(3E15.5,6I4)') villiLoc(n,6), villiLoc(n,7), villiLoc(n,8), 0, 0, 0, 0, 0, 0
-!
-!    END DO
-!
-!    CLOSE(607)
-!    CLOSE(608)
-!
-!  END IF
-
 !------------------------------------------------
-END SUBROUTINE PrintFieldsTEST
+END SUBROUTINE PrintFieldsTEST_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
