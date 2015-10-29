@@ -48,21 +48,6 @@ IF(restart) THEN											! restart from  file
  
   CLOSE(50)
 
-  OPEN(55,FILE='iter0.dat')							! open initial iteration file
-  READ(55,*) iter0										! read and set initial iteration
-  CLOSE(55)
-
-  iter = iter0-1_lng										! set the initial iteration to the last iteration from the previous run
-
-  IF(randORord .EQ. RANDOM) THEN
-    ALLOCATE(rnd(2_lng*numVilli))
-    OPEN(1778,FILE='rnd.dat')							! read in the rnd array
-    DO i=1,2_lng*numVilli
-      READ(1778,*) rnd(i)
-    END DO
-    CLOSE(1778)
-  END IF
-
 ELSE															! clean start
 
   ! Initial conditions on velocity, density, and scalar
