@@ -164,40 +164,39 @@ Re2			= (s2*(0.5_dbl*D))/nu									! Reynolds number based on mode 2
 IF(restart .EQV. .FALSE.) THEN
 
   ! Initialize the Geometry
-  CALL AdvanceGeometry
+  CALL AdvanceGeometry_fine
 
 END IF
 
 !------------------------------------------------
-END SUBROUTINE Geometry_Setup
+END SUBROUTINE Geometry_Setup_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE AdvanceGeometry												! advances the geometry in time
+SUBROUTINE AdvanceGeometry_fine												! advances the geometry in time
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE 
 
 ! Calculate the radius at the current time step
-CALL BoundaryPosition
-CALL VilliPosition
+CALL BoundaryPosition_fine
 
 ! Calculate the velocity at boundary point
-CALL BoundaryVelocity
+CALL BoundaryVelocity_fine
 
 ! Flag the fluid/solid nodes based on the new geometry
-CALL SetNodes
+CALL SetNodes_fine
 
 !------------------------------------------------
-END SUBROUTINE AdvanceGeometry
+END SUBROUTINE AdvanceGeometry_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE BoundaryPosition		! Calculates the position of the wall at the current time step
+SUBROUTINE BoundaryPosition_fine		! Calculates the position of the wall at the current time step
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-REAL(dbl) :: h1(0:nz+1)				! Mode 1 (peristalsis)
-REAL(dbl) :: h2(0:nz+1)				! Mode 2	(segmental)
+REAL(dbl) :: h1(0:nz_fine+1)				! Mode 1 (peristalsis)
+REAL(dbl) :: h2(0:nz_fine+1)				! Mode 2	(segmental)
 REAL(dbl) :: Ac, lambdaC, shiftC	! temporary variables for the cos slopes
 REAL(dbl) :: time						! time
 INTEGER(lng) :: i,j,ii,k			! indices
@@ -209,15 +208,15 @@ time 	= 0.0_dbl						! time
 !h2 	= 0.5_dbl*D						! mode 2 height
 h1 	= 0.0_dbl						! mode 1 height
 h2 	= 0.0_dbl						! mode 2 height
-rDom	= 0.0_dbl						! summed height
+rDom_fine	= 0.0_dbl						! summed height
 
 ! Current Physical Time
-time	= iter*tcf_fine
+time	= iter*tcf
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz-1
 
-  h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
+  h1(i) 	= amp1*(COS(kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
 !! Yanxing's expression
 !  h1(i)         = amp1*sin(2.0_dbl*PI*((real(i,dbl)-0.5_dbl)/real(nz,dbl)-0.1_dbl*iter/real(nz,dbl))+pi/2.0_dbl)+ (0.5_dbl*D - amp1)
 
