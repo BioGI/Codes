@@ -155,10 +155,6 @@ DO k=2,nzSub_fine-1
 	    ! Balaji added after commenting out the earlier method
             CALL BounceBack2New(m,i,j,k,im1,jm1,km1,fbb)					  										! implement the bounceback BCs [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
-          ELSE	IF((node_fine(im1,jm1,km1) .LE. -1) .AND. (node_fine(im1,jm1,km1) .GE. -numVilli)) THEN		! villi
-            CALL BounceBackV2(m,i,j,k,im1,jm1,km1,(-node_fine(im1,jm1,km1)),fbb)							! implement the bounceback BCs [MODULE: ICBC]
-            !CALL BounceBackVL(m,i,j,k,im1,jm1,km1,(-node_fine(im1,jm1,km1)),fbb)							! implement the bounceback BCs [MODULE: ICBC]
-            f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
             WRITE(1000,'(A75)') "error in LBM.f90 at Line 89: node_fine(im1,jm1,km1) is out of range"
@@ -207,9 +203,6 @@ DO k=1,nzSub_fine,(nzSub_fine-1)
             ! macro- boundary
             CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  												! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
-          ELSE	IF((node_fine(im1,jm1,km1) .LE. -1) .AND. (node_fine(im1,jm1,km1) .GE. -numVilli)) THEN		! villi
-            CALL BounceBackVL(m,i,j,k,im1,jm1,km1,(-node_fine(im1,jm1,km1)),fbb)							! implement the bounceback BCs [MODULE: ICBC]
-            f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
             WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node(im1,jm1,km1) is out of range"
@@ -253,9 +246,6 @@ DO j=1,nySub_fine,(nySub_fine-1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
             CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
-          ELSE	IF((node_fine(im1,jm1,km1) .LE. -1) .AND. (node_fine(im1,jm1,km1) .GE. -numVilli)) THEN		! villi
-            CALL BounceBackVL(m,i,j,k,im1,jm1,km1,(-node_fine(im1,jm1,km1)),fbb)							! implement the bounceback BCs [MODULE: ICBC]
-            f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
             WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node_fine(im1,jm1,km1) is out of range"
@@ -297,9 +287,6 @@ DO i=1,nxSub_fine,(nxSub_fine-1)
             f_fine(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
             CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
-            f_fine(m,i,j,k) = fbb
-          ELSE	IF((node_fine(im1,jm1,km1) .LE. -1) .AND. (node_fine(im1,jm1,km1) .GE. -numVilli)) THEN		! villi
-            CALL BounceBackVL(m,i,j,k,im1,jm1,km1,(-node_fine(im1,jm1,km1)),fbb)							! implement the bounceback BCs [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
