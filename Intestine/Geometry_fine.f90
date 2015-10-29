@@ -534,114 +534,7 @@ END SUBROUTINE SetNodes_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE NeighborVelocity(i,j,k,ubx,uby,ubz)	! calculate the average neighboring node velocity
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE 
-
-INTEGER(lng), INTENT(IN) :: i,j,k				! current node location
-REAL(dbl), INTENT(OUT) :: ubx,uby,ubz			! average velocity of the neighboring nodes
-INTEGER(lng)	:: m,ii,jj,kk						! index variables
-INTEGER(lng)	:: numFLUIDs						! number of fluid nodes
-REAL(dbl)		:: uSum,vSum,wSum					! sum of the velocities of the neighboring fluid nodes
-CHARACTER(7)	:: iter_char						! iteration stored as a character
-
-! initialize the quantities
-uSum = 0.0_dbl
-vSum = 0.0_dbl
-wSum = 0.0_dbl
-numFLUIDs = 0_lng
-
-! calculate the average velocity of the current node's neighbors
-DO m=1,NumDistDirs
-
-  ii = i + ex(m)
-  jj = j + ey(m)
-  kk = k + ez(m)
-
-  IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
-     ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
-     ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
-
-    IF(node(ii,jj,kk) .EQ. FLUID) THEN
-      uSum = uSum + u(ii,jj,kk)
-      vSum = vSum + v(ii,jj,kk)
-      wSum = wSum + w(ii,jj,kk)    
-      numFLUIDs = numFLUIDs + 1_lng     
-    END IF       
-
-  END IF
-
-END DO
-
-IF(numFLUIDs .NE. 0_lng) THEN
-
-  ubx = uSum/numFluids								
-  uby = vSum/numFluids														
-  ubz = wSum/numFluids	
-
-ELSE
-
-  WRITE(iter_char(1:7),'(I7.7)') iter
-
-  OPEN(6679,FILE='errorG2-'//iter_char//'-'//sub//'.txt')
-
-  WRITE(6679,*) 'iter', iter
-  WRITE(6679,*) 'i,j,k:', i,j,k
-  WRITE(6679,*) 'node(i,j,k)', node(i,j,k)
-  WRITE(6679,*) 'u(i,j,k)', u(i,j,k)  
-  WRITE(6679,*) 'v(i,j,k)', v(i,j,k)  
-  WRITE(6679,*) 'w(i,j,k)', w(i,j,k)  
-  WRITE(6679,*) 'numFLUIDs', numFLUIDs
-  WRITE(6679,*)
-  WRITE(6679,*)
-
-  DO m=1,NumDistDirs
-
-    ii = i + ex(m)
-    jj = j + ey(m)
-    kk = k + ez(m)  
-
-    IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
-       ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
-       ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
-   
-      WRITE(6679,*) 'ii,jj,kk:', ii,jj,kk
-      WRITE(6679,*) 'node(ii,jj,kk)', node(ii,jj,kk)
-      WRITE(6679,*) 'rho(ii,jj,kk)', rho(ii,jj,kk)
-      WRITE(6679,*)
-
-    ELSE
-
-      WRITE(6679,*) '(ii,jj,kk) is out of bounds'
-      WRITE(6679,*) 'ii,jj,kk:', ii,jj,kk
-      WRITE(6679,*) 'imin',imin
-      WRITE(6679,*) 'imax',imax
-      WRITE(6679,*) 'jmin',jmin
-      WRITE(6679,*) 'jmax',jmax
-      WRITE(6679,*) 'kmin',kmin
-      WRITE(6679,*) 'kmax',kmax
-      WRITE(6679,*) 'node(ii,jj,kk)', node(ii,jj,kk)
-      WRITE(6679,*) 'rho(ii,jj,kk)', rho(ii,jj,kk)
-      WRITE(6679,*)
-
-    END IF
-  
-  END DO
-
-  ubx = 0.0_dbl								
-  uby = 0.0_dbl														
-  ubz = 0.0_dbl	
-
-  CLOSE(6679)
-
-END IF
-
-!------------------------------------------------
-END SUBROUTINE NeighborVelocity
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE SetProperties(i,j,k,ubx,uby,ubz)	! give properties to nodes that just came into the fluid domain (uncovered)
+SUBROUTINE SetProperties_fine(i,j,k,ubx,uby,ubz)	! give properties to nodes that just came into the fluid domain (uncovered)
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE 
 
@@ -669,7 +562,7 @@ DO m=1,NumDistDirs
      ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
 
     IF(node(ii,jj,kk) .EQ. FLUID) THEN
-      rhoSum = rhoSum + rho(ii,jj,kk)
+      rhoSum = rhoSum + rho_fine(ii,jj,kk)
       numFLUIDs = numFLUIDs + 1_lng     
     END IF       
 
@@ -680,88 +573,30 @@ END DO
 ! This should rarely happen...
 IF(numFLUIDs .NE. 0_lng) THEN
 
-  rho(i,j,k) = rhoSum/numFLUIDs
+  rho_fine(i,j,k) = rhoSum/numFLUIDs
 
 ELSE
 
-!  WRITE(iter_char(1:7),'(I7.7)') iter
-!
-!  rhoTemp = rho(i,j,k)
-
-  rho(i,j,k) = denL
-
-!  OPEN(6679,FILE='errorG-'//iter_char//'-'//sub//'.txt')
-!
-!  WRITE(6679,*) 'iter', iter
-!  WRITE(6679,*) 'i,j,k:', i,j,k
-!  WRITE(6679,*) 'node(i,j,k)', node(i,j,k)
-!  WRITE(6679,*) 'rhoTemp', rhoTemp
-!  WRITE(6679,*) 'rho(i,j,k)', rho(i,j,k)  
-!  WRITE(6679,*) 'numFLUIDs', numFLUIDs
-!  WRITE(6679,*)
-!  WRITE(6679,*)
-!
-!  DO m=1,NumDistDirs
-!
-!    ii = i + ex(m)
-!    jj = j + ey(m)
-!    kk = k + ez(m)  
-!
-!    IF(((ii .GE. 0) .AND. (ii .LE. nxSub_fine+1_lng)) .AND.	&
-!       ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
-!       ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
-!   
-!      WRITE(6679,*) 'ii,jj,kk:', ii,jj,kk
-!      WRITE(6679,*) 'node(ii,jj,kk)', node(ii,jj,kk)
-!      WRITE(6679,*) 'rho(ii,jj,kk)', rho(ii,jj,kk)
-!      WRITE(6679,*)
-!
-!    ELSE
-!
-!      WRITE(6679,*) '(ii,jj,kk) is out of bounds'
-!      WRITE(6679,*) 'ii,jj,kk:', ii,jj,kk
-!      WRITE(6679,*) 'imin',imin
-!      WRITE(6679,*) 'imax',imax
-!      WRITE(6679,*) 'jmin',jmin
-!      WRITE(6679,*) 'jmax',jmax
-!      WRITE(6679,*) 'kmin',kmin
-!      WRITE(6679,*) 'kmax',kmax
-!      WRITE(6679,*) 'node(ii,jj,kk)', node(ii,jj,kk)
-!      WRITE(6679,*) 'rho(ii,jj,kk)', rho(ii,jj,kk)
-!      WRITE(6679,*)
-!
-!    END IF
-!      
-!  END DO
-!  CLOSE(6679)
+  rho_fine(i,j,k) = denL
 
 END IF
 
-
 ! velocity and scalar (use boundary conditions)
-u(i,j,k) 	= ubx									! wall velocity			
-v(i,j,k) 	= uby														
-w(i,j,k) 	= ubz
-phi(i,j,k)	= phiWall							! scalar			
-
-!rho(i,j,k) = denL
-!! velocity and scalar (use boundary conditions)
-!u(i,j,k) 	= 0									! wall velocity			
-!v(i,j,k) 	= 0														
-!w(i,j,k) 	= 0
-
-
+u_fine(i,j,k) 	= ubx									! wall velocity			
+v_fine(i,j,k) 	= uby														
+w_fine(i,j,k) 	= ubz
+phi_fine(i,j,k)	= phiWall							! scalar			
 
 ! distribution functions (set to equilibrium)
 DO m=0,NumDistDirs
-  CALL Equilibrium_LOCAL(m,rho(i,j,k),u(i,j,k),v(i,j,k),w(i,j,k),feq)	! distribution functions
-  f(m,i,j,k) = feq
+  CALL Equilibrium_LOCAL(m,rho_fine(i,j,k),u_fine(i,j,k),v_fine(i,j,k),w_fine(i,j,k),feq)	! distribution functions
+  f_fine(m,i,j,k) = feq
 END DO
 
 !------------------------------------------------
-END SUBROUTINE SetProperties
+END SUBROUTINE SetProperties_Fine
 !------------------------------------------------
 
 !================================================
-END MODULE Geometry
+END MODULE Geometry_Fine
 !================================================
