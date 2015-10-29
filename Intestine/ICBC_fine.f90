@@ -426,7 +426,7 @@ END SUBROUTINE BounceBack2New_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE qCalc(m,i,j,k,im1,jm1,km1,q)			! calculates q (boundary distance ratio) using "ray tracing" - see wikipedia article
+SUBROUTINE qCalc_fine(m,i,j,k,im1,jm1,km1,q)			! calculates q (boundary distance ratio) using "ray tracing" - see wikipedia article
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -441,28 +441,28 @@ REAL(dbl) :: slope2,term1,term2						! terms used in calculation
 
 ! RAY
 ! point A (current node)
-Ax = x(i)
-Ay = y(j)
-Az = z(k)
+Ax = x_fine(i)
+Ay = y_fine(j)
+Az = z_fine(k)
 
 ! point B (solid node)
-Bx = x(im1)
-By = y(jm1)
-Bz = z(km1)
+Bx = x_fine(im1)
+By = y_fine(jm1)
+Bz = z_fine(km1)
 
 ! distance from A to B
 AB = SQRT((Bx - Ax)*(Bx - Ax) + (By - Ay)*(By - Ay) + (Bz - Az)*(Bz - Az))
 
 ! unit vector (d) from point A to point B
-dx = (x(im1)-x(i))/AB									! i direction
-dy = (y(jm1)-y(j))/AB									! j direction
-dz = (z(km1)-z(k))/AB									! k direction
+dx = (x_fine(im1)-x_fine(i))/AB									! i direction
+dy = (y_fine(jm1)-y_fine(j))/AB									! j direction
+dz = (z_fine(km1)-z_fine(k))/AB									! k direction
 
 ! SURFACE
-r1 = r(k)													! radius at k (distance from CL)
-r2 = r(km1)													! radius at km1 (distance from CL)
-z1 = z(k)													! z-coordinate at k
-z2 = z(km1)													! z-coordinate at km1
+r1 = r_fine(k)													! radius at k (distance from CL)
+r2 = r_fine(km1)													! radius at km1 (distance from CL)
+z1 = z_fine(k)													! z-coordinate at k
+z2 = z_fine(km1)													! z-coordinate at km1
 
 IF(k .NE. km1) THEN
   slope = (r2-r1)/(z2-z1)								! approximate the surface as a conincal shell (linear between k values)
@@ -483,7 +483,6 @@ AP = (1.0_dbl/(2.0_dbl*term2)) * &
    + SQRT(4.0_dbl*(term1*term1 - (Ax*Ax + Ay*Ay - intercept*intercept - 2.0_dbl*Az*intercept*slope - Az*Az*slope2)*term2)))
 
 q = AP/AB													! distance ratio
-
 
 ! balaji added
 !q=0.5
@@ -509,7 +508,7 @@ IF((q .LT. -0.00000001_dbl) .OR. (q .GT. 1.00000001_dbl)) THEN
 END IF																																
 
 !------------------------------------------------
-END SUBROUTINE qCalc
+END SUBROUTINE qCalc_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
