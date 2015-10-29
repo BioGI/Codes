@@ -298,66 +298,9 @@ END DO
 ! Fill out the local radius array
 r_fine(0:nzSub_fine+1) = rDom_fine(kMin-1:kMax+1)
 
-IF(myid .EQ. master) THEN
-
-  ! calculate the surface area
-  CALL SurfaceArea
-
-END IF
 
 !------------------------------------------------
 END SUBROUTINE BoundaryPosition_fine
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE SurfaceArea			! calculate the surface area at the current time and write it to a file
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-REAL(dbl) :: SA					! surface area
-REAL(dbl) :: r2,r1,z2,z1		! radius and z-location for each set of consecutive points
-INTEGER(lng) :: kk				! index variable
-
-! initialize the surface area
-SA = 0.0_dbl
-
-! approximate the surface area as if the nodes were connected linearly with the neighboring nodes
-! surface area between left phantom node and 1st domain node
-r1 = 0.5_dbl*(rDom(0) + rDom(1))
-z1 = 0.5_dbl*(zz(0) + zz(1))
-r2 = rDom(1)
-z2 = zz(1)
-SA = -PI*(r1 + r2)*SQRT(1.0_dbl + ((r1-r2)/(z1-z2))**2)*(z1 - z2)
-
-! surface area between right phantom node and last domain node
-r1 = rDom(nz)
-z1 = zz(nz)
-r2 = 0.5_dbl*(rDom(nz) + rDom(nz+1))
-z2 = 0.5_dbl*(zz(nz) + zz(nz+1))
-SA = SA - PI*(r1 + r2)*SQRT(1.0_dbl + ((r1-r2)/(z1-z2))**2)*(z1 - z2)
-
-! interior domain nodes
-DO kk=1,nz-1
-  r1 = rDom(kk)
-  r2 = rDom(kk+1)
-  z1 = zz(kk)
-  z2 = zz(kk+1)
-  SA = SA - PI*(r1 + r2)*SQRT(1.0_dbl + ((r1-r2)/(z1-z2))**2)*(z1 - z2)
-END DO
-
-! account for the villi
-SA = SA - numVilliActual*(PI*Rv*Rv)						! subtract the cross sectional area of the villous bases from the total outer surface area
-SA = SA + numVilliActual*(2.0_dbl*PI*Rv*(Lv-Rv))				! add the surface area from the villous cylinders
-SA = SA + numVilliActual*(2.0_dbl*PI*Rv*Rv)					! add the surface area from the villous tips
-
-! open and write to a file
-IF(iter .GT. 0) THEN
-  WRITE(2474,'(2E25.15)') REAL(iter/(nt/nPers)), SA			! write surface area to file
-  CALL FLUSH(2474)
-END IF
-
-!------------------------------------------------
-END SUBROUTINE SurfaceArea
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
