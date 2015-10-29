@@ -217,8 +217,6 @@ time	= iter*tcf
 DO i=0,nz-1
 
   h1(i) 	= amp1*(COS(kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
-!! Yanxing's expression
-!  h1(i)         = amp1*sin(2.0_dbl*PI*((real(i,dbl)-0.5_dbl)/real(nz,dbl)-0.1_dbl*iter/real(nz,dbl))+pi/2.0_dbl)+ (0.5_dbl*D - amp1)
 
 END DO
 
@@ -226,21 +224,6 @@ END DO
 ! set h1(nz) to h1(0) and h1(nz+1) to h(1) to ensure periodicity
 h1(nz) 	= h1(0)
 h1(nz+1)= h1(1)
-
-!IF((h1(0) .NE. h1(nz)) .OR. (h1(nz+1) .NE. h1(1))) THEN
-!  WRITE(6678,*) 'h1(0)   ', h1(0)
-!  WRITE(6678,*) 'h1(nz)  ', h1(nz)
-!  WRITE(6678,*) 'h1(1)   ', h1(1)
-!  WRITE(6678,*) 'h1(nz+1)', h1(nz+1)
-!  WRITE(6678,*) 'start', (zz(0) + zz(1))/2.0_dbl
-!  WRITE(6678,*) 'end', (zz(nz) + zz(nz+1))/2.0_dbl
-!  WRITE(6678,*) 'zz(0)   ', zz(0)
-!  WRITE(6678,*) 'zz(1)   ', zz(1)
-!  WRITE(6678,*) 'zz(nz)  ', zz(nz)
-!  WRITE(6678,*) 'zz(nz+1)', zz(nz+1)
-!  STOP
-!END IF
-!----------------------------------------------------------------------------
 
 !------------------- Mode 2 - segmental contractions ------------------------
 
@@ -272,28 +255,19 @@ lambdaC	= 2.0_dbl*(zz(seg1L)-zz(seg1R))
 shiftC	= 0.5_dbl*(h2(seg1L)+h2(seg1R))
 DO i=seg1L+1,seg1R-1
 
-  h2(i) = Ac*COS((2.0_dbl*PI/lambdaC)*(zz(i)-zz(seg1L))) + shiftC
+  h2(i) = Ac*COS((2.0_dbl*PI/lambdaC)*(zz_fine(i)-zz_fine(seg1L))) + shiftC
   
 END DO
 
 ! Second Cos Piece
 Ac			= 0.5_dbl*(h2(seg2L)-h2(seg2R))
-lambdaC	= 2.0_dbl*(zz(seg2L)-zz(seg2R))
+lambdaC	= 2.0_dbl*(zz_fine(seg2L)-zz_fine(seg2R))
 shiftC	= 0.5_dbl*(h2(seg2L)+h2(seg2R))
 DO i=seg2L+1,seg2R-1
 
-  h2(i) = Ac*COS((2.0_dbl*PI/lambdaC)*(zz(i)-zz(seg2L))) + shiftC
+  h2(i) = Ac*COS((2.0_dbl*PI/lambdaC)*(zz_fine(i)-zz_fine(seg2L))) + shiftC
   
 END DO
-
-!IF((h2(0) .NE. h2(nz)) .OR. (h2(nz+1) .NE. h2(1))) THEN
-!  WRITE(6678,*) 'line 214'
-!  WRITE(6678,*) 'h2(0)', h2(0)
-!  WRITE(6678,*) 'h2(nz)', h2(nz)
-!  WRITE(6678,*) 'h2(1)', h2(1)
-!  WRITE(6678,*) 'h2(nz+1)', h2(nz+1)
-!  STOP
-!END IF
 
 ! Repeat for the rest of the waves
 DO j=1,(numw2-1)
@@ -305,15 +279,6 @@ DO j=1,(numw2-1)
   END DO
 END DO
 
-!IF((h2(0) .NE. h2(nz)) .OR. (h2(nz+1) .NE. h2(1))) THEN
-!  WRITE(6678,*) 'line 233'
-!  WRITE(6678,*) 'h2(0)', h2(0)
-!  WRITE(6678,*) 'h2(nz)', h2(nz)
-!  WRITE(6678,*) 'h2(1)', h2(1)
-!  WRITE(6678,*) 'h2(nz+1)', h2(nz+1)
-!  STOP
-!END IF
-
 ! "fudging" to make sure that the whole domain is filled (and periodic) - more logic (and computational expense would be
 ! necessary to do this correctly: ideally, one would determine if an even or odd number of waves was specified
 ! and then work from either end, and meet in the middle to ensure a symetric domain...
@@ -324,69 +289,16 @@ END DO
 !-------------------------------- Mode Sum  ---------------------------------
 
 ! Sum the modes in a weighted linear combination
-DO i=0,nz+1
-  rDom(i) = wc1*h1(i) + wc2*h2(i)
+DO i=0,nz_fine+1
+  rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
 END DO
-
-!IF((rDom(0) .NE. rDom(nz)) .OR. (rDom(nz+1) .NE. rDom(1))) THEN
-!  WRITE(6678,*) 'rDom(0)', rDom(0)
-!  WRITE(6678,*) 'rDom(nz)', rDom(nz)
-!  WRITE(6678,*) 'rDom(1)', rDom(1)
-!  WRITE(6678,*) 'rDom(nz+1)', rDom(nz+1)
-!  STOP
-!END IF
 
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r(0:nzSub_fine+1) = rDom(kMin-1:kMax+1)
-
-!IF(iter .EQ. 1) THEN
-!  OPEN(697,FILE='r-'//sub//'.dat')
-!  WRITE(697,*) 'VARIABLES = z, "r(z)"'
-!  CLOSE(697)
-!END IF
-!
-!OPEN(697,FILE='r-'//sub//'.dat',POSITION='APPEND')
-!WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub_fine+2,' F=POINT'
-!
-!DO k=0,nzSub_fine+1
-!  WRITE(697,*) z(k), r(k)
-!END DO
-!CLOSE(697)
+r_fine(0:nzSub_fine+1) = rDom_fine(kMin-1:kMax+1)
 
 IF(myid .EQ. master) THEN
-
-!  ! print the radius as a function of time in 3 locations
-!  IF(iter .EQ. iter0) THEN
-!    OPEN(648,FILE='rLocs.dat')
-!    WRITE(648,'(A50)') 'VARIABLES = "period", "rL", "rC", "rR"'
-!    WRITE(648,'(A20)') 'ZONE F=POINT'
-!    CLOSE(648)
-!  END IF
-!
-!  OPEN(648,FILE='rLocs.dat',POSITION='APPEND')
-!  WRITE(648,'(4E25.15)') REAL(iter/(nt/nPers)), rDom(1), rDom(nz/2), rDom(nz)
-!  CLOSE(648)
-
-!  ! print the radius along the z-axis periodically in time.
-!  IF((MOD(iter,(nt/numOuts)) .EQ. 0) .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
-!
-!    IF(iter .EQ. iter0) THEN
-!      OPEN(697,FILE='rZones.dat')
-!      WRITE(697,*) 'VARIABLES = z, r'
-!      CLOSE(697)
-!    END IF
-!
-!    OPEN(697,FILE='rZones.dat',POSITION='APPEND')
-!    WRITE(697,*) 'ZONE T="', (iter*tcf_fine)/Tmix, '" I=', nzSub_fine+2,' F=POINT'
-!
-!    DO kk=0,nzSub_fine+1
-!      WRITE(697,*) zz(kk), rDom(kk)
-!    END DO
-!    CLOSE(697)
-!
-!  END IF
 
   ! calculate the surface area
   CALL SurfaceArea
@@ -394,7 +306,7 @@ IF(myid .EQ. master) THEN
 END IF
 
 !------------------------------------------------
-END SUBROUTINE BoundaryPosition
+END SUBROUTINE BoundaryPosition_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
