@@ -159,99 +159,9 @@ seg2L			= nlambda2 - (2_lng*segment)							! left point of sloped segement 2
 s2				= (0.5_dbl*D)/Ts											! speed of collapse fo segmental contraction
 Re2			= (s2*(0.5_dbl*D))/nu									! Reynolds number based on mode 2
 
-! Allocate and initialize the villi arrays
-numVilli				= numVilliZ*numVilliTheta						! determine the total number of villi
-IF(numVilliGroups .GT. 1_lng) THEN
-  numVilliActual	= numVilli - numVilliGroups*numVilliTheta	! determine the actual number of villi (subracting those skipping in grouping)
-ELSE
-  numVilliActual = numVilli											! if there is only 1 group, numVilli is numVilliActual
-END IF
-ALLOCATE(villiLoc(numVilli,10))										! location and other information of the villi
-villiLoc = 0.0_dbl
-
-! Set up the villi groups
-ALLOCATE(villiGroup(numVilli))										! array of which group the villi are in
-villiGroup = 0.0_dbl
-n = 0_lng
-DO nvz=1,numVilliZ
-  DO nvt=1,numVilliTheta
-
-    n = n + 1_lng															! villus number
-
-    DO g=1,numVilliGroups
-
-      IF((n .GT. ((g-1_lng)*numVilliTheta*(numVilliZ/numVilliGroups))) .AND.		&
-         (n .LE. (g*numVilliTheta*(numVilliZ/numVilliGroups)))) THEN
-        villiGroup(n) = g
-      END IF
-
-    END DO
-
-  END DO
-END DO
-
-! Write villiGroup to a test file
-!OPEN(173,FILE='villiGroup-'//sub//'.dat')
-!  DO n=1,numVilli
-!    WRITE(173,*) 'n =', n, 'villiGroup(n)=', villiGroup(n)
-!  END DO
-!CLOSE(173)
-!STOP
-
-! Convert villous length and radius of the villi to meters
-Lv = Lv*(0.000001_dbl)
-Rv = Rv*(0.000001_dbl)	
-
-! Determine villous frequency
-macroFreq = 1.0_dbl/Tmix
-vFreqT = freqRatioT*macroFreq
-vFreqZ = freqRatioZ*macroFreq
-
-IF(freqRatioT .LT. 0.00000001_dbl) THEN		! if the frequency ratio = 0 (no active villous motion) then zero out the contribution
-  activeVflagT = 0.0_dbl
-ELSE
-  activeVflagT = 1.0_dbl
-END IF
-
-IF(freqRatioZ .LT. 0.00000001_dbl) THEN		! if the frequency ratio = 0 (no active villous motion) then zero out the contribution
-  activeVflagZ = 0.0_dbl
-ELSE
-  activeVflagZ = 1.0_dbl
-END IF
-
-! Convert villiAngle from degrees to radians
-villiAngle = (villiAngle/180.0_dbl)*PI
 
 !IF(restart .EQ. .FALSE.) THEN
 IF(restart .EQV. .FALSE.) THEN
-!IF(restart .eq. FALSE) THEN
-
-  IF(randORord .EQ. RANDOM) THEN
-    ! Fill out the random array for the villous oscilliatory phases
-    ALLOCATE(rnd(2_lng*numVilli))																		! allocate the array of random numbers for random villi phase angles
-    IF(myid .EQ. master) THEN
-
-      CALL DATE_AND_TIME(VALUES=idate)																	! get the date and time (for more different seeds each time)
-      CALL RANDOM_SEED(SIZE=isize)																		! get the size of the seed array
-      ALLOCATE(iseed(isize))																				! allocate the seed array
-      CALL RANDOM_SEED(GET=iseed)																		! get the seed array
-      iseed = iseed*(idate(8)-500_lng)    															! idate(8) contains millisecond
-      CALL RANDOM_SEED(PUT=iseed)																		! use the seed array
-      CALL RANDOM_NUMBER(rnd)																				! get the actual random numbers
-      DEALLOCATE(iseed)
-
-      ! print the rnd array for restarting
-      OPEN(1777,FILE='rnd.dat')
-      DO i=1,2_lng*numVilli
-        WRITE(1777,*) rnd(i)
-      END DO
-      CLOSE(1777)
-
-    END IF
-
-    CALL MPI_BCAST(rnd,2_lng*numVilli,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,mpierr)		! send/recv rnd on all processing units
-
-  END IF
 
   ! Initialize the Geometry
   CALL AdvanceGeometry
