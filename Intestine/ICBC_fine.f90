@@ -613,7 +613,7 @@ END SUBROUTINE ScalarBC_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE Equilibrium_LOCAL(m,rhoijk,uijk,vijk,wijk,feq_m)		! calculate and store the equilibrium distribution function
+SUBROUTINE Equilibrium_LOCAL_fine(m,rhoijk,uijk,vijk,wijk,feq_m)		! calculate and store the equilibrium distribution function
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -634,7 +634,7 @@ Usum	= ue + ve + we															! U . e
 feq_m	= (wt(m)*rhoijk)*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function in the mth direction
         
 !------------------------------------------------
-END SUBROUTINE Equilibrium_LOCAL
+END SUBROUTINE Equilibrium_LOCAL_fine
 !------------------------------------------------
 
 !================================================
