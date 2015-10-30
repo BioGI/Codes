@@ -6,7 +6,7 @@ USE SetPrecision
 USE Setup
 USE LBM
 USE PassiveScalar
-USE MPI			! [Intrinsic]
+USE MPI							! [Intrinsic]
 
 IMPLICIT NONE 
 
@@ -19,16 +19,18 @@ IMPLICIT NONE
 
 ! allocate and intialize the filenum array and counter variable
 ALLOCATE(filenum(0:nt))					! maximum number of output files (should only output ~numOuts times)
-filenum = 0_lng							! initialize to 0
-fileCount = 0_lng							! initialize to 0
+filenum = 0_lng						! initialize to 0
+fileCount = 0_lng					! initialize to 0
 
 ! allocate the radius array (stored at output iterations)
-ALLOCATE(radius(0:nz+1,0:500))		! 500 is an arbitrarily large number of output iterations...
-radcount = 0_lng							! initialize the output count
+ALLOCATE(radius(0:nz+1,0:500))				! 500 is an arbitrarily large number of output iterations...
+radcount = 0_lng					! initialize the output count
 
 !------------------------------------------------
 END SUBROUTINE Output_Setup
 !------------------------------------------------
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE OpenOutputFiles				! opens output files
@@ -76,6 +78,8 @@ CALL FLUSH(2472)
 END SUBROUTINE OpenOutputFiles
 !------------------------------------------------
 
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE CloseOutputFiles			! opens output files
 !--------------------------------------------------------------------------------------------------
@@ -89,16 +93,11 @@ IF(myid .EQ. master) THEN
   ! Surface Area
   CLOSE(2474)
 
-!  ! Walll Flux
-!  CLOSE(4748)
-
   ! Volume
   CLOSE(2460)
 
 END IF
 
-! Mass
-!CLOSE(2458)
 
 ! Scalar
 CLOSE(2472)
@@ -106,6 +105,8 @@ CLOSE(2472)
 !------------------------------------------------
 END SUBROUTINE CloseOutputFiles
 !------------------------------------------------
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintStatus	! Writes the current Status to a File
@@ -115,14 +116,14 @@ IMPLICIT NONE
 IF(myid .EQ. master) THEN
  
   IF(iter .EQ. iter0-1_lng) THEN
-    rate = 100_lng													! Set the rate of counting
-    CALL SYSTEM_CLOCK(start,rate)								! Keep Track of Elapsed Time 
-    WRITE(5,*) 'Running Simulation...'							! Print Current Status
+    rate = 100_lng							! Set the rate of counting
+    CALL SYSTEM_CLOCK(start,rate)					! Keep Track of Elapsed Time 
+    WRITE(5,*) 'Running Simulation...'					! Print Current Status
     WRITE(5,*) '[',nt,'Iterations]'
     CALL FLUSH(5)													
   END IF
  
-  IF (MOD(iter,100) .EQ. 0 .AND. (iter .NE. 0)) THEN 		! Print Current Status Periodically
+  IF (MOD(iter,100) .EQ. 0 .AND. (iter .NE. 0)) THEN 			! Print Current Status Periodically
     CALL SYSTEM_CLOCK(current,rate)					
     WRITE(5,*)  
     WRITE(5,*) '-------------------- Status -------------------'
@@ -135,7 +136,7 @@ IF(myid .EQ. master) THEN
   END IF
 
   IF(iter .EQ. nt) THEN
-    CALL SYSTEM_CLOCK(final,rate)								! End the Timer
+    CALL SYSTEM_CLOCK(final,rate)					! End the Timer
     WRITE(5,*)
     WRITE(5,*)
     WRITE(5,*) 'Simulation Complete.'
@@ -155,7 +156,7 @@ SUBROUTINE PrintPeriodicRestart		! prints restart file periodically to guard aga
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k,m		! index variables
+INTEGER(lng) :: i,j,k,m							! index variables
 
 ! Write restart file (restart.XX) and corresponding starting iteration file (iter0.dat)
 IF(MOD(iter,100) .EQ. 0) THEN
@@ -212,12 +213,14 @@ END IF
 END SUBROUTINE PrintPeriodicRestart
 !------------------------------------------------
 
+
+
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintFinalRestart		! prints restart file periodically to guard against a crash
+SUBROUTINE PrintFinalRestart				! prints restart file periodically to guard against a crash
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k,m				! index variables
+INTEGER(lng) :: i,j,k,m					! index variables
 
 ! Write restart file (restart.XX) and corresponding starting iteration file (iter0.dat)
 OPEN(500,FILE='restart.'//sub)
@@ -249,11 +252,9 @@ WRITE(500,*) phiInOut
 CLOSE(500)
 
 IF(myid .EQ. master) THEN
-    
   OPEN(550,FILE='iter0.dat')
   WRITE(550,*) iter
   CLOSE(550)
-
 END IF
 
 !------------------------------------------------
@@ -265,7 +266,7 @@ SUBROUTINE PrintFields	! print velocity, density, and scalar to output files
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng)	:: i,j,k,ii,jj,kk,n		! index variables (local and global)
+INTEGER(lng)	:: i,j,k,ii,jj,kk,n			! index variables (local and global)
 CHARACTER(7)	:: iter_char				! iteration stored as a character
 
 IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
@@ -301,25 +302,6 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
 
   CLOSE(60)
 
-!  ! print villi locations
-!  IF(myid .EQ. master) THEN
-!
-!    OPEN(607,FILE='villi-'//iter_char//'.dat')
-!    OPEN(608,FILE='villi2-'//iter_char//'.dat')
-!    WRITE(607,'(A60)') 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-!    WRITE(608,'(A60)') 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-!
-!    DO n=1,numVilli
-!
-!      WRITE(607,'(3E15.5,6I4)') villiLoc(n,1), villiLoc(n,2), villiLoc(n,3), 0, 0, 0, 0, 0, 0
-!      WRITE(608,'(3E15.5,6I4)') villiLoc(n,6), villiLoc(n,7), villiLoc(n,8), 0, 0, 0, 0, 0, 0
-!
-!    END DO
-!
-!    CLOSE(607)
-!    CLOSE(608)
-!
-!  END IF
 
   IF(myid .EQ. master) THEN  ! Store radius at this iteration     
 
@@ -327,20 +309,6 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
       radius(k,radcount) = rDom(k)
     END DO
   
-!    OPEN(5487,FILE='radius.dat',POSITION='APPEND')
-!    OPEN(5488,FILE='rDom.dat',POSITION='APPEND')
-!
-!    WRITE(5487,'(A8,E15.5,A4,I4,A8)') 'ZONE T="',filenum(radcount)/(nt/nPers),'" I=', nz+2,' F=POINT'
-!    WRITE(5488,'(A8,E15.5,A4,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=', nz+2,' F=POINT'
-!
-!    DO k=0,nz+1
-!      WRITE(5487,*) zz(k), radius(k,radcount)
-!      WRITE(5488,*) zz(k), rDom(k)
-!    END DO
-!
-!    CLOSE(5487)
-!    CLOSE(5488)
-
     radcount = radcount + 1_lng 
 
   END IF
@@ -356,8 +324,8 @@ SUBROUTINE PrintParticles	! print particle position, velocity, radius, and conce
 !------------------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng)	:: i,j,k,ii,jj,kk,n		! index variables (local and global)
-CHARACTER(7)	:: iter_char				! iteration stored as a character
+INTEGER(lng)	:: i,j,k,ii,jj,kk,n				! index variables (local and global)
+CHARACTER(7)	:: iter_char					! iteration stored as a character
 
 IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
                                                    .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
@@ -365,21 +333,14 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
   ! scale the iteration by 1/10 such that the numbers used in the output file aren't too large
   WRITE(iter_char(1:7),'(I7.7)') iter
 
-  !! store the current iteration in "filenum"
-  !filenum(fileCount) = iter
-  !fileCount = fileCount + 1_lng
-
   ! open the proper output file
   OPEN(160,FILE='pardat-'//iter_char//'-'//sub//'.dat')
   WRITE(160,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "i" "Sh" "rp" "bulk_conc" "delNBbyCV"'
   WRITE(160,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',np,' J=',1,' K=',1,'F=POINT'
-  !WRITE(160,'(A10,E15.5,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',np,'F=POINT'
 
       DO i=1,np
-
-         !WRITE(160,'(6E15.5,1I4,2E15.5)') xp(i)*xcf,yp(i)*ycf,MOD(zp(i),REAL(nz,dbl))*zcf, up(i)*vcf, vp(i)*vcf, wp(i)*vcf,i,rp(i),par_conc(i)
          WRITE(160,'(6E15.5,1I4,4E15.5)') ((iMin - Ci) + (xp(i)-1_lng))*xcf,((jMin - Cj) + (yp(i)-1_lng))*ycf,(((kMin - 1_lng) + &
-	 				  MOD(zp(i),REAL(nz,dbl))) - 0.5_dbl)*zcf, up(i)*vcf, vp(i)*vcf, wp(i)*vcf,i,sh(i),rp(i),bulk_conc(i),delNBbyCV(i)
+	 	  MOD(zp(i),REAL(nz,dbl))) - 0.5_dbl)*zcf, up(i)*vcf, vp(i)*vcf, wp(i)*vcf,i,sh(i),rp(i),bulk_conc(i),delNBbyCV(i)
 
       END DO
 
@@ -399,28 +360,26 @@ SUBROUTINE PrintTime	! print time information for scalability information
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: dest, src, tag				! send/recv variables: destination, source, message tag
-INTEGER(lng) :: stat(MPI_STATUS_SIZE)		! status object: rank and tag of the sending processing unit/message
-INTEGER(lng) :: mpierr							! MPI standard error variable
+INTEGER(lng) :: dest, src, tag							! send/recv variables: destination, source, message tag
+INTEGER(lng) :: stat(MPI_STATUS_SIZE)						! status object: rank and tag of the sending processing unit/message
+INTEGER(lng) :: mpierr								! MPI standard error variable
 
 IF(iter .EQ. 0) THEN
-
   ! start the "timer"
-  tStart = MPI_WTIME()							! start time [intrinsic: MPI_WTIME() tracks wall time]
+  tStart = MPI_WTIME()								! start time [intrinsic: MPI_WTIME() tracks wall time]
 
 ELSE IF(iter .EQ. nt+1) THEN
-
   ! Calulate Code Run-time
-  tEnd	= MPI_WTIME()							! stop the "timer" 
+  tEnd	= MPI_WTIME()								! stop the "timer" 
   tTotal	= (tEnd - tStart)						! calculate the time (for each processing unit)
 
   ! Send times from each processing unit to the master processing unit
-  dest	= master									! send to master
-  tag		= 50 										! message tag (arbitrary)
+  dest	= master								! send to master
+  tag		= 50 								! message tag (arbitrary)
 
   IF(myid .NE. master) THEN
 
-    CALL MPI_SEND(tTotal,1,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,mpierr)						! send time to master
+    CALL MPI_SEND(tTotal,1,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,mpierr)	! send time to master
 
   ELSE
 
@@ -433,16 +392,12 @@ ELSE IF(iter .EQ. nt+1) THEN
     WRITE(871,*)
     WRITE(871,'(1X,"Processing unit ",I2," took ",1F15.5," seconds.")') myid, tTotal
 
-    tSum = tTotal																											! initialize the sum to the time for the master processing unit
+    tSum = tTotal											! initialize the sum to the time for the master processing unit
 
     DO src = 1,(numprocs-1)
-
-      CALL MPI_RECV(tRecv,1,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,stat,mpierr)				! recieve time from each processing unit
-
+      CALL MPI_RECV(tRecv,1,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,stat,mpierr)			! recieve time from each processing unit
       WRITE(871,'(1X,"Processing unit ",I2," took ",1F15.5," seconds.")') src, tRecv
-   
-      tSum = tSum + tRecv																								! add the time from the sourceth processing unit to the sum
-
+      tSum = tSum + tRecv										! add the time from the sourceth processing unit to the sum
     END DO
 
     WRITE(871,*)
@@ -453,7 +408,7 @@ ELSE IF(iter .EQ. nt+1) THEN
 
   END IF
 
-  CALL PrintFields								! output the velocity, density, and scalar fields
+  CALL PrintFields											! output the velocity, density, and scalar fields
 
 ELSE
 
@@ -469,27 +424,26 @@ END IF
 END SUBROUTINE PrintTime
 !------------------------------------------------
 
+
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE CheckVariables	! checks to see where variables become "NaN" 
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k		! index variables
-INTEGER(lng) :: uInt			! integer version of u
-
-REAL(dbl) :: localu
+INTEGER(lng) :: i,j,k				! index variables
+INTEGER(lng) :: uInt				! integer version of u
+REAL(dbl) :: localu		
 
 ! u
 DO k=1,nzSub
   DO j=1,nySub
     DO i=1,nxSub
-
       localu = u(i,j,k)
-
       uInt = INT(u(i,j,k))
 
       IF(uInt .GT. 1000_lng) THEN
-
         OPEN(1042,FILE='u-'//sub//'.dat')
         WRITE(1042,*) 'iter=', iter
         WRITE(1042,*) 'i=', i, 'j=', j, 'k=', k
@@ -498,7 +452,6 @@ DO k=1,nzSub
         WRITE(1042,*) 'node=', node(i,j,k)
         CLOSE(1042)
         STOP
-     
       END IF 
 
     END DO
@@ -509,15 +462,18 @@ END DO
 END SUBROUTINE CheckVariables
 !------------------------------------------------
 
+
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintMass					! checks the total mass in the system 
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k				! index variables
-REAL(dbl) :: mass_actual			! mass in the system (per unit volume)
-REAL(dbl) :: mass_theoretical		! mass in the system (per unit volume)
-REAL(dbl) :: volume, node_volume	! total volume and volume of a sincle node (cell)
+INTEGER(lng) :: i,j,k					! index variables
+REAL(dbl) :: mass_actual				! mass in the system (per unit volume)
+REAL(dbl) :: mass_theoretical				! mass in the system (per unit volume)
+REAL(dbl) :: volume, node_volume			! total volume and volume of a sincle node (cell)
 
 ! calculate the node volume
 node_volume = xcf*ycf*zcf
@@ -551,13 +507,16 @@ CALL FLUSH(2458)
 END SUBROUTINE PrintMass
 !------------------------------------------------
 
+
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintVolume				! prints the volume as a function of time
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k				! index variables
-REAL(dbl) :: volume					! analytical volume
+INTEGER(lng) :: i,j,k							! index variables
+REAL(dbl) :: volume							! analytical volume
 
 IF(myid .EQ. master) THEN
 
@@ -572,7 +531,7 @@ IF(myid .EQ. master) THEN
   volume = PI*volume
 
   ! account for the villi
-  volume = volume - numVilliActual*(PI*Rv*Rv*(Lv-Rv))						! subtract the cylindrical volume
+  volume = volume - numVilliActual*(PI*Rv*Rv*(Lv-Rv))			! subtract the cylindrical volume
   volume = volume - numVilliActual*((2.0_dbl/3.0_dbl)*PI*Rv*Rv*Rv)	! subtract the hemispherical volume
 
   WRITE(2460,'(2E15.5)') REAL(iter/(nt/nPers)), volume
@@ -584,15 +543,17 @@ END IF
 END SUBROUTINE PrintVolume
 !------------------------------------------------
 
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintScalar		! prints the total amount of scalar absorbed through the walls 
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k		! index variables
-INTEGER(lng) :: numFluids	! number of fluid nodes in the domain
-REAL(dbl) :: phiDomain		! current amount of scalar in the domain
-REAL(dbl) :: phiAverage		! average scalar in the domain
+INTEGER(lng) :: i,j,k				! index variables
+INTEGER(lng) :: numFluids			! number of fluid nodes in the domain
+REAL(dbl) :: phiDomain				! current amount of scalar in the domain
+REAL(dbl) :: phiAverage				! average scalar in the domain
 REAL(dbl) :: zcf3				! node volume in physical units
 
 ! Calculate the amount of scalar that entered/left through the inlet/outlet
@@ -631,6 +592,9 @@ CALL FLUSH(2472)
 END SUBROUTINE PrintScalar
 !------------------------------------------------
 
+
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintParams	! prints the total amount of scalar absorbed through the walls 
 !--------------------------------------------------------------------------------------------------
@@ -640,69 +604,69 @@ IF(myid .EQ. 0) THEN
 
   ! write input data to file
   OPEN(11,FILE='parameters.dat') 
-  WRITE(11,*) 'nx=',nx	 								! number of nodes in the x-direction
-  WRITE(11,*) 'ny=',ny									! number of nodes in the y-direction
-  WRITE(11,*) 'nz=',nz									! number of nodes in the z-direction
+  WRITE(11,*) 'nx=',nx	 						! number of nodes in the x-direction
+  WRITE(11,*) 'ny=',ny							! number of nodes in the y-direction
+  WRITE(11,*) 'nz=',nz							! number of nodes in the z-direction
   WRITE(11,*)
   WRITE(11,*) 'NumSubsX=',NumSubsX					! number of subdomains in the X direction
   WRITE(11,*) 'NumSubsY=',NumSubsY					! number of subdomains in the Y direction
   WRITE(11,*) 'NumSubsY=',NumSubsZ					! number of subdomains in the Z direction
   WRITE(11,*)
-  WRITE(11,*) 'NumSubsTotal=',NumSubsTotal		! number of total subdomains
+  WRITE(11,*) 'NumSubsTotal=',NumSubsTotal				! number of total subdomains
   WRITE(11,*)
-  WRITE(11,*) 'L=',L										! length
-  WRITE(11,*) 'D=',D										! diameter
+  WRITE(11,*) 'L=',L							! length
+  WRITE(11,*) 'D=',D							! diameter
   WRITE(11,*)
-  WRITE(11,*) 'epsOVERa1=',epsOVERa1				! peristaltic occlusion ratio (distance of occlusion/mean half-width)
-  WRITE(11,*) 's1=',s1									! peristaltic wave speed
-  WRITE(11,*) 'numw1=',numw1							! number of peristaltic waves
-  WRITE(11,*) 'wc1=',wc1								! peristaltic weighting coefficient
+  WRITE(11,*) 'epsOVERa1=',epsOVERa1					! peristaltic occlusion ratio (distance of occlusion/mean half-width)
+  WRITE(11,*) 's1=',s1							! peristaltic wave speed
+  WRITE(11,*) 'numw1=',numw1						! number of peristaltic waves
+  WRITE(11,*) 'wc1=',wc1						! peristaltic weighting coefficient
   WRITE(11,*)
-  WRITE(11,*) 'epsOVERa2=',epsOVERa2				! segmental occlusion ratio (distance of occlusion/mean half-width)
-  WRITE(11,*) 'Ts=',Ts									! segmental contraction period
-  WRITE(11,*) 'numw2=',numw2							! number of segmental waves
-  WRITE(11,*) 'wc2=',wc2								! segmental weighting coefficient
+  WRITE(11,*) 'epsOVERa2=',epsOVERa2					! segmental occlusion ratio (distance of occlusion/mean half-width)
+  WRITE(11,*) 'Ts=',Ts							! segmental contraction period
+  WRITE(11,*) 'numw2=',numw2						! number of segmental waves
+  WRITE(11,*) 'wc2=',wc2						! segmental weighting coefficient
   WRITE(11,*)
-  WRITE(11,*) 'Tmix=',Tmix								! period of mixed mode simulation
+  WRITE(11,*) 'Tmix=',Tmix						! period of mixed mode simulation
   WRITE(11,*) 
-  WRITE(11,*) 'numVilliZ=',numVilliZ				! number of rows of villi in the Z-direction
-  WRITE(11,*) 'numVilliTheta=',numVilliTheta		! number of villi in each row (theta-direction)
+  WRITE(11,*) 'numVilliZ=',numVilliZ					! number of rows of villi in the Z-direction
+  WRITE(11,*) 'numVilliTheta=',numVilliTheta				! number of villi in each row (theta-direction)
   WRITE(11,*) 
-  WRITE(11,*) 'Lv=',Lv									! length of the villi (micrometers)
-  WRITE(11,*) 'Rv=',Rv									! radius of the villi (micrometers)
+  WRITE(11,*) 'Lv=',Lv							! length of the villi (micrometers)
+  WRITE(11,*) 'Rv=',Rv							! radius of the villi (micrometers)
   WRITE(11,*) 
-  WRITE(11,*) 'freqRatioT=',freqRatioT				! villous frequency to macroscopic contraction frequency (azimuthal, theta direction)
-  WRITE(11,*) 'freqRatioZ=',freqRatioZ				! villous frequency to macroscopic contraction frequency (axial, z direction)
+  WRITE(11,*) 'freqRatioT=',freqRatioT					! villous frequency to macroscopic contraction frequency (azimuthal, theta direction)
+  WRITE(11,*) 'freqRatioZ=',freqRatioZ					! villous frequency to macroscopic contraction frequency (axial, z direction)
   WRITE(11,*) 
-  WRITE(11,*) 'randORord=',randORord				! flag to determine if the villous motion is random or ordered
-  WRITE(11,*) 'villiAngle=',villiAngle				! maximum angle of active villous travel (degrees) 
+  WRITE(11,*) 'randORord=',randORord					! flag to determine if the villous motion is random or ordered
+  WRITE(11,*) 'villiAngle=',villiAngle					! maximum angle of active villous travel (degrees) 
   WRITE(11,*) 
-  WRITE(11,*) 'den=',den								! density
-  WRITE(11,*) 'nu=',nu									! kinematic viscosity
-  WRITE(11,*) 'tau=',tau								! relaxation parameter
+  WRITE(11,*) 'den=',den						! density
+  WRITE(11,*) 'nu=',nu							! kinematic viscosity
+  WRITE(11,*) 'tau=',tau						! relaxation parameter
   WRITE(11,*)
-  WRITE(11,*) 'Dm=',Dm*Dmcf							! diffusivity
-  WRITE(11,*) 'Sc=',Sc									! Schmidt number
+  WRITE(11,*) 'Dm=',Dm*Dmcf						! diffusivity
+  WRITE(11,*) 'Sc=',Sc							! Schmidt number
   WRITE(11,*) 'sclrIC=',sclrIC						! initial/maintained scalar distribution (1=BLOB,2=LINE,3=INLET,4=UNIFORM)
-  WRITE(11,*) 'phiIC=',phiIC							! maximum scalar concentration
+  WRITE(11,*) 'phiIC=',phiIC						! maximum scalar concentration
   WRITE(11,*) 'phiPer=',phiPer						! period at which to start the scalar
   WRITE(11,*) 'phiStart=',phiStart					! iteration at which to start the scalar
   WRITE(11,*)
-  WRITE(11,*) 'nPers=',nPers							! total number of periods to run
-  WRITE(11,*) 'numOuts=',numOuts						! number of output files (roughly)
-  WRITE(11,*) 'restart=',restart						! use restart file? (0 if no, 1 if yes)
+  WRITE(11,*) 'nPers=',nPers						! total number of periods to run
+  WRITE(11,*) 'numOuts=',numOuts					! number of output files (roughly)
+  WRITE(11,*) 'restart=',restart					! use restart file? (0 if no, 1 if yes)
   WRITE(11,*)
-  WRITE(11,*) 'xcf=', xcf								! x distance conversion factor
-  WRITE(11,*) 'ycf=', ycf								! y distance conversion factor
-  WRITE(11,*) 'zcf=', zcf								! z distance conversion factor
+  WRITE(11,*) 'xcf=', xcf						! x distance conversion factor
+  WRITE(11,*) 'ycf=', ycf						! y distance conversion factor
+  WRITE(11,*) 'zcf=', zcf						! z distance conversion factor
   WRITE(11,*)
-  WRITE(11,*) 'tcf=', tcf								! time conversion factor
-  WRITE(11,*) 'dcf=', dcf								! density conversion factor
-  WRITE(11,*) 'vcf=', vcf								! velocity conversion factor
-  WRITE(11,*) 'pcf=', pcf								! pressure conversion factor
-  WRITE(11,*) 'Dmcf=',Dmcf								! diffusivity conversion factor
-  WRITE(11,*)
-  WRITE(11,*) 'nt=', nt									! number of time steps
+  WRITE(11,*) 'tcf=', tcf						! time conversion factor
+  WRITE(11,*) 'dcf=', dcf						! density conversion factor
+  WRITE(11,*) 'vcf=', vcf						! velocity conversion factor
+  WRITE(11,*) 'pcf=', pcf						! pressure conversion factor
+  WRITE(11,*) 'Dmcf=',Dmcf						! diffusivity conversion factor
+  WRITE(11,*
+  WRITE(11,*) 'nt=', nt							! number of time steps
   CLOSE(11)
 
 END IF
@@ -711,6 +675,8 @@ END IF
 END SUBROUTINE PrintParams
 !------------------------------------------------
 
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE MergeOutput									! combines the subdomain output files into an output files for the entire computational domain 
 !--------------------------------------------------------------------------------------------------
@@ -718,11 +684,13 @@ IMPLICIT NONE
 
 CALL MergeScalar
 CALL MergeFields
-!CALL MergeMass
 
 !------------------------------------------------
 END SUBROUTINE MergeOutput
 !------------------------------------------------
+
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE MergeFields											! combines the subdomain output into an output file for the entire computational domain 
@@ -851,32 +819,6 @@ ELSE
 
     CLOSE(685)																													! close current output file (combined)
 
-!    CALL StreamFunction(FieldData(1:nx,1:ny,1:nz,3),INT(FieldData(1:nx,1:ny,1:nz,6)),psi)				! calculate the stream function
-!    CALL ScalarFlux(n,FieldData(1:nx,1:ny,1:nz,5),INT(FieldData(1:nx,1:ny,1:nz,6)),fluxField)		! calculate the flux field
-!
-!    ! write stream function to file
-!    OPEN(686,FILE='plane-'//iter_char//'.dat')
-!    WRITE(686,*) 'VARIABLES = "z" "x" "w" "u" "P" "phi" "psi" "Zflux" "Xflux" "fluxMag" "node"'
-!    WRITE(686,'(A10,E15.5,A5,I4,A5,I4,A8)') 'ZONE T="',filenum(n)/(nt/nPers),'" I=',nz,' K=',nx,'F=POINT'
-!
-!    ! centerline node in the y-direction
-!    j=1	
-!
-!    DO i=1,nx
-!      DO k=1,nz
-!
-!        WRITE(686,'(10E15.5,I6)') zz(k),xx(i),																	&	! x,z node location
-!                                 FieldData(i,j,k,3),FieldData(i,j,k,1),									&	! u,w @ i,j,k
-!                                 FieldData(i,j,k,4),															&	! rho(i,j,k)
-!                                 FieldData(i,j,k,5),															&	! phi(i,j,k)
-!                                 psi(k,i),																		&  ! stream function @ i,j,k
-!											fluxField(k,i,1),fluxField(k,i,2),fluxField(k,i,3),				&	! flux fields (z-dir,x-dir,mag)
-!                                 INT(FieldData(i,j,k,6))															! node(i,j,k)									
-!       
-!      END DO
-!    END DO
-!
-!    CLOSE(686)	
 
   END DO
 
