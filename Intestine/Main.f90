@@ -34,15 +34,16 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !WRITE(6678,*) 'hello from processor', myid
 
         CALL MPI_Setup			! set up MPI component of the simulation [MODULE: Parallel]
- 	CALL MPI_Setup_Fine		! set up MPI component of the
+ 	CALL MPI_Setup_Fine		! set up MPI component of the simulation [MODULE: Parallel_fine]
         CALL LBM_Setup			! set up LBM simulation [MODULE: LBM]
-        CALL LBM_Setup_Fine		! set up LBM simulation [MODULE: LBM]
+        CALL LBM_Setup_Fine		! set up LBM simulation [MODULE: LBM_fine]
 	CALL Geometry_Setup		! set up the geometry of the physical simulation [MODULE: Geometry]
- 	CALL Geometry_Setup_Fine	! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry]
+ 	CALL Geometry_Setup_Fine	! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry_fine]
 	CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
 	CALL Output_Setup		! set up the output [MODULE: Output]
 
 	CALL ICs			! set initial conditions [MODULE: ICBC]
+	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
 	CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
 
@@ -50,7 +51,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintStatus		! Start simulation timer, print status [MODULE: Output]
 
-	IF(restart) THEN			! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
+	IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
 		CALL AdvanceGeometry
 	END IF
 
@@ -61,28 +62,22 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	DO iter = iter0-0_lng,nt
 
-	CALL AdvanceGeometry			! advance the geometry to the next time step [MODULE: Geometry]
-	CALL Collision				! collision step [MODULE: Algorithm]
-	CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+	CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
+	CALL Collision			! collision step [MODULE: Algorithm]
+	CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 	!write(*,*) iter,MAXVAL(f(:,:,:,0)-f(:,:,:,nzSub))
 	!write(*,*) iter,MAXVAL(f(:,:,:,nzSub+1)-f(:,:,:,1))
 
-	CALL Stream				! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
-	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+	CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
+	!CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-	CALL Macro				! calcuate the macroscopic quantities [MODULE: Algorithm]
-	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
+	!CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
 	IF(iter .GE. phiStart) THEN
-		CALL Scalar			! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
+		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
 	END IF
-	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
-
-! The evaluation of the macro variables has been moved to happen before the
-! particle tracking. 
-!	CALL Macro				! calcuate the macroscopic quantities [MODULE: Algorithm]
-!	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
-	
+	!CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
 	! Balaji added to test value with time
   	!h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
@@ -117,37 +112,37 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	        close(173)
 
 	ENDIF
-	!CALL AdvanceGeometry			! advance the geometry to the next time step [MODULE: Geometry]
+	!CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
 
 
-!     CALL FixMass				! enforce conservation of mass
-!     CALL CheckVariables			! check the magnitude of selected variables (TEST)
+!     CALL FixMass			! enforce conservation of mass
+!     CALL CheckVariables		! check the magnitude of selected variables (TEST)
 
-     CALL PrintFields				! output the velocity, density, and scalar fields [MODULE: Output]
-     CALL PrintScalar				! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
-     CALL PrintMass				! print the total mass in the system (TEST)
-     CALL PrintVolume				! print the volume in the system (TEST)
+     CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
+     CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+     CALL PrintMass			! print the total mass in the system (TEST)
+     CALL PrintVolume			! print the volume in the system (TEST)
 
-!	  CALL PrintPeriodicRestart		! print periodic restart files (SAFE GUARD) [MODULE: Output]
+!	  CALL PrintPeriodicRestart	! print periodic restart files (SAFE GUARD) [MODULE: Output]
 
-	  CALL PrintStatus 			! print current status [MODULE: Output]
+	  CALL PrintStatus 		! print current status [MODULE: Output]
 
 	  CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)	! synchronize all processing units before next loop [Intrinsic]
 
 	END DO
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ End Simulation Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!	CALL PrintTime 				! print time (scalability) information [MODULE: Output]
+!	CALL PrintTime 			! print time (scalability) information [MODULE: Output]
 
-   CALL PrintFinalRestart			! print a final set of restart files to continue if desired [MODULE: Output]
+   CALL PrintFinalRestart		! print a final set of restart files to continue if desired [MODULE: Output]
 
-	CALL DEAllocateArrays			! clean up the memory [MODULE: Setup]
+	CALL DEAllocateArrays		! clean up the memory [MODULE: Setup]
 
-   CALL CloseOutputFiles			! closes output files [MODULE: Output.f90]
+   CALL CloseOutputFiles		! closes output files [MODULE: Output.f90]
 
-	CALL MergeOutput			! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
+	CALL MergeOutput		! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
 
-	CALL MPI_FINALIZE(mpierr)		! end the MPI simulation [Intrinsic]
+	CALL MPI_FINALIZE(mpierr)	! end the MPI simulation [Intrinsic]
 
 !================================================ 
 END PROGRAM LBM3D
