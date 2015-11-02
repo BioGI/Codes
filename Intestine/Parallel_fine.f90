@@ -114,8 +114,8 @@ ds_SendSize_fine	= SUM(dsSize_fine)
 uvw_SendSize_fine	= SUM(dsSize_fine)
 total_SendSize_fine  = SUM(msgSize_fine)
 
-ALLOCATE(msgSend(total_SendSize_fine))						
-ALLOCATE(msgRecv(total_SendSize_fine))
+ALLOCATE(msgSend_fine(total_SendSize_fine))						
+ALLOCATE(msgRecv_fine(total_SendSize_fine))
 
 ! Fill out the '3D_Index' arrays (for converting back from 1D array)
 ! Faces
@@ -342,7 +342,7 @@ END SUBROUTINE MPI_Initialize_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE PackData	! transfer the distribution functions between neighboring initialize the MPI arrays and variables
+SUBROUTINE PackData_Fine	! transfer the distribution functions between neighboring initialize the MPI arrays and variables
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -350,14 +350,14 @@ IMPLICIT NONE
 INTEGER(lng) :: i,j,k,m,iComm,ii	! index variables
 
 ! Initialize array
-msgSend		= 0.0_dbl
+msgSend_fine		= 0.0_dbl
 
 ! Fill Arrays
 ! FACES
 ! YZ Faces
 DO iComm=1,2
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)
 
     i = YZ_SendIndex_fine(iComm)								! i index for assigning the proper component of the distribution function to the 1D send array
   
@@ -369,11 +369,11 @@ DO iComm=1,2
            + (j - 1_lng)							&		! convert 3D-coordinate into proper 1D-array coordinate
            + (k - 1_lng)*nySub_fine							! convert 3D-coordinate into proper 1D-array coordinate
 
-        msgSend(ii) 						= rho(i,j,k)	! store the proper density in the send array
-        msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)	! store the proper scalar quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii) 						= rho_fine(i,j,k)	! store the proper density in the send array
+        msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)	! store the proper scalar quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
 
         ! distribution functions
         DO m=1,NumFs_face
@@ -383,7 +383,7 @@ DO iComm=1,2
              + (j - 1_lng)*NumFs_face			&		! convert 3D-coordinate into proper 1D-array coordinate
              + (k - 1_lng)*NumFs_face*nySub_fine			! convert 3D-coordinate into proper 1D-array coordinate
 
-          msgSend(ii) = f(f_Comps(iComm,m),i,j,k)	! store the proper component of the distribution function in the send array
+          msgSend_fine(ii) = f_fine(f_Comps(iComm,m),i,j,k)	! store the proper component of the distribution function in the send array
 
         END DO   
 
@@ -397,7 +397,7 @@ END DO
 ! ZX Faces
 DO iComm=3,4
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)
 
     j = ZX_SendIndex_fine(iComm)								! j index for assigning the proper component of the distribution function to the 1D send array
   
@@ -409,11 +409,11 @@ DO iComm=3,4
            + (k - 1_lng)							&		! convert 3D-coordinate into proper 1D-array coordinate
            + (i - 1_lng)*nzSub_fine							! convert 3D-coordinate into proper 1D-array coordinate
     
-        msgSend(ii) 						= rho(i,j,k)	! store the proper density in the send array
-        msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)	! store the proper scalar quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii) 						= rho_fine(i,j,k)	! store the proper density in the send array
+        msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)	! store the proper scalar quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
 
         ! distribution functions
         DO m=1,NumFs_face
@@ -423,7 +423,7 @@ DO iComm=3,4
              + (k - 1_lng)*NumFs_face			&		! convert 3D-coordinate into proper 1D-array coordinate
              + (i - 1_lng)*NumFs_face*nzSub_fine			! convert 3D-coordinate into proper 1D-array coordinate
 
-          msgSend(ii) = f(f_Comps(iComm,m),i,j,k)	! store the proper component of the distribution function in the send array
+          msgSend_fine(ii) = f_fine(f_Comps(iComm,m),i,j,k)	! store the proper component of the distribution function in the send array
 
         END DO      
 
@@ -437,7 +437,7 @@ END DO
 ! XY Faces
 DO iComm=5,6
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)  
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)  
 
     k = XY_SendIndex_fine(iComm)								! j index for assigning the proper component of the distribution function to the 1D send array
   
@@ -449,11 +449,11 @@ DO iComm=5,6
            + (i - 1_lng)							&		! convert 3D-coordinate into proper 1D-array coordinate
            + (j - 1_lng)*nxSub_fine							! convert 3D-coordinate into proper 1D-array coordinate     
     
-        msgSend(ii) 						= rho(i,j,k)	! store the proper density in the send array
-        msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)	! store the proper scalar quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii) 						= rho_fine(i,j,k)	! store the proper density in the send array
+        msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)	! store the proper scalar quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
       
         DO m=1,NumFs_face
       
@@ -462,7 +462,7 @@ DO iComm=5,6
              + (i - 1_lng)*NumFs_face		&			! convert 3D-coordinate into proper 1D-array coordinate
              + (j - 1_lng)*NumFs_face*nxSub_fine			! convert 3D-coordinate into proper 1D-array coordinate
 
-          msgSend(ii) = f(f_Comps(iComm,m),i,j,k)	! store the proper component of the distribution function in the send array
+          msgSend_fine(ii) = f_fine(f_Comps(iComm,m),i,j,k)	! store the proper component of the distribution function in the send array
   
         END DO
       
@@ -478,7 +478,7 @@ END DO
 ! Z Sides
 DO iComm=7,10
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)    
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)    
 
     i = Z_SendIndex_fine(iComm,1)								! i index for assigning the proper component of the distribution function to the 1D send array        
     j = Z_SendIndex_fine(iComm,2)								! j index for assigning the proper component of the distribution function to the 1D send array
@@ -489,11 +489,11 @@ DO iComm=7,10
 	ii = CommDataStart_rho_fine(iComm)			&			! start location
            + (k - 1_lng)										! convert 3D-coordinate into proper 1D-array coordinate
     
-	msgSend(ii) 					= rho(i,j,k)		! store the proper density in the send array
-	msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)		! store the proper scalar quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+	msgSend_fine(ii) 					= rho_fine(i,j,k)		! store the proper density in the send array
+	msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)		! store the proper scalar quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
     
       DO m=1,NumFs_side
   
@@ -502,7 +502,7 @@ DO iComm=7,10
            + (m - 1_lng)						&			! current distribution function location
            + (k - 1_lng)*NumFs_side						! convert 3D-coordinate into proper 1D-array coordinate
 
-        msgSend(ii) = f(f_Comps(iComm,m),i,j,k)		! store the proper component of the distribution function in the send array
+        msgSend_fine(ii) = f_fine(f_Comps(iComm,m),i,j,k)		! store the proper component of the distribution function in the send array
  
       END DO
   
@@ -515,7 +515,7 @@ END DO
 ! X Sides
 DO iComm=11,14
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)     
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)     
 
     j = X_SendIndex_fine(iComm,1)								! j index for assigning the proper component of the distribution function to the 1D send array        
     k = X_SendIndex_fine(iComm,2)								! k index for assigning the proper component of the distribution function to the 1D send array
@@ -526,11 +526,11 @@ DO iComm=11,14
       ii = CommDataStart_rho_fine(iComm)			&			! start location
          + (i - 1_lng)										! convert 3D-coordinate into proper 1D-array coordinate
     
-      msgSend(ii) 					= rho(i,j,k)		! store the proper density in the send array
-      msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)		! store the proper scalar quantity in the send array 
-      msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-      msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-      msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+      msgSend_fine(ii) 					= rho_fine(i,j,k)		! store the proper density in the send array
+      msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)		! store the proper scalar quantity in the send array 
+      msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+      msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+      msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
     
       DO m=1,NumFs_side
 
@@ -539,7 +539,7 @@ DO iComm=11,14
            + (m - 1_lng)						&			! current distribution function location
            + (i - 1_lng)*NumFs_side						! convert 3D-coordinate into proper 1D-array coordinate
 
-        msgSend(ii) = f(f_Comps(iComm,m),i,j,k)		! store the proper component of the distribution function in the send array
+        msgSend_fine(ii) = f_fine(f_Comps(iComm,m),i,j,k)		! store the proper component of the distribution function in the send array
 
       END DO
     
@@ -552,7 +552,7 @@ END DO
 ! Y Sides
 DO iComm=15,18
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)   
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)   
 
     i = Y_SendIndex_fine(iComm,1)								! i index for assigning the proper component of the distribution function to the 1D send array        
     k = Y_SendIndex_fine(iComm,2)								! k index for assigning the proper component of the distribution function to the 1D send array
@@ -563,11 +563,11 @@ DO iComm=15,18
       ii = CommDataStart_rho_fine(iComm)			&			! start location
          + (j - 1_lng)										! convert 3D-coordinate into proper 1D-array coordinate
     
-        msgSend(ii) 						= rho(i,j,k)	! store the proper density in the send array
-        msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)	! store the proper scalar quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-        msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii) 						= rho_fine(i,j,k)	! store the proper density in the send array
+        msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)	! store the proper scalar quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
     
       DO m=1,NumFs_side
 
@@ -576,7 +576,7 @@ DO iComm=15,18
            + (m - 1_lng)						&			! current distribution function locationcurrent distribution function location
            + (j - 1_lng)*NumFs_side						! convert 3D-coordinate into proper 1D-array coordinate
 
-        msgSend(ii) = f(f_Comps(iComm,m),i,j,k)		! store the proper component of the distribution function in the send array
+        msgSend_fine(ii) = f_fine(f_Comps(iComm,m),i,j,k)		! store the proper component of the distribution function in the send array
 
       END DO
      
@@ -590,32 +590,32 @@ END DO
 ! CORNERS
 DO iComm=19,26
   
-  IF(Sub_fineID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)   
+  IF(SubID(iComm) .NE. 0) THEN							! only fill if the neighbor contains fluid (otherwise, no data transfer is necessary)   
   
     i = Corner_SendIndex_fine(iComm,1)						! j index for assigning the proper component of the distribution function to the 1D send array 	
     j = Corner_SendIndex_fine(iComm,2)						! j index for assigning the proper component of the distribution function to the 1D send array        
     k = Corner_SendIndex_fine(iComm,3)						! k index for assigning the proper component of the distribution function to the 1D send array
 
     ii = CommDataStart_rho_fine(iComm)						! start location
-    msgSend(ii) 					= rho(i,j,k)			! store the proper density in the send array
-    msgSend(ii+dsSize_fine(iComm))	= phi(i,j,k)			! store the proper scalar quantity in the send array
-    msgSend(ii+2_lng*dsSize_fine(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
-    msgSend(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
-    msgSend(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+    msgSend_fine(ii) 					= rho_fine(i,j,k)			! store the proper density in the send array
+    msgSend_fine(ii+dsSize_fine(iComm))	= phi_fine(i,j,k)			! store the proper scalar quantity in the send array
+    msgSend_fine(ii+2_lng*dsSize_fine(iComm))	= u_fine(i,j,k)	! store the proper velocity quantity in the send array
+    msgSend_fine(ii+2_lng*dsSize_fine(iComm)+uvwSize_fine(icomm))= v_fine(i,j,k)	! store the proper velocity quantity in the send array
+    msgSend_fine(ii+2_lng*dsSize_fine(iComm)+2_lng*uvwSize_fine(icomm))= w_fine(i,j,k)	! store the proper velocity quantity in the send array
   
     ii = CommDataStart_f_fine(iComm)							! start location
-    msgSend(ii) = f(f_Comps(iComm,1),i,j,k)			! store the proper component of the distribution function in the send array
+    msgSend_fine(ii) = f_fine(f_Comps(iComm,1),i,j,k)			! store the proper component of the distribution function in the send array
 
   END IF
   	
 END DO
 
 !------------------------------------------------
-END SUBROUTINE PackData
+END SUBROUTINE PackData_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE MPI_Transfer	! transfer the distribution functions between neighboring initialize the MPI arrays and variables
+SUBROUTINE MPI_Transfer_Fine	! transfer the distribution functions between neighboring initialize the MPI arrays and variables
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -624,16 +624,16 @@ INTEGER(lng) :: iComm											! index variable
 INTEGER(lng) :: numReqs											! number of send/recv requests
 INTEGER(lng) :: mpierr											! MPI standard error object
 
-CALL PackData														! fill out the arrays to be transferred 
+CALL PackData_Fine														! fill out the arrays to be transferred 
 
 numReqs = 0_lng
 
 ! Post the receives
 DO iComm = 1,NumCommDirs
 
-  IF(Sub_fineID(OppCommDir(iComm)) .NE. 0) THEN 
+  IF(SubID(OppCommDir(iComm)) .NE. 0) THEN 
     numReqs = numReqs + 1_lng   
-    CALL PostRecv(iComm,numReqs)										! receive data
+    CALL PostRecv_Fine(iComm,numReqs)										! receive data
   END IF
 
 END DO
@@ -641,9 +641,9 @@ END DO
 ! Send the data
 DO iComm = 1,NumCommDirs
 
-  IF(Sub_fineID(iComm) .NE. 0) THEN
+  IF(SubID(iComm) .NE. 0) THEN
     numReqs = numReqs + 1_lng 
-    CALL SendData(iComm,numReqs)						  				! send data
+    CALL SendData_Fine(iComm,numReqs)						  				! send data
   END IF
 
 END DO
@@ -653,18 +653,18 @@ CALL MPI_WAITALL(numReqs,req(1:numReqs),waitStat,mpierr)
 ! Store the Data
 DO iComm = 1,NumCommDirs
 
-  IF(Sub_fineID(OppCommDir(iComm)) .NE. 0) THEN    
-    CALL UnPackData(iComm)										! store the sent data in the proper location at the destination
+  IF(SubID(OppCommDir(iComm)) .NE. 0) THEN    
+    CALL UnPackData_Fine(iComm)										! store the sent data in the proper location at the destination
   END IF
 
 END DO
 
 !------------------------------------------------
-END SUBROUTINE MPI_Transfer
+END SUBROUTINE MPI_Transfer_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE PostRecv(iComm,numReqs)	! receives information from a neighboring subdomain
+SUBROUTINE PostRecv_Fine(iComm,numReqs)	! receives information from a neighboring subdomain
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -679,17 +679,17 @@ INTEGER(lng) :: mpierr												! MPI standard error variable
 msgStart = CommDataStart_f_fine(OppCommDir(iComm))
 msgEnd	= msgStart + msgSize_fine(OppCommDir(iComm))
 
-src	= Sub_fineID(OppCommDir(iComm)) - 1_lng						! rank of processing unit sending message TO this processing unit
+src	= SubID(OppCommDir(iComm)) - 1_lng						! rank of processing unit sending message TO this processing unit
 tag	= iComm + 100_lng												! message tag 
 
-CALL MPI_IRECV(msgRecv(msgStart:msgEnd),msgSize_fine(OppCommDir(iComm)),MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,req(numReqs),mpierr)		! receive data
+CALL MPI_IRECV(msgRecv_fine(msgStart:msgEnd),msgSize_fine(OppCommDir(iComm)),MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,req(numReqs),mpierr)		! receive data
 
 !------------------------------------------------
-END SUBROUTINE PostRecv
+END SUBROUTINE PostRecv_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE SendData(iComm,numReqs)											! sends information to a neighboring subdomain
+SUBROUTINE SendData_Fine(iComm,numReqs)											! sends information to a neighboring subdomain
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -704,17 +704,17 @@ INTEGER(lng) :: mpierr												! MPI standard error variable
 msgStart		= CommDataStart_f_fine(iComm)	
 msgEnd		= msgStart + msgSize_fine(iComm)
 
-dest 			= Sub_fineID(iComm) - 1_lng								! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
+dest 			= SubID(iComm) - 1_lng								! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
 tag			= iComm + 100_lng										! message tag 
 
-CALL MPI_ISEND(msgSend(msgStart:msgEnd),msgSize_fine(iComm),MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,req(numReqs),mpierr)					! send data
+CALL MPI_ISEND(msgSend_fine(msgStart:msgEnd),msgSize_fine(iComm),MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,req(numReqs),mpierr)					! send data
 
 !------------------------------------------------
-END SUBROUTINE SendData
+END SUBROUTINE SendData_Fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE UnPackData(iComm)	! store the recieved data in the proper locations
+SUBROUTINE UnPackData_Fine(iComm)	! store the recieved data in the proper locations
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -734,11 +734,11 @@ SELECT CASE(OppCommDir(iComm))
 
           ii = j + (k-1)*nySub_fine																					! location of density and scalar function to recieve
 
-          rho(i,j,k) = msgRecv((CommDataStart_rho_fine(OppCommDir(iComm))-1) + ii)						! store recieved density in proper place
-          phi(i,j,k) = msgRecv((CommDataStart_phi_fine(OppCommDir(iComm))-1) + ii)						! store recieved scalar quantity in proper place          
-          u(i,j,k) = msgRecv((CommDataStart_u_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
-          v(i,j,k) = msgRecv((CommDataStart_v_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
-          w(i,j,k) = msgRecv((CommDataStart_w_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          rho_fine(i,j,k) = msgRecv_fine((CommDataStart_rho_fine(OppCommDir(iComm))-1) + ii)						! store recieved density in proper place
+          phi_fine(i,j,k) = msgRecv_fine((CommDataStart_phi_fine(OppCommDir(iComm))-1) + ii)						! store recieved scalar quantity in proper place          
+          u_fine(i,j,k) = msgRecv_fine((CommDataStart_u_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          v_fine(i,j,k) = msgRecv_fine((CommDataStart_v_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          w_fine(i,j,k) = msgRecv_fine((CommDataStart_w_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
         
         DO m=1,NumFs_Face
           
@@ -746,7 +746,7 @@ SELECT CASE(OppCommDir(iComm))
              + (j-1)*NumFs_Face 		&
              + (k-1)*nySub_fine*NumFs_Face
              
-          f(f_Comps(iComm,m),i,j,k) = msgRecv((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)	! store the recieved distribution function component in the proper place in the f array
+          f_fine(f_Comps(iComm,m),i,j,k) = msgRecv_fine((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)	! store the recieved distribution function component in the proper place in the f array
 
         END DO
         
@@ -762,11 +762,11 @@ SELECT CASE(OppCommDir(iComm))
 
           ii = k + (i-1)*nzSub_fine																					! location of density and scalar function to recieve
 
-          rho(i,j,k) = msgRecv((CommDataStart_rho_fine(OppCommDir(iComm))-1) + ii)						! store recieved density in proper place
-          phi(i,j,k) = msgRecv((CommDataStart_phi_fine(OppCommDir(iComm))-1) + ii)						! store recieved scalar quantity in proper place              
-          u(i,j,k) = msgRecv((CommDataStart_u_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
-          v(i,j,k) = msgRecv((CommDataStart_v_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
-          w(i,j,k) = msgRecv((CommDataStart_w_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          rho_fine(i,j,k) = msgRecv_fine((CommDataStart_rho_fine(OppCommDir(iComm))-1) + ii)						! store recieved density in proper place
+          phi_fine(i,j,k) = msgRecv_fine((CommDataStart_phi_fine(OppCommDir(iComm))-1) + ii)						! store recieved scalar quantity in proper place              
+          u_fine(i,j,k) = msgRecv_fine((CommDataStart_u_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          v_fine(i,j,k) = msgRecv_fine((CommDataStart_v_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          w_fine(i,j,k) = msgRecv_fine((CommDataStart_w_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
         
         DO m=1,NumFs_Face
           
@@ -774,7 +774,7 @@ SELECT CASE(OppCommDir(iComm))
              + (k-1)*NumFs_Face 		&																			! location of density and scalar function to recieve
              + (i-1)*nzSub_fine*NumFs_Face
              
-          f(f_Comps(iComm,m),i,j,k) = msgRecv((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)	! store the recieved distribution function component in the proper place in the f array
+          f_fine(f_Comps(iComm,m),i,j,k) = msgRecv_fine((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)	! store the recieved distribution function component in the proper place in the f array
 
         END DO
         
@@ -790,11 +790,11 @@ SELECT CASE(OppCommDir(iComm))
 
         ii = i + (j-1)*nxSub_fine																						! location of density and scalar function to recieve
              	
-          rho(i,j,k) = msgRecv((CommDataStart_rho_fine(OppCommDir(iComm))-1) + ii)						! store recieved density in proper place
-          phi(i,j,k) = msgRecv((CommDataStart_phi_fine(OppCommDir(iComm))-1) + ii)						! store recieved scalar quantity in proper place         
-          u(i,j,k) = msgRecv((CommDataStart_u_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
-          v(i,j,k) = msgRecv((CommDataStart_v_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
-          w(i,j,k) = msgRecv((CommDataStart_w_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          rho_fine(i,j,k) = msgRecv_fine((CommDataStart_rho_fine(OppCommDir(iComm))-1) + ii)						! store recieved density in proper place
+          phi_fine(i,j,k) = msgRecv_fine((CommDataStart_phi_fine(OppCommDir(iComm))-1) + ii)						! store recieved scalar quantity in proper place         
+          u_fine(i,j,k) = msgRecv_fine((CommDataStart_u_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          v_fine(i,j,k) = msgRecv_fine((CommDataStart_v_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          w_fine(i,j,k) = msgRecv_fine((CommDataStart_w_fine(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
         
         DO m=1,NumFs_Face
           
@@ -802,7 +802,7 @@ SELECT CASE(OppCommDir(iComm))
              + (i-1)*NumFs_Face 		&																			! location of density and scalar function to recieve
              + (j-1)*nxSub_fine*NumFs_Face
              
-          f(f_Comps(iComm,m),i,j,k) = msgRecv((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)	! store the recieved distribution function component in the proper place in the f array
+          f_fine(f_Comps(iComm,m),i,j,k) = msgRecv_fine((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)	! store the recieved distribution function component in the proper place in the f array
   
         END DO
         
@@ -816,17 +816,17 @@ SELECT CASE(OppCommDir(iComm))
 
     DO k=1,nzSub_fine
 
-      rho(i,j,k) = msgRecv((CommDataStart_rho_fine(OppCommDir(iComm))-1) + k)							! store recieved density in proper place
-      phi(i,j,k) = msgRecv((CommDataStart_phi_fine(OppCommDir(iComm))-1) + k)							! store recieved scalar quantity in proper place            
-      u(i,j,k) = msgRecv((CommDataStart_u_fine(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
-      v(i,j,k) = msgRecv((CommDataStart_v_fine(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
-      w(i,j,k) = msgRecv((CommDataStart_w_fine(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
+      rho_fine(i,j,k) = msgRecv_fine((CommDataStart_rho_fine(OppCommDir(iComm))-1) + k)							! store recieved density in proper place
+      phi_fine(i,j,k) = msgRecv_fine((CommDataStart_phi_fine(OppCommDir(iComm))-1) + k)							! store recieved scalar quantity in proper place            
+      u_fine(i,j,k) = msgRecv_fine((CommDataStart_u_fine(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
+      v_fine(i,j,k) = msgRecv_fine((CommDataStart_v_fine(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
+      w_fine(i,j,k) = msgRecv_fine((CommDataStart_w_fine(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
         
       DO m=1,NumFs_Side
           
         ii = m + (k-1)*NumFs_Side																				! location of distribution function to recieve
              
-        f(f_Comps(iComm,m),i,j,k) = msgRecv((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)		! store the recieved distribution function component in the proper place in the f array
+        f_fine(f_Comps(iComm,m),i,j,k) = msgRecv_fine((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)		! store the recieved distribution function component in the proper place in the f array
 
       END DO
 
@@ -839,17 +839,17 @@ SELECT CASE(OppCommDir(iComm))
 
     DO i=1,nxSub_fine
 
-      rho(i,j,k) = msgRecv((CommDataStart_rho_fine(OppCommDir(iComm))-1) + i)							! store recieved density in proper place
-      phi(i,j,k) = msgRecv((CommDataStart_phi_fine(OppCommDir(iComm))-1) + i)							! store recieved scalar quantity in proper place  
-      u(i,j,k) = msgRecv((CommDataStart_u_fine(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
-      v(i,j,k) = msgRecv((CommDataStart_v_fine(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
-      w(i,j,k) = msgRecv((CommDataStart_w_fine(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
+      rho_fine(i,j,k) = msgRecv_fine((CommDataStart_rho_fine(OppCommDir(iComm))-1) + i)							! store recieved density in proper place
+      phi_fine(i,j,k) = msgRecv_fine((CommDataStart_phi_fine(OppCommDir(iComm))-1) + i)							! store recieved scalar quantity in proper place  
+      u_fine(i,j,k) = msgRecv_fine((CommDataStart_u_fine(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
+      v_fine(i,j,k) = msgRecv_fine((CommDataStart_v_fine(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
+      w_fine(i,j,k) = msgRecv_fine((CommDataStart_w_fine(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
         
       DO m=1,NumFs_Side
           
         ii = m + (i-1)*NumFs_Side																				! location of distribution function to recieve
              
-        f(f_Comps(iComm,m),i,j,k) = msgRecv((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)		! store the recieved distribution function component in the proper place in the f array
+        f_fine(f_Comps(iComm,m),i,j,k) = msgRecv_fine((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)		! store the recieved distribution function component in the proper place in the f array
 
       END DO
 
@@ -862,17 +862,17 @@ SELECT CASE(OppCommDir(iComm))
 
     DO j=1,nySub_fine
 
-      rho(i,j,k) = msgRecv((CommDataStart_rho_fine(OppCommDir(iComm))-1) + j)							! store recieved density in proper place
-      phi (i,j,k) = msgRecv((CommDataStart_phi_fine(OppCommDir(iComm))-1) + j)							! store recieved scalar quantity in proper place  
-      u(i,j,k) = msgRecv((CommDataStart_u_fine(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
-      v(i,j,k) = msgRecv((CommDataStart_v_fine(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
-      w(i,j,k) = msgRecv((CommDataStart_w_fine(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
+      rho_fine(i,j,k) = msgRecv_fine((CommDataStart_rho_fine(OppCommDir(iComm))-1) + j)							! store recieved density in proper place
+      phi_fine(i,j,k) = msgRecv_fine((CommDataStart_phi_fine(OppCommDir(iComm))-1) + j)							! store recieved scalar quantity in proper place  
+      u_fine(i,j,k) = msgRecv_fine((CommDataStart_u_fine(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
+      v_fine(i,j,k) = msgRecv_fine((CommDataStart_v_fine(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
+      w_fine(i,j,k) = msgRecv_fine((CommDataStart_w_fine(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
         
       DO m=1,NumFs_Side
           
         ii = m + (j-1)*NumFs_Side																				! location of distribution function to recieve
              
-        f(f_Comps(iComm,m),i,j,k) = msgRecv((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)		! store the recieved distribution function component in the proper place in the f array
+        f_fine(f_Comps(iComm,m),i,j,k) = msgRecv_fine((CommDataStart_f_fine(OppCommDir(iComm))-1) + ii)		! store the recieved distribution function component in the proper place in the f array
 
       END DO
 
@@ -884,12 +884,12 @@ SELECT CASE(OppCommDir(iComm))
     j = Corner_RecvIndex_fine(OppCommDir(iComm),2)															 	! j index for obtaining the proper information from the 1D transfer array 	
     k = Corner_RecvIndex_fine(OppCommDir(iComm),3)																! k index for obtaining the proper information from the 1D transfer array    
 
-    rho(i,j,k) = msgRecv(CommDataStart_rho_fine(OppCommDir(iComm)))											! store recieved density in proper place
-    phi(i,j,k) = msgRecv(CommDataStart_phi_fine(OppCommDir(iComm)))											! store recieved scalar quantity in proper place  
-    u(i,j,k) = msgRecv(CommDataStart_u_fine(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
-    v(i,j,k) = msgRecv(CommDataStart_v_fine(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
-    w(i,j,k) = msgRecv(CommDataStart_w_fine(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
-    f(f_Comps(iComm,1),i,j,k) = msgRecv(CommDataStart_f_fine(OppCommDir(iComm)))						! store the recieved distribution function component in the proper place in the f array
+    rho_fine(i,j,k) = msgRecv_fine(CommDataStart_rho_fine(OppCommDir(iComm)))											! store recieved density in proper place
+    phi_fine(i,j,k) = msgRecv_fine(CommDataStart_phi_fine(OppCommDir(iComm)))											! store recieved scalar quantity in proper place  
+    u_fine(i,j,k) = msgRecv_fine(CommDataStart_u_fine(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
+    v_fine(i,j,k) = msgRecv_fine(CommDataStart_v_fine(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
+    w_fine(i,j,k) = msgRecv_fine(CommDataStart_w_fine(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
+    f_fine(f_Comps(iComm,1),i,j,k) = msgRecv_fine(CommDataStart_f_fine(OppCommDir(iComm)))						! store the recieved distribution function component in the proper place in the f array
 
   CASE DEFAULT
 
@@ -902,9 +902,9 @@ SELECT CASE(OppCommDir(iComm))
 END SELECT
 
 !------------------------------------------------
-END SUBROUTINE UnPackData
+END SUBROUTINE UnPackData_Fine
 !------------------------------------------------
 
 !================================================
-END MODULE Parallel
+END MODULE Parallel_Fine
 !================================================

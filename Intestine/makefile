@@ -36,7 +36,7 @@ PROGRAMS = Intestine3D.exe
        Parallel.o Geometry.o ICBC.o Output.o \
        Main.o
 MODULES = SetPrecision.o Setup.o Setup_fine.o ICBC.o ICBC_fine.o LBM.o LBM_fine.o PassiveScalar.o \
-       Parallel.o Geometry.o Geometry_fine.o Output.o
+       Parallel.o Parallel_fine.o Geometry.o Geometry_fine.o Output.o
 SRCOBJS = Main.o
 
 # "make" builds all
