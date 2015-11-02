@@ -6,11 +6,14 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
    	USE Setup
    	USE Setup_fine
 	USE Parallel    
+	USE Parallel_fine   
 	USE LBM      
+	USE LBM_fine      
 	USE Geometry
 	USE Geometry_fine
 	USE PassiveScalar
 	USE ICBC	
+	USE ICBC_fine	
 	USE Output
 
 	IMPLICIT NONE
@@ -47,10 +50,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintStatus		! Start simulation timer, print status [MODULE: Output]
 
-	IF(ParticleTrack.EQ.ParticleOn) THEN 	! If particle tracking is 'on' then do the following
-		CALL IniParticles
-		CALL Particle_Setup
-	ENDIF
 	IF(restart) THEN			! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
 		CALL AdvanceGeometry
 	END IF
@@ -80,10 +79,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL Macro				! calcuate the macroscopic quantities [MODULE: Algorithm]
 	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-	IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN	! If particle tracking is 'on' then do the following
-		CALL Particle_Track
-	ENDIF
-
 	IF(iter .GE. phiStart) THEN
 		CALL Scalar			! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
 	END IF
@@ -93,10 +88,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 ! particle tracking. 
 !	CALL Macro				! calcuate the macroscopic quantities [MODULE: Algorithm]
 !	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
-!
-!	IF(ParticleTrack.EQ.ParticleOn) THEN 	! If particle tracking is 'on' then do the following
-!		CALL Particle_Track
-!	ENDIF
 	
 
 	! Balaji added to test value with time
@@ -139,7 +130,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !     CALL CheckVariables			! check the magnitude of selected variables (TEST)
 
      CALL PrintFields				! output the velocity, density, and scalar fields [MODULE: Output]
-     CALL PrintParticles			! output the particle velocity, radius, position and con. [MODULE: Output]
      CALL PrintScalar				! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
      CALL PrintMass				! print the total mass in the system (TEST)
      CALL PrintVolume				! print the volume in the system (TEST)
