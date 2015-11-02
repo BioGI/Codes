@@ -289,6 +289,10 @@ READ(10,*) sclrIC				! initial/maintained scalar distribution (1=BLOB,2=LINE,3=I
 READ(10,*) phiPer				! period at which to start the scalar
 READ(10,*) phiIC				! maximum scalar concentration
 
+IF (phiIC .gt. 0) THEN
+   wirte(*,*) "Cannot handle scalar yet"
+END IF
+
 READ(10,*) nPers				! total number of periods to run
 READ(10,*) numOuts			! number of output files (roughly)
 READ(10,*) restart			! use restart file? (0 if no, 1 if yes)

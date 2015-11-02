@@ -51,8 +51,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintStatus		! Start simulation timer, print status [MODULE: Output]
 
-	IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
-		CALL AdvanceGeometry
+        IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
+                write(*,*) "Cannot restart yet. Implementation not complete"
+		!CALL AdvanceGeometry
 	END IF
 
 	CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)	! synchronize all processes before starting simulation [Intrinsic]
