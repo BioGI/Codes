@@ -67,12 +67,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	!write(*,*) iter,MAXVAL(f(:,:,:,0)-f(:,:,:,nzSub))
 	!write(*,*) iter,MAXVAL(f(:,:,:,nzSub+1)-f(:,:,:,1))
 
-	!CALL SymmetryBC			! enforce symmetry boundary condition at the planes of symmetry [MODULE: ICBC]
-	! Balaji added to make domain full 3D
-	IF(domaintype .EQ. 0) THEN  ! only needed when planes of symmetry exist
-	     	CALL SymmetryBC			! enforce symmetry boundary condition at the planes of symmetry [MODULE: ICBC]
-	ENDIF
-
 	CALL Stream				! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 	!CALL MPI_Transfer			! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
