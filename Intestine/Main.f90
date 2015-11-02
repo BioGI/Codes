@@ -18,17 +18,17 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	IMPLICIT NONE
 
-   INTEGER(lng) :: mpierr											! MPI standard error variable
+        INTEGER(lng) :: mpierr					! MPI standard error variable
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MPI Setup ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	CALL MPI_INIT(mpierr)											! initialize parallelization [Intrinsic]
-	CALL MPI_COMM_SIZE(MPI_COMM_WORLD,numprocs,mpierr)		! get the size of the parallel "world" (number of processing units) [Intrinsic]
-	CALL MPI_COMM_RANK(MPI_COMM_WORLD,myid,mpierr)			! assign each prossessing unit a number (myid) for identification [Intrinsic]
+	CALL MPI_INIT(mpierr)					! initialize parallelization [Intrinsic]
+	CALL MPI_COMM_SIZE(MPI_COMM_WORLD,numprocs,mpierr)	! get the size of the parallel "world" (number of processing units) [Intrinsic]
+	CALL MPI_COMM_RANK(MPI_COMM_WORLD,myid,mpierr)		! assign each prossessing unit a number (myid) for identification [Intrinsic]
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simulation Setup ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	CALL Global_Setup_fine													! set up the simulation {MODULE: Setup]
+	CALL Global_Setup_fine					! set up the simulation {MODULE: Setup]
 
 !OPEN(6678,FILE='debug.'//sub//'.txt')
 !WRITE(6678,*) 'hello from processor', myid
