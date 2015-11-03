@@ -290,7 +290,7 @@ READ(10,*) phiPer				! period at which to start the scalar
 READ(10,*) phiIC				! maximum scalar concentration
 
 IF (phiIC .gt. 0) THEN
-   wirte(*,*) "Cannot handle scalar yet"
+   write(*,*) "Cannot handle scalar yet"
 END IF
 
 READ(10,*) nPers				! total number of periods to run
