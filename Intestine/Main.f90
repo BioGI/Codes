@@ -65,7 +65,23 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
 	CALL Collision			! collision step [MODULE: Algorithm]
-	CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+        CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+
+        CALL InterpolateToFineGrid      ! Interpolate required variables to fine grid
+        DO subIter=1,gridRatio
+           CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
+           IF (subIter .gt. 1) THEN
+              CALL Collision_Fine     ! Collision step on the fine grid
+              CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
+           END IF
+           IF (subIter .lt. gridRatio) THEN
+              CALL Stream_Fine            ! Stream fine grid
+              CALL Macro_Fine             ! Calculate Macro properties on fine grid
+              !    CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+           END IF
+        END DO
+        CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
+  
 	!write(*,*) iter,MAXVAL(f(:,:,:,0)-f(:,:,:,nzSub))
 	!write(*,*) iter,MAXVAL(f(:,:,:,nzSub+1)-f(:,:,:,1))
 
