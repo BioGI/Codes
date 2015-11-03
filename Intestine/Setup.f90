@@ -29,8 +29,9 @@ INTEGER(lng)	:: nx,ny,nz												! number of global nodes in the x, y, and z 
 INTEGER(lng)	:: nxSub,nySub,nzSub									! number of local nodes in the each direction
 INTEGER(lng)	:: iter0,iter,nt										! initial time step, timestep index, total number of timesteps
 INTEGER(lng)	:: domaintype												! a flag to denote domain type - 0 for 1/4th cylinder and 1 for full cylinder
-INTEGER(lng), PARAMETER :: FLUID		= 0_lng						! fluid
-INTEGER(lng), PARAMETER :: SOLID		= 1_lng						! solid
+INTEGER(lng), PARAMETER :: FLUID		=  0_lng						! fluid
+INTEGER(lng), PARAMETER :: SOLID		=  1_lng						! solid
+INTEGER(lng), PARAMETER :: FINEMESH		= -1_lng						! Fine mesh
 
 LOGICAL :: restart														! Restart Flag
 
