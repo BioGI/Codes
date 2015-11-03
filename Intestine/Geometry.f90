@@ -852,7 +852,7 @@ DO k=1,nzSub
 
       IF(rijk .LT. r(k)) THEN
 
-         IF( (i .gt. 46) .and. (i .lt. 56) .and. (j .gt. 46) .and. (j .lt. 56) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
+         IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
             node(i,j,k) = -1 !No computations to be carried out in these nodes
 
          ELSE
