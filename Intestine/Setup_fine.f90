@@ -29,6 +29,7 @@ REAL(dbl)		:: oneOVERtau_fine     ! reciprical of tau
 INTEGER(lng)	:: nx_fine,ny_fine,nz_fine     ! number of global nodes in the x, y, and z directions respectively
 INTEGER(lng)	:: nxSub_fine,nySub_fine,nzSub_fine   ! number of local nodes in the each direction
 INTEGER(lng)	:: iter0_fine,iter_fine,nt_fine	      ! initial time step, timestep index, total number of timesteps
+INTEGER         :: subIter                            ! Sub-iteration counter
 ! domaintype - same as Setup
 ! FLUID - same as Setup
 ! SOLID - same as Setup
@@ -161,6 +162,7 @@ INTEGER(lng)	:: Ci_fine,Cj_fine,Ck_fine ! center node location (global)
 ! PI = 3.1415926535897932384626433832 - same as Setup
 ! D, L - same as Setup
 REAL(dbl) :: fractionDfine						! fraction of the diameter used for the fine mesh
+INTEGER ::   gridRatio						! Ratio of coarse/fine grid size 
 ! a1, a2 - same as Setup
 ! eps1, eps2 - same as Setup
 ! amp1, amp2 - same as Setup
@@ -241,10 +243,6 @@ READ(10,*) nx	 				! number of nodes in the x-direction
 READ(10,*) ny					! number of nodes in the y-direction
 READ(10,*) nz					! number of nodes in the z-direction
 
-READ(10,*) nx_fine 				! number of nodes in the x-direction - fine mesh
-READ(10,*) ny_fine				! number of nodes in the y-direction - fine mesh
-READ(10,*) nz_fine				! number of nodes in the z-direction - fine mesh
-
 READ(10,*) NumSubsX			! number of subdomains in the X direction
 READ(10,*) NumSubsY			! number of subdomains in the Y direction
 READ(10,*) NumSubsZ			! number of subdomains in the Z direction
@@ -256,6 +254,19 @@ READ(10,*) NumSubsZ_fine		! number of subdomains in the Z direction - fine mesh
 READ(10,*) L					! length
 READ(10,*) D					! diameter
 READ(10,*) fractionDfine			! fraction of the diameter used for the fine mesh
+READ(10,*) gridRatio			        ! Ratio of coarse/fine grid size
+
+IF (gridRatio .gt. 1) THEN
+   nx_fine = ( fractionDfine * (nx - 1) + 2 ) * gridRatio + 1
+   ny_fine = ( fractionDfine * (ny - 1) + 2 ) * gridRatio + 1
+   nz_fine = nz * gridRatio
+   IF ((nx_fine .eq. ny_fine) .and. (nx_fine .eq. nz_fine)) THEN
+      write(*,*) 'nx_fine = ny_fine = nz_fine = ', nx_fine, ' All ok. Proceeding'
+   ELSE
+      write(*,*) 'Please set dimensions such that nx = ny = nz'      
+   END IF
+END IF
+
 
 READ(10,*) epsOVERa1			! peristaltic occlusion ratio (distance of occlusion/mean half-width)
 READ(10,*) s1					! peristaltic wave speed
