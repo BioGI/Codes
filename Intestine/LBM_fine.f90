@@ -403,6 +403,23 @@ END DO
 END SUBROUTINE Macro_Fine
 !------------------------------------------------
 
+SUBROUTINE InterpolateToFineGrid      ! Interpolate required variables to fine grid
+
+  write(*,*) 'Nothing here for now'
+
+END SUBROUTINE InterpolateToFineGrid
+
+
+
+SUBROUTINE InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
+
+  write(*,*) 'Nothing here for now'
+
+END SUBROUTINE InterpolateToCoarseGrid
+
+ 
+
+
 !================================================
 END MODULE LBM_FINE
 !================================================
