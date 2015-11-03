@@ -429,8 +429,7 @@ DO k=1,nzSub_fine
 
       IF(rijk .LT. r(k)) THEN
 
-         IF(rijk .GT. (0.5*fractionDfine*D + ycf - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
-
+         IF( ((i .eq. 1) .or. (i .eq. nx_fine)) .and. ((j .eq. 1) .or. (j .eq. ny_fine)) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
          ELSE
@@ -446,7 +445,8 @@ DO k=1,nzSub_fine
 
             END IF
 	
-            node_fine(i,j,k)	= FLUID ! reset the SOLID node that just came in to FLUID
+            node_fine(i,j,k) = FLUID ! reset the SOLID node that just came in to FLUID
+            
          END IF
 
       ELSE

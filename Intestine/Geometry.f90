@@ -852,28 +852,36 @@ DO k=1,nzSub
 
       IF(rijk .LT. r(k)) THEN
 
-        IF(node(i,j,k) .EQ. SOLID) THEN														! just came into the domain
+         IF( (i .gt. 46) .and. (i .lt. 56) .and. (j .gt. 46) .and. (j .lt. 56) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
+            node(i,j,k) = -1 !No computations to be carried out in these nodes
+
+         ELSE
+
+        
+            IF(node(i,j,k) .EQ. SOLID) THEN														! just came into the domain
           
-          ! calculate the wall velocity (boundary)
+               ! calculate the wall velocity (boundary)
+               
+               ubx = vel(k)*(x(i)/rijk)
+               uby = vel(k)*(y(j)/rijk)
+               ubz = 0.0_dbl
+               
+               !! Balaji added
+               !CALL NeighborVelocity(i,j,k,ubx,uby,ubz)
+               !IF (ubx.EQ.0.0_dbl .AND. uby.EQ.0.0_dbl) THEN
+               !ubx = vel(k)*(x(i)/rijk)
+               !uby = vel(k)*(y(j)/rijk)
+               !ubz = 0.0_dbl
+               !ENDIF
 
-          ubx = vel(k)*(x(i)/rijk)
-          uby = vel(k)*(y(j)/rijk)
-          ubz = 0.0_dbl
-          
-	  !! Balaji added
-	  !CALL NeighborVelocity(i,j,k,ubx,uby,ubz)
-	  !IF (ubx.EQ.0.0_dbl .AND. uby.EQ.0.0_dbl) THEN
-          !ubx = vel(k)*(x(i)/rijk)
-          !uby = vel(k)*(y(j)/rijk)
-          !ubz = 0.0_dbl
-	  !ENDIF
+               CALL SetProperties(i,j,k,ubx,uby,ubz)
+               
+            END IF
+            
+            node(i,j,k)	= FLUID		! reset the SOLID node that just came in to FLUID
 
-          CALL SetProperties(i,j,k,ubx,uby,ubz)
-
-        END IF
-	
-        node(i,j,k)	= FLUID																		! reset the SOLID node that just came in to FLUID
-
+         END IF
+     
       ELSE
 
         node(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
