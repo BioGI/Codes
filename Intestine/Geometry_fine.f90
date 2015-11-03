@@ -429,7 +429,7 @@ DO k=1,nzSub_fine
 
       IF(rijk .LT. r(k)) THEN
 
-         IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+         IF(rijk .GT. (0.5*fractionDfine*D + ycf - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
 
