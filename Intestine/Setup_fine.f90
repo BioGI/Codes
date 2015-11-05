@@ -195,6 +195,20 @@ INTEGER ::   gridRatio						! Ratio of coarse/fine grid size
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~Multi-grid algorithm variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+real, allocatable, dimension(:,:,:,:) :: fCtoF_topXZ
+real, allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
+real, allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
+real, allocatable, dimension(:,:,:,:) :: fCtoF_backYZ                                
+
+
+real, allocatable, dimension(:,:,:,:) :: fFtoC_topXZ
+real, allocatable, dimension(:,:,:,:) :: fFtoC_bottomXZ
+real, allocatable, dimension(:,:,:,:) :: fFtoC_frontYZ
+real, allocatable, dimension(:,:,:,:) :: fFtoC_backYZ             
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 REAL(dbl), ALLOCATABLE	   :: radius_fine(:,:)  ! radius stored during output iterations
@@ -638,6 +652,18 @@ ALLOCATE(rDom0_fine(0:nz_fine+1),rDom_fine(0:nz_fine+1),r_fine(0:nzSub_fine+1))	
 ALLOCATE(velDom(0:nz_fine+1),vel(0:nzSub_fine+1))					! global and local wall velocities
 ALLOCATE(x_fine(0:nxSub_fine+1),y_fine(0:nySub_fine+1),z_fine(0:nzSub_fine+1))		! x, y, z, physical coordinate arrays (local)
 ALLOCATE(xx_fine(0:nx_fine+1),yy_fine(0:ny_fine+1),zz_fine(0:nz_fine+1))				! x, y, z, physical coordinate arrays (global)
+
+
+!Multigrid algorithm variables
+allocate(fFtoC_topXZ(m,1:14,3,46:56,nzSub)     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fFtoC_bottomXZ(m,1:14,3,46:56,nzSub)  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fFtoC_frontYZ(m,1:14,3,47:55,nzSub)     !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(fFtoC_backYZ(m,1:14,3,47:55,nzSub)      !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+
+allocate(fCtoF_topXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio)     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fCtoF_bottomXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio)  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fCtoF_frontYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio)   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(fCtoF_backYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio)    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
 
 !------------------------------------------------
 END SUBROUTINE AllocateArrays_Fine

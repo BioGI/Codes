@@ -403,21 +403,161 @@ END DO
 END SUBROUTINE Macro_Fine
 !------------------------------------------------
 
-SUBROUTINE InterpolateToFineGrid      ! Interpolate required variables to fine grid
+SUBROUTINE InterpolateToFineGrid    ! Interpolate required variable to fine grid
 
-  write(*,*) 'Nothing here for now'
+  IMPLICIT NONE
+  INTEGER :: i,j,k
+  REAL(dbl) :: xInterp, zInterp
+  
+  !Do the bottom and top x-z planes first
+  !x - interpolation first
+  do k=-gridRatio+1,nzSub_fine+gridRatio, gridRatio
+     do i=1,nxSub_fine
+        do m=1,14	  
+           lCxIndex = lowerCoarseXindex(x_fine(i))  ! Lower Coarse x Index
+           lCzIndex = lowerCoarseZindex(z_fine(i))  ! Lower Coarse z Index
+           
+           xInterp = dble( (i-1) % gridRatio) / dble(gridRatio)
 
+           fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(f(m,lCxIndex-1,46,lCzIndex),f(m,lCxIndex,46,lCzIndex),f(m,lCxIndex+1,46,lCzIndex),f(m,lCxIndex+1,46,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
+           fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
+           fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+           
+           fCtoF_topXZ(m,3,i,k) = spatialInterpolate(f(m,lCxIndex-1,56,lCzIndex),f(m,lCxIndex,56,lCzIndex),f(m,lCxIndex+1,56,lCzIndex),f(m,lCxIndex+1,56,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
+           fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
+           fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+        end do
+     end do
+  end do
+  
+  !Now z - interpolation
+  do k=1,nzSub_fine
+     IF ( (k-1) % gridRatio ) THEN
+        do i=1,nxSub_fine
+           do m=1,4
+              lFzIndex = k - ((k-1) % gridRatio)  ! Lower Fine z Index 
+              
+              zInterp = dble((k-1) % gridRatio) / dble(gridRatio)
+              
+              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
+              fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+              fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
+              zInterp = dble((k-1) % gridRatio) / dble(gridRatio)
+              
+              fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fCtoF_topXZ(m,3,i,lFzIndex-gridRatio),fCtoF_topXZ(m,3,i,lFzIndex),fCtoF_topXZ(m,3,i,lFzIndex+gridRatio),fCtoF_topXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
+              fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+              fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
+              
+           end do
+        end do
+     END IF
+  end do
+  
+  !Fill out the remaining points on the front and back y-z planes
+  !y-interpolation first
+  do k=-gridRatio+1,nzSub_fine+gridRatio, gridRatio
+     do j=2,nySub_fine-1
+        do m=1,14	  
+           lCyIndex = lowerCoarseYindex(y_fine(i))  ! Lower Coarse x Index
+           lCzIndex = lowerCoarseZindex(z_fine(i))  ! Lower Coarse z Index - No interpolation in z
+           
+           yInterp = dble( (j-1) % gridRatio) / dble(gridRatio)
+           
+           fCtoF_frontYZ(m,1,i,k) = fCtoF_frontYZ(m,2,i,k) !Cycle the second time step to the first time step
+           fCtoF_frontYZ(m,2,i,k) = fCtoF_frontYZ(m,3,i,k) !Cycle the last time step to the second time step
+           fCtoF_frontYZ(m,3,i,k) = spatialInterpolate(f(m,46,lCyIndex-1,lCzIndex),f(m,46,lCyIndex,lCzIndex),f(m,46,lCyIndex+1,lCzIndex),f(m,46,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+           
+           fCtoF_backYZ(m,1,i,k) = fCtoF_backYZ(m,2,i,k) !Cycle the second time step to the first time step
+           fCtoF_backYZ(m,2,i,k) = fCtoF_backYZ(m,3,i,k) !Cycle the last time step to the second time step
+           fCtoF_backYZ(m,3,i,k) = spatialInterpolate(f(m,56,lCyIndex-1,lCzIndex),f(m,56,lCyIndex,lCzIndex),f(m,56,lCyIndex+1,lCzIndex),f(m,56,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+           
+        end do
+     end do
+  end do
+  
+  !Now z - interpolation
+  do k=1,nzSub_fine
+     IF ( (k-1) % gridRatio ) THEN
+        do j=2,nySub_fine
+           do m=1,14
+              lFzIndex = k - ((k-1) % gridRatio)  ! Lower Fine z Index 
+              
+              zInterp = dble((k-1) % gridRatio) / dble(gridRatio)
+              
+              fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
+              fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
+              fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(fCtoF_frontYZ(m,3,j,lFzIndex-gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex),fCtoF_frontYZ(m,3,j,lFzIndex+gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
+              
+              fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
+              fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
+              fCtoF_backYZ(m,3,j,k) = spatialInterpolate(fCtoF_backYZ(m,3,j,lFzIndex-gridRatio),fCtoF_backYZ(m,3,j,lFzIndex),fCtoF_backYZ(m,3,j,lFzIndex+gridRatio),fCtoF_backYZ(m,3,j,lFzIndex+2*gridRatio),zInterp) 
+              
+           end do
+        end do
+     END IF
+  end do
+  
 END SUBROUTINE InterpolateToFineGrid
 
+SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coarse grid
 
+  !Do the bottom and top x-z planes first
+  do m=1,14
+     do k=1,nzSub
+        do i=46,56
+           fFtoC_bottomXZ(m,1,i,k) = fFtoC_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
+           fFtoC_bottomXZ(m,2,i,k) = fFtoC_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+           fFtoC_bottomXZ(m,3,i,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) !Add the latest value to the last(third) time step.
+           f(m,i,46,k) = temporalInterpolate(fFtoC_bottomXZ(1,i,k),fFtoC_bottomXZ(2,i,k), fFtoC_bottomXZ(3,i,k), subIter*)
+           fFtoC_topXZ(m,1,i,k) = fFtoC_topXZ(m,2,i,k) !Cycle the second time step to the first time step
+           fFtoC_topXZ(m,2,i,k) = fFtoC_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+           fFtoC_topXZ(m,3,i,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) !Add the latest value to the last(third) time step.
+           f(m,i,56,k) = temporalInterpolate(fFtoC_topXZ(1,i,k),fFtoC_topXZ(2,i,k), fFtoC_topXZ(3,i,k), desiredTime)
+        end do
+     end do
+  end do
 
-SUBROUTINE InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
-
-  write(*,*) 'Nothing here for now'
+  !Fill out the remaining points on the front and back y-z planes
+  do m=1,14
+     do k=1,nzSub
+        do j=47,55
+           fFtoC_frontYZ(m,1,j,k) = fFtoC_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
+           fFtoC_frontYZ(m,2,j,k) = fFtoC_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
+           fFtoC_frontYZ(m,3,j,k) = f_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) !Add the latest value to the last(t\
+           hird) time step.
+           f(46,j,k) = temporalInterpolate(fFtoC_frontYZ(1,j,k),fFtoC_frontYZ(2,j,k), fFtoC_frontYZ(3,j,k), desiredTime)
+           fFtoC_backYZ(m,1,j,k) = fFtoC_backYZ(m,2,j,k) !Cycle the second time step to the first time step
+           fFtoC_backYZ(m,2,j,k) = fFtoC_backYZ(m,3,j,k) !Cycle the last time step to the second time step
+           fFtoC_backYZ(m,3,j,k) = f_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) !Add the latest value to the last(th\
+           ird) time step.
+           f(m,56,j,k) = temporalInterpolate(fFtoC_backYZ(1,j,k),fFtoC_backYZ(2,j,k), fFtoC_backYZ(3,j,k), desiredTime)
+        end do
+     end do
+  end do
+         
 
 END SUBROUTINE InterpolateToCoarseGrid
 
- 
+
+FUNCTION temporalInterpolate(f1,f2,f3,t)
+
+  write(*,*) 'Dummy temporal interpolation returning middle value f2 for now'
+  
+  temporalInterpolate = f2 
+
+END FUNCTION temporalInterpolate
+
+FUNCTION spatialInterpolate(f1,f2,f3,f4,s)
+
+!!!Symmetric Cubic spline temporal interpolation 
+  aHat = (-f1 + 3*(f2 - f3) + f4)/6.0
+  bHat = 0.5 * (f1 + f3) - f2
+  dHat = f2
+  cHat = f3 - aHat - bHat - dHat
+  spatialInterpolate = dHat + s * (cHat + s * (bHat + s * aHat)) !Written in a weird way to save on multiplications and additions
+  
+  
+END FUNCTION spatialInterpolate
 
 
 !================================================
