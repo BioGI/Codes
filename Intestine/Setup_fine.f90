@@ -203,10 +203,10 @@ real, allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
 real, allocatable, dimension(:,:,:,:) :: fCtoF_backYZ                                
 
 
-real, allocatable, dimension(:,:,:,:) :: fFtoC_topXZ
-real, allocatable, dimension(:,:,:,:) :: fFtoC_bottomXZ
-real, allocatable, dimension(:,:,:,:) :: fFtoC_frontYZ
-real, allocatable, dimension(:,:,:,:) :: fFtoC_backYZ             
+real, allocatable, dimension(:,:,:) :: fFtoC_topXZ
+real, allocatable, dimension(:,:,:) :: fFtoC_bottomXZ
+real, allocatable, dimension(:,:,:) :: fFtoC_frontYZ
+real, allocatable, dimension(:,:,:) :: fFtoC_backYZ             
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -655,10 +655,10 @@ ALLOCATE(xx_fine(0:nx_fine+1),yy_fine(0:ny_fine+1),zz_fine(0:nz_fine+1))				! x,
 
 
 !Multigrid algorithm variables
-allocate(fFtoC_topXZ(m,1:14,3,46:56,nzSub)     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(fFtoC_bottomXZ(m,1:14,3,46:56,nzSub)  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(fFtoC_frontYZ(m,1:14,3,47:55,nzSub)     !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
-allocate(fFtoC_backYZ(m,1:14,3,47:55,nzSub)      !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(fFtoC_topXZ(m,1:14,46:56,nzSub)     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(fFtoC_bottomXZ(m,1:14,46:56,nzSub)  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(fFtoC_frontYZ(m,1:14,47:55,nzSub)     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(fFtoC_backYZ(m,1:14,47:55,nzSub)      !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
 allocate(fCtoF_topXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio)     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
 allocate(fCtoF_bottomXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio)  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
