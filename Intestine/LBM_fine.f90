@@ -511,8 +511,8 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   do k=1,nzSub
      do i=46,56
         do m=1,14
-           f(m,i,46,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) 
-           f(m,i,56,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))
+           fPlus(m,i,46,k) = fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) 
+           fPlus(m,i,56,k) = fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))
         end do
      end do
   end do
@@ -521,8 +521,8 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   do k=1,nzSub
      do j=47,55
         do m=1,14
-           f(m,46,j,k) = f_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k)))
-           f(m,56,j,k) = f_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
+           fPlus(m,46,j,k) = fPlus_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k)))
+           fPlus(m,56,j,k) = fPlus_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
         end do
      end do
   end do
