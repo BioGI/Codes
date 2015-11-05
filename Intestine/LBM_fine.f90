@@ -403,7 +403,7 @@ END DO
 END SUBROUTINE Macro_Fine
 !------------------------------------------------
 
-SUBROUTINE InterpolateToFineGrid    ! Interpolate required variable to fine grid
+SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fine grid
 
   IMPLICIT NONE
   INTEGER :: i,j,k
@@ -497,7 +497,13 @@ SUBROUTINE InterpolateToFineGrid    ! Interpolate required variable to fine grid
      END IF
   end do
   
-END SUBROUTINE InterpolateToFineGrid
+END SUBROUTINE SpatialInterpolateToFineGrid
+
+SUBROUTINE TemporalInterpolateToFineGrid
+
+  write(*,*) 'Nothing happening here for now'
+  
+END SUBROUTINE TemporalInterpolateToFineGrid
 
 SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coarse grid
 
@@ -505,14 +511,8 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   do m=1,14
      do k=1,nzSub
         do i=46,56
-           fFtoC_bottomXZ(m,1,i,k) = fFtoC_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
-           fFtoC_bottomXZ(m,2,i,k) = fFtoC_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
-           fFtoC_bottomXZ(m,3,i,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) !Add the latest value to the last(third) time step.
-           f(m,i,46,k) = temporalInterpolate(fFtoC_bottomXZ(1,i,k),fFtoC_bottomXZ(2,i,k), fFtoC_bottomXZ(3,i,k), subIter*)
-           fFtoC_topXZ(m,1,i,k) = fFtoC_topXZ(m,2,i,k) !Cycle the second time step to the first time step
-           fFtoC_topXZ(m,2,i,k) = fFtoC_topXZ(m,3,i,k) !Cycle the last time step to the second time step
-           fFtoC_topXZ(m,3,i,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) !Add the latest value to the last(third) time step.
-           f(m,i,56,k) = temporalInterpolate(fFtoC_topXZ(1,i,k),fFtoC_topXZ(2,i,k), fFtoC_topXZ(3,i,k), desiredTime)
+           f(m,i,46,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) 
+           f(m,i,56,k) = f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))
         end do
      end do
   end do
@@ -521,20 +521,13 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   do m=1,14
      do k=1,nzSub
         do j=47,55
-           fFtoC_frontYZ(m,1,j,k) = fFtoC_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
-           fFtoC_frontYZ(m,2,j,k) = fFtoC_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
-           fFtoC_frontYZ(m,3,j,k) = f_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) !Add the latest value to the last(t\
-           hird) time step.
-           f(46,j,k) = temporalInterpolate(fFtoC_frontYZ(1,j,k),fFtoC_frontYZ(2,j,k), fFtoC_frontYZ(3,j,k), desiredTime)
-           fFtoC_backYZ(m,1,j,k) = fFtoC_backYZ(m,2,j,k) !Cycle the second time step to the first time step
-           fFtoC_backYZ(m,2,j,k) = fFtoC_backYZ(m,3,j,k) !Cycle the last time step to the second time step
-           fFtoC_backYZ(m,3,j,k) = f_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) !Add the latest value to the last(th\
-           ird) time step.
-           f(m,56,j,k) = temporalInterpolate(fFtoC_backYZ(1,j,k),fFtoC_backYZ(2,j,k), fFtoC_backYZ(3,j,k), desiredTime)
+           f(m,46,j,k) = f_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k)))
+           f(m,56,j,k) = f_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
         end do
      end do
   end do
          
+! temporalInterpolate(fFtoC_backYZ(1,j,k),fFtoC_backYZ(2,j,k), fFtoC_backYZ(3,j,k), desiredTime)
 
 END SUBROUTINE InterpolateToCoarseGrid
 
