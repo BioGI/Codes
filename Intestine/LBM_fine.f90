@@ -420,13 +420,13 @@ SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fi
            
            xInterp = dble( (i-1) % gridRatio) / dble(gridRatio)
 
-           fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fPlus(m,lCxIndex-1,46,lCzIndex),fPlus(m,lCxIndex,46,lCzIndex),fPlus(m,lCxIndex+1,46,lCzIndex),fPlus(m,lCxIndex+1,46,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+           fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fPlus(m,lCxIndex-1,46,lCzIndex),fPlus(m,lCxIndex,46,lCzIndex),fPlus(m,lCxIndex+1,46,lCzIndex),fPlus(m,lCxIndex+1,46,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
            
-           fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fPlus(m,lCxIndex-1,56,lCzIndex),fPlus(m,lCxIndex,56,lCzIndex),fPlus(m,lCxIndex+1,56,lCzIndex),fPlus(m,lCxIndex+1,56,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+           fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fPlus(m,lCxIndex-1,56,lCzIndex),fPlus(m,lCxIndex,56,lCzIndex),fPlus(m,lCxIndex+1,56,lCzIndex),fPlus(m,lCxIndex+1,56,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
         end do
      end do
   end do
@@ -439,15 +439,15 @@ SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fi
               lFzIndex = k - ((k-1) % gridRatio)  ! Lower Fine z Index 
               
               zInterp = dble((k-1) % gridRatio) / dble(gridRatio)
-              
-              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
-              fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+
               fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
+              fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
               zInterp = dble((k-1) % gridRatio) / dble(gridRatio)
-              
-              fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fCtoF_topXZ(m,3,i,lFzIndex-gridRatio),fCtoF_topXZ(m,3,i,lFzIndex),fCtoF_topXZ(m,3,i,lFzIndex+gridRatio),fCtoF_topXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
-              fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+
               fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
+              fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+              fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fCtoF_topXZ(m,3,i,lFzIndex-gridRatio),fCtoF_topXZ(m,3,i,lFzIndex),fCtoF_topXZ(m,3,i,lFzIndex+gridRatio),fCtoF_topXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
               
            end do
         end do
