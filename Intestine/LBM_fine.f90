@@ -408,6 +408,7 @@ SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fi
   IMPLICIT NONE
   INTEGER :: i,j,k
   REAL(dbl) :: xInterp, zInterp
+  INTEGER :: lCxIndex, lCzIndex, lCyIndex, lFzIndex
   
   !Do the bottom and top x-z planes first
   !x - interpolation first
@@ -501,8 +502,26 @@ END SUBROUTINE SpatialInterpolateToFineGrid
 
 SUBROUTINE TemporalInterpolateToFineGrid
 
-  write(*,*) 'Nothing happening here for now'
+  REAL(dble) :: tInterp !The time to which the temporal interpolation has to be done - Non-dimensionalized by the coarse mesh time step.
+
+  tInterp = dble(subIter/gridRatio)
   
+  !Do the bottom and top x-z planes first
+  do k=1,nzSub_fine
+     do i=1,nxSub_fine
+        fPlus_fine(i,1,k) = temporalInterpolate(fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,3,i,k),tInterp)
+        fPlus_fine(i,ny_fine,k) = temporalInterpolate(fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,3,i,k),tInterp)
+     end do
+  end do
+
+  !Fill out the remaining points on the front and back y-z planes
+  do k=1,nzSub_fine
+     do j=2,nySub_fine-1
+        fPlus_fine(i,1,k) = temporalInterpolate(fCtoF_frontYZ(m,1,i,k),fCtoF_frontYZ(m,1,i,k),fCtoF_frontYZ(m,3,i,k),tInterp)
+        fPlus_fine(i,ny_fine,k) = temporalInterpolate(fCtoF_backYZ(m,1,i,k),fCtoF_backYZ(m,1,i,k),fCtoF_backYZ(m,3,i,k),tInterp)
+     end do
+  end do
+
 END SUBROUTINE TemporalInterpolateToFineGrid
 
 SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coarse grid
