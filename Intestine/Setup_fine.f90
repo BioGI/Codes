@@ -197,16 +197,16 @@ INTEGER ::   gridRatio						! Ratio of coarse/fine grid size
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~~~~~~~~~~~~~~~~~Multi-grid algorithm variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-real, allocatable, dimension(:,:,:,:) :: fCtoF_topXZ
-real, allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
-real, allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
-real, allocatable, dimension(:,:,:,:) :: fCtoF_backYZ                                
+real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_topXZ
+real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
+real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
+real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_backYZ                                
 
 
-real, allocatable, dimension(:,:,:) :: fFtoC_topXZ
-real, allocatable, dimension(:,:,:) :: fFtoC_bottomXZ
-real, allocatable, dimension(:,:,:) :: fFtoC_frontYZ
-real, allocatable, dimension(:,:,:) :: fFtoC_backYZ             
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_backYZ             
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
