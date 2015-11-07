@@ -577,6 +577,41 @@ SUBROUTINE TemporalInterpolateToFineGrid
 
 END SUBROUTINE TemporalInterpolateToFineGrid
 
+SUBROUTINE ComputeEquilibriumForCoarseGrid
+
+  INTEGER :: i,j,k,m,iFine,kFine
+
+  !Do the bottom and top x-z planes first
+  do k = 1, nzSub
+     kFine = 1 + k*gridRatio
+     do i = 46, 56
+        iFine = 1 + (i-46)*gridRatio
+        IF(node_fine(iFine,1,kFine) .EQ. FLUID) THEN
+           
+           uu = u_fine(iFine,1,kFine)*u_fine(iFine,1,kFine) + v_fine(iFine,1,kFine)*v_fine(iFine,1,kFine) + w_fine(iFine,1,kFine)*w_fine(iFine,1,kFine)						! u . u
+           
+           DO m=1,NumDistDirs
+              
+              ue	= u_fine(iFine,1,kFine)*ex(m)		! u . e
+              ve	= v_fine(iFine,1,kFine)*ey(m)		! v . e
+              we	= w_fine(iFine,1,kFine)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho_fine(iFine,1,kFine))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              f_fine(m,iFine,1,kFine) = feq    
+              
+           END DO
+           
+        END IF
+        
+     end do
+  end do
+  
+END SUBROUTINE ComputeEquilibriumForCoarseGrid
+
+
 SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coarse grid
 
   INTEGER :: i,j,k,m
