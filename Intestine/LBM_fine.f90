@@ -589,7 +589,6 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
         IF(node_fine(iFine,1,kFine) .EQ. FLUID) THEN
            
            uu = u_fine(iFine,1,kFine)*u_fine(iFine,1,kFine) + v_fine(iFine,1,kFine)*v_fine(iFine,1,kFine) + w_fine(iFine,1,kFine)*w_fine(iFine,1,kFine)						! u . u
-           
            DO m=1,NumDistDirs
               
               ue	= u_fine(iFine,1,kFine)*ex(m)		! u . e
@@ -600,7 +599,26 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
               
               feq = (wt(m)*rho_fine(iFine,1,kFine))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-              f_fine(m,iFine,1,kFine) = feq    
+              feqFC_bottomXZ(m,i,k) = feq
+              
+           END DO
+           
+        END IF
+
+        IF(node_fine(iFine,nySub_fine,kFine) .EQ. FLUID) THEN
+           
+           uu = u_fine(iFine,nySub_fine,kFine)*u_fine(iFine,nySub_fine,kFine) + v_fine(iFine,nySub_fine,kFine)*v_fine(iFine,nySub_fine,kFine) + w_fine(iFine,nySub_fine,kFine)*w_fine(iFine,nySub_fine,kFine)						! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u_fine(iFine,nySub_fine,kFine)*ex(m)		! u . e
+              ve	= v_fine(iFine,nySub_fine,kFine)*ey(m)		! v . e
+              we	= w_fine(iFine,nySub_fine,kFine)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho_fine(iFine,nySub_fine,kFine))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFC_topXZ(m,i,k) = feq
               
            END DO
            
@@ -608,6 +626,53 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
         
      end do
   end do
+
+  !Fill in the remaining points on the front and back planes
+  do k = 1, nzSub
+     kFine = 1 + k*gridRatio
+     do j = 47, 55
+        jFine = 1 + (j-46)*gridRatio
+        IF(node_fine(1,jFine,kFine) .EQ. FLUID) THEN
+           
+           uu = u_fine(1,jFine,kFine)*u_fine(1,jFine,kFine) + v_fine(1,jFine,kFine)*v_fine(1,jFine,kFine) + w_fine(1,jFine,kFine)*w_fine(1,jFine,kFine)						! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u_fine(1,jFine,kFine)*ex(m)		! u . e
+              ve	= v_fine(1,jFine,kFine)*ey(m)		! v . e
+              we	= w_fine(1,jFine,kFine)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho_fine(1,jFine,kFine))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFC_frontYZ(m,j,k) = feq
+              
+           END DO
+           
+        END IF
+
+        IF(node_fine(nxSub_fine, jFine, kFine) .EQ. FLUID) THEN
+           
+           uu = u_fine(nxSub_fine, jFine, kFine)*u_fine(nxSub_fine, jFine, kFine) + v_fine(nxSub_fine, jFine, kFine)*v_fine(nxSub_fine, jFine, kFine) + w_fine(nxSub_fine, jFine, kFine)*w_fine(nxSub_fine, jFine, kFine)						! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u_fine(nxSub_fine, jFine, kFine)*ex(m)		! u . e
+              ve	= v_fine(nxSub_fine, jFine, kFine)*ey(m)		! v . e
+              we	= w_fine(nxSub_fine, jFine, kFine)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho_fine(nxSub_fine, jFine, kFine))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFC_backYZ(m,j,k) = feq
+              
+           END DO
+           
+        END IF
+        
+     end do
+  end do
+
   
 END SUBROUTINE ComputeEquilibriumForCoarseGrid
 
