@@ -452,6 +452,101 @@ FUNCTION closestFineKindex(z)
 END FUNCTION closestFineKindex
 
 
+SUBROUTINE ComputeEquilibriumForFineGrid
+
+  INTEGER :: i,j,k,m
+
+  !Do the bottom and top x-z planes first
+  do k = 1, nzSub
+     do i = 46, 56
+        IF(node(i,46,k) .EQ. FLUID) THEN
+           
+           uu = u(i,46,k)*u(i,46,k) + v(i,46,k)*v(i,46,k) + w(i,46,k)*w(i,46,k)						! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u(i,46,k)*ex(m)		! u . e
+              ve	= v(i,46,k)*ey(m)		! v . e
+              we	= w(i,46,k)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho(i,46,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFF_bottomXZ(m,i,k) = feq
+              
+           END DO
+           
+        END IF
+
+        IF(node(i,56,k) .EQ. FLUID) THEN
+           
+           uu = u(i,56,k)*u(i,56,k) + v(i,56,k)*v(i,56,k) + w(i,56,k)*w(i,56,k)						! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u(i,56,k)*ex(m)		! u . e
+              ve	= v(i,56,k)*ey(m)		! v . e
+              we	= w(i,56,k)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFF_topXZ(m,i,k) = feq
+              
+           END DO
+           
+        END IF
+        
+     end do
+  end do
+
+  !Fill in the remaining points on the front and back planes
+  do k = 1, nzSub
+     do j = 47, 55
+        IF(node(46,j,k) .EQ. FLUID) THEN
+           
+           uu = u(46,j,k)*u(46,j,k) + v(46,j,k)*v(46,j,k) + w(46,j,k)*w(46,j,k)						! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u(46,j,k)*ex(m)		! u . e
+              ve	= v(46,j,k)*ey(m)		! v . e
+              we	= w(46,j,k)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho(46,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFF_frontYZ(m,j,k) = feq
+              
+           END DO
+           
+        END IF
+
+        IF(node(56,j,k) .EQ. FLUID) THEN
+           
+           uu = u(56,j,k)*u(56,j,k) + v(56,j,k)*v(56,j,k) + w(56,j,k)*w(56,j,k)	! u . u
+           DO m=1,NumDistDirs
+              
+              ue	= u(56,j,k)*ex(m)		! u . e
+              ve	= v(56,j,k)*ey(m)		! v . e
+              we	= w(56,j,k)*ez(m)		! w . e
+              
+              Usum	= ue + ve + we				! U . e
+              
+              feq = (wt(m)*rho(56,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              
+              feqFF_backYZ(m,j,k) = feq
+              
+           END DO
+           
+        END IF
+        
+     end do
+  end do
+
+  
+END SUBROUTINE ComputeEquilibriumForFineGrid
+
 SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fine grid
 
   IMPLICIT NONE
