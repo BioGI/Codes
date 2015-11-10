@@ -560,7 +560,7 @@ SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fi
      do i=1,nxSub_fine
         do m=1,14	  
            lCxIndex = lowerCoarseXindex(x_fine(i))  ! Lower Coarse x Index
-           lCzIndex = lowerCoarseZindex(z_fine(i))  ! Lower Coarse z Index
+           lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index
            
            xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
 
