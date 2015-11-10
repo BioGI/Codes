@@ -107,24 +107,24 @@ ELSE
       END DO
       
       DO j=0,nySub_fine+1
-        y(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf_fine
+        y_fine(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf_fine
       END DO
       
-      DO k=0,nzSub_fine+1
-        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
+      DO k=-gridRatio+1,nzSub_fine+gridRatio
+        z_fine(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
       DO i=0,nx+1
-        xx(i) = (i-1_lng-(xaxis-1_lng))*xcf_fine
+        xx_fine(i) = (i-1_lng-(xaxis-1_lng))*xcf_fine
       END DO
       
       DO j=0,ny+1
-        yy(j) = (j-1_lng-(yaxis-1_lng))*ycf_fine
+        yy_fine(j) = (j-1_lng-(yaxis-1_lng))*ycf_fine
       END DO
       
       DO k=0,nz+1
-        zz(k) = (k - 0.5_dbl)*zcf_fine
+        zz_fine(k) = (k - 0.5_dbl)*zcf_fine
       END DO
       
       ! Center node locations
