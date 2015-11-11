@@ -93,7 +93,7 @@ INTEGER(lng), ALLOCATABLE :: ZX_RecvIndex_fine(:)						! j index for each ZX fac
 INTEGER(lng), ALLOCATABLE :: XY_SendIndex_fine(:)										! k index for each XY face 
 INTEGER(lng), ALLOCATABLE :: XY_RecvIndex_fine(:)						! k index for each XY face (phantom node for recieving data)
 INTEGER(lng), ALLOCATABLE :: SubID_fine(:)							! id number of neighboring subdomains (same as rank of processing unit working on domain)
-INTEGER(lng), ALLOCATABLE :: OppCommDir_fine(:)							! opposite MPI communication directions (like bounceback) 
+! OppCommDir_fine - Same as coarse mesh
 INTEGER(lng), ALLOCATABLE :: CommDataStart_f_fine(:)						! array of starting indices in the send arrays for the distribution functions from each communication direction 
 INTEGER(lng), ALLOCATABLE :: CommDataStart_rho_fine(:)						! array of starting indices in the send arrays for the density from each communication direction
 INTEGER(lng), ALLOCATABLE :: CommDataStart_phi_fine(:)						! array of starting indices in the send arrays for the scalar from each communication direction
@@ -717,7 +717,6 @@ DEALLOCATE(ZX_SendIndex_fine)			! j index for each ZX face
 DEALLOCATE(ZX_RecvIndex_fine)			! j index for each ZX face (phantom node for recieving data)
 DEALLOCATE(XY_SendIndex_fine)			! k index for each XY face 
 DEALLOCATE(XY_RecvIndex_fine)			! k index for each XY face (phantom node for recieving data)
-DEALLOCATE(OppCommDir_fine) 				! opposite MPI communication directions (like bounceback) 
 DEALLOCATE(CommDataStart_f_fine)		! array of starting indices in the send arrays for the distribution functions from each communication direction 
 DEALLOCATE(CommDataStart_rho_fine)		! array of starting indices in the send arrays for the density from each communication direction
 DEALLOCATE(CommDataStart_phi_fine)		! array of starting indices in the send arrays for the scalar from each communication direction

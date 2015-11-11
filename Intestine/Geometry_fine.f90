@@ -527,7 +527,7 @@ END DO
 ! XY Faces
 DO iComm=5,6
 
-  k = XY_RecvIndex(OppCommDir_fine(iComm))															! k index of the phantom nodes
+  k = XY_RecvIndex(OppCommDir(iComm))															! k index of the phantom nodes
 
   DO j=0,nySub_fine+1_lng
     DO i=0,nxSub_fine+1_lng
