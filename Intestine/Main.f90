@@ -43,6 +43,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
  	CALL Geometry_Setup_Fine	! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry_fine]
 	CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
 	CALL Output_Setup		! set up the output [MODULE: Output]
+	CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
 
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
