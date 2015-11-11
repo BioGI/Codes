@@ -157,13 +157,13 @@ DO k=2,nzSub_fine-1
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
-            WRITE(1000,'(A75)') "error in LBM.f90 at Line 89: node_fine(im1,jm1,km1) is out of range"
+            WRITE(1000,'(A75)') "error in LBM.f90 at Line 160: node_fine(im1,jm1,km1) is out of range"
             WRITE(1000,*) "iter", iter
             WRITE(1000,*) "m=",m
             WRITE(1000,*) "i=",i,"j=",j,"k=",k
-            WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
+            WRITE(1000,*) "x_fine(i)=",x_fine(i),"y_fine(j)=",y_fine(j),"z_fine(k)=",z_fine(k)
             WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-            WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
+            WRITE(1000,*) "x_fine(im1)=",x_fine(im1),"y_fine(jm1)=",y_fine(jm1),"z_fine(km1)=",z_fine(km1)
             WRITE(1000,*) "node_fine(i,j,k)=",node_fine(i,j,k)
             WRITE(1000,*) "node_fine(im1,jm1,km1)=",node_fine(im1,jm1,km1)
             CLOSE(1000)
@@ -205,15 +205,15 @@ DO k=1,nzSub_fine,(nzSub_fine-1)
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
-            WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node(im1,jm1,km1) is out of range"
+            WRITE(1000,'(A75)') "error in LBM_fine.f90 at Line 208: node(im1,jm1,km1) is out of range"
             WRITE(1000,*) "iter", iter
             WRITE(1000,*) "m=",m
             WRITE(1000,*) "i=",i,"j=",j,"k=",k
-            WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
+            WRITE(1000,*) "x_fine(i)=",x_fine(i),"y_fine(j)=",y_fine(j),"z_fine(k)=",z_fine(k)
             WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-            WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
-            WRITE(1000,*) "node(i,j,k)=",node(i,j,k)
-            WRITE(1000,*) "node(im1,jm1,km1)=",node(im1,jm1,km1)
+            WRITE(1000,*) "x_fine(im1)=",x_fine(im1),"y_fine(jm1)=",y_fine(jm1),"z_fine(km1)=",z_fine(km1)
+            WRITE(1000,*) "node_fine(i,j,k)=",node_fine(i,j,k)
+            WRITE(1000,*) "node_fine(im1,jm1,km1)=",node_fine(im1,jm1,km1)
             CLOSE(1000)
             STOP
           END IF
@@ -243,18 +243,20 @@ DO j=1,nySub_fine,(nySub_fine-1)
         
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
             f_fine(m,i,j,k) = fplus(m,im1,jm1,km1)
+          ELSE IF(node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN 
+            f_fine(m,i,j,k) = fplus_fine(m,im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
             CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
-            WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node_fine(im1,jm1,km1) is out of range"
+            WRITE(1000,'(A75)') "error in LBM_fine.f90 at Line 253: node_fine(im1,jm1,km1) is out of range"
             WRITE(1000,*) "iter", iter
             WRITE(1000,*) "m=",m
             WRITE(1000,*) "i=",i,"j=",j,"k=",k
-            WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
+            WRITE(1000,*) "x_fine(i)=",x_fine(i),"y_fine(j)=",y_fine(j),"z_fine(k)=",z_fine(k)
             WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-            WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
+            WRITE(1000,*) "x_fine(im1)=",x_fine(im1),"y_fine(jm1)=",y_fine(jm1),"z_fine(km1)=",z_fine(km1)
             WRITE(1000,*) "node_fine(i,j,k)=",node_fine(i,j,k)
             WRITE(1000,*) "node_fine(im1,jm1,km1)=",node_fine(im1,jm1,km1)
             CLOSE(1000)
@@ -285,18 +287,20 @@ DO i=1,nxSub_fine,(nxSub_fine-1)
         
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN 
             f_fine(m,i,j,k) = fplus(m,im1,jm1,km1)
+          ELSE IF(node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN 
+            f_fine(m,i,j,k) = fplus_fine(m,im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
             CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f_fine(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
-            WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node_fine(im1,jm1,km1) is out of range"
+            WRITE(1000,'(A75)') "error in LBM_finef90 at Line 297: node_fine(im1,jm1,km1) is out of range"
             WRITE(1000,*) "iter", iter
             WRITE(1000,*) "m=",m
             WRITE(1000,*) "i=",i,"j=",j,"k=",k
-            WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
+            WRITE(1000,*) "x_fine(i)=",x_fine(i),"y_fine(j)=",y_fine(j),"z_fine(k)=",z_fine(k)
             WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-            WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
+            WRITE(1000,*) "x_fine(im1)=",x_fine(im1),"y_fine(jm1)=",y_fine(jm1),"z_fine(km1)=",z_fine(km1)
             WRITE(1000,*) "node_fine(i,j,k)=",node_fine(i,j,k)
             WRITE(1000,*) "node_fine(im1,jm1,km1)=",node_fine(im1,jm1,km1)
             CLOSE(1000)
