@@ -51,12 +51,12 @@ IF(myid .EQ. master) THEN
   CALL FLUSH(2475)
 
   ! Walll Flux
-  OPEN(4749,FILE='wall_flux.dat')
+  OPEN(4749,FILE='wall_flux_fine.dat')
   WRITE(4749,*) 'VARIABLES = "Axial Distance", "Flux"'
   CALL FLUSH(4749)
 
   ! Volume
-  OPEN(2461,FILE='volume.dat')
+  OPEN(2461,FILE='volume_fine.dat')
   WRITE(2461,*) 'VARIABLES = "period", "volume"'
   WRITE(2461,*) 'ZONE F=POINT'
   CALL FLUSH(2461)
@@ -64,14 +64,14 @@ IF(myid .EQ. master) THEN
 END IF
 
 ! Mass
-OPEN(2459,FILE='mass-'//sub//'.dat')
+OPEN(2459,FILE='mass_fine-'//sub//'.dat')
 WRITE(2459,*) 'VARIABLES = "period", "mass_actual", "mass_theoretical"'
 WRITE(2459,*) 'ZONE F=POINT'
 CALL FLUSH(2459)
 
 ! Scalar
-OPEN(2473,FILE='scalar-'//sub//'.dat')
-WRITE(2473,'(A100)') 'VARIABLES = "iter", "phiA", "phiAS", "phiAV", "phiT-phiD", "phiD", "phA+phiD", "phiAverage"'
+OPEN(2473,FILE='scalar_fine-'//sub//'.dat')
+WRITE(2473,'(A100)') 'VARIABLES = "iter", "phiA", "phiAS", "phiAV", "phiT-phiD", "phiD", "phA+phiD"'
 WRITE(2473,*) 'ZONE F=POINT'
 CALL FLUSH(2473)
 
@@ -241,7 +241,7 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
   ! open the proper output file
   OPEN(61,FILE='out_fine-'//iter_char//'-'//sub//'.dat')
   WRITE(61,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-  WRITE(61,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',nxSub,' J=',nySub,' K=',nzSub,'F=POINT'
+  WRITE(61,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',nxSub_fine,' J=',nySub_fine,' K=',nzSub_fine,'F=POINT'
 
   DO k=1,nzSub_fine
     DO j=1,nySub_fine
@@ -252,7 +252,7 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
          jj = ((jMin_fine - 1_lng) + j)
          kk = ((kMin_fine - 1_lng) + k)
 
-         WRITE(61,'(3I4,5E15.5,I6)') ii, jj, kk, u_fine(i,j,k)*vcf_fine, v_fine(i,j,k)*vcf_fine, w_fine(i,j,k)*vcf_fine, (rho_fine(i,j,k)-denL_fine)*dcf_fine*pcf_fine,	&
+         WRITE(61,'(3I4,5E15.5,I6)') ii, jj, kk, u_fine(i,j,k)*vcf_fine, v_fine(i,j,k)*vcf_fine, w_fine(i,j,k)*vcf_fine, (rho_fine(i,j,k)-denL)*dcf_fine*pcf_fine,	&
                                      phi_fine(i,j,k), node_fine(i,j,k)
 
       END DO
@@ -312,7 +312,7 @@ END SUBROUTINE PrintFields_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE CheckVariables	! checks to see where variables become "NaN" 
+SUBROUTINE CheckVariables_fine	! checks to see where variables become "NaN" 
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -322,17 +322,17 @@ INTEGER(lng) :: uInt			! integer version of u
 REAL(dbl) :: localu
 
 ! u
-DO k=1,nzSub
-  DO j=1,nySub
-    DO i=1,nxSub
+DO k=1,nzSub_fine
+  DO j=1,nySub_fine
+    DO i=1,nxSub_fine
 
-      localu = u(i,j,k)
+      localu = u_fine(i,j,k)
 
-      uInt = INT(u(i,j,k))
+      uInt = INT(u_fine(i,j,k))
 
       IF(uInt .GT. 1000_lng) THEN
 
-        OPEN(1042,FILE='u-'//sub//'.dat')
+        OPEN(1042,FILE='u_fine-'//sub//'.dat')
         WRITE(1042,*) 'iter=', iter
         WRITE(1042,*) 'i=', i, 'j=', j, 'k=', k
         WRITE(1042,*) 'node=', node(i,j,k)
@@ -348,7 +348,7 @@ DO k=1,nzSub
 END DO
 
 !------------------------------------------------
-END SUBROUTINE CheckVariables
+END SUBROUTINE CheckVariables_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ DO k=1,nzSub_fine
 END DO
 
 ! calcuate the theoretical amount of mass in the system
-mass_theoretical = den_fine*volume
+mass_theoretical = den*volume
 
 ! print the mass to a file(s)
 WRITE(2459,'(I8,2E15.5)') iter, mass_actual, mass_theoretical
@@ -461,8 +461,8 @@ END IF
 ! node volume in physical units
 zcf3 = zcf_fine*zcf_fine*zcf_fine
 
-WRITE(2473,'(I8,7E25.15)') iter, phiAbsorbed_fine*zcf3, phiAbsorbedS_fine*zcf3, phiAbsorbedV_fine*zcf3,	&
-                           (phiTotal_fine-phiDomain_fine)*zcf3, phiDomain_fine*zcf3, (phiAbsorbed_fine+phiDomain_fine)*zcf3, phiAverage_fine*zcf3
+WRITE(2473,'(I8,6E25.15)') iter, phiAbsorbed_fine*zcf3, phiAbsorbedS_fine*zcf3, phiAbsorbedV_fine*zcf3,	&
+                           (phiTotal_fine-phiDomain)*zcf3, phiDomain*zcf3, (phiAbsorbed_fine+phiDomain)*zcf3
 CALL FLUSH(2473)
 
 !------------------------------------------------
@@ -482,12 +482,7 @@ IF(myid .EQ. 0) THEN
   WRITE(12,*) 'ny_fine=',ny_fine									! number of nodes in the y-direction
   WRITE(12,*) 'nz_fine=',nz_fine									! number of nodes in the z-direction
   WRITE(12,*)
-  WRITE(12,*) 'den_fine=',den_fine								! density
-  WRITE(12,*) 'nu_fine=',nu_fine									! kinematic viscosity
   WRITE(12,*) 'tau_fine=',tau_fine								! relaxation parameter
-  WRITE(12,*)
-  WRITE(12,*) 'Dm_fine=',Dm_fine*Dmcf_fine							! diffusivity
-  WRITE(12,*) 'Sc_fine=',Sc_fine									! Schmidt number
   WRITE(12,*)
   WRITE(12,*) 'xcf_fine=', xcf_fine								! x distance conversion factor
   WRITE(12,*) 'ycf_fine=', ycf_fine								! y distance conversion factor
@@ -497,7 +492,6 @@ IF(myid .EQ. 0) THEN
   WRITE(12,*) 'dcf_fine=', dcf_fine								! density conversion factor
   WRITE(12,*) 'vcf_fine=', vcf_fine								! velocity conversion factor
   WRITE(12,*) 'pcf_fine=', pcf_fine								! pressure conversion factor
-  WRITE(12,*) 'Dmcf_fine=',Dmcf_fine								! diffusivity conversion factor
   WRITE(12,*)
   CLOSE(12)
 
@@ -1443,7 +1437,7 @@ IF(myid .EQ. master) THEN
   CLOSE(6)
 
   IF(nt .GT. phiStart) THEN
-    CALL PrintAbsRate(phiAbsTotal,phiAbsTotalS,phiAbsTotalV,phiAverage,SA)													! calculate and output the absorption rate
+    CALL PrintAbsRate_fine(phiAbsTotal,phiAbsTotalS,phiAbsTotalV,phiAverage,SA)													! calculate and output the absorption rate
   END IF
 
   DEALLOCATE(ScalarData)

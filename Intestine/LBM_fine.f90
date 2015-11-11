@@ -453,8 +453,11 @@ END FUNCTION closestFineKindex
 
 
 SUBROUTINE ComputeEquilibriumForFineGrid
+  !!! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
 
-  INTEGER :: i,j,k,m
+  INTEGER   :: i,j,k,m
+  REAL(dbl) :: uu,ue,ve,we,Usum		! precalculated quantities for use in the feq equation
+  REAL(dbl) :: feq			! equilibrium distribution function
 
   !Do the bottom and top x-z planes first
   do k = 1, nzSub
@@ -553,6 +556,7 @@ SUBROUTINE SpatialInterpolateToFineGrid    ! Interpolate required variable to fi
   INTEGER :: i,j,k,m
   REAL(dbl) :: xInterp, yInterp, zInterp
   INTEGER :: lCxIndex, lCzIndex, lCyIndex, lFzIndex
+  REAL(dbl) :: f1,f2,f3,f4              ! Temporary variables for interpolation.
   
   !Do the bottom and top x-z planes first
   !x - interpolation first
@@ -690,8 +694,12 @@ END SUBROUTINE TemporalInterpolateToFineGrid
 
 SUBROUTINE ComputeEquilibriumForCoarseGrid
 
-  INTEGER :: i,j,k,m,iFine,kFine
-
+  !!! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
+  INTEGER   :: i,j,k,m,iFine,jFine,kFine
+  REAL(dbl) :: uu,ue,ve,we,Usum		! precalculated quantities for use in the feq equation
+  REAL(dbl) :: feq			! equilibrium distribution function
+  REAL(dbl) :: f1,f2,f3,f4              ! Temporary variables for interpolation.
+  
   !Do the bottom and top x-z planes first
   do k = 1, nzSub
      kFine = 1 + k*gridRatio

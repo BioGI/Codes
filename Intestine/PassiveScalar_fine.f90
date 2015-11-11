@@ -17,16 +17,8 @@ SUBROUTINE Scalar_Setup_fine	! sets up the passive scalar component
 IMPLICIT NONE
 
 ! initialize arrays
-phi_fine    		= 0.0_dbl								! scalar
-phiTemp_fine		= 0.0_dbl								! temporary scalar
-
-! scalar parameters
-Dm_fine  		= nuL_fine/Sc					! binary molecular diffusivity (scalar in fluid)
-Dmcf_fine		= (zcf_fine*zcf_fine)/tcf_fine					! conversion factor for diffusivity
-Delta_fine		= 1.0_dbl - 6.0_dbl*Dm_fine				! scalar diffusion parameter
-
-! set the scalar standard devation for gaussian distributions
-sigma = 0.1_dbl*D										! 1/10 of the Diameter
+phi_fine  = 0.0_dbl		! scalar
+phiTemp_fine  = 0.0_dbl		! temporary scalar
 
 !------------------------------------------------
 END SUBROUTINE Scalar_Setup_fine
@@ -53,7 +45,7 @@ DO k=1,nzSub_fine
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
       
 	phiTemp_fine(i,j,k) = phiTemp_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
-        phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
+        phi_fine(i,j,k) = Delta*phiTemp_fine(i,j,k)
 	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
         DO m=0,NumDistDirs

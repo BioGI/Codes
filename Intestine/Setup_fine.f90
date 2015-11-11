@@ -46,7 +46,7 @@ REAL(dbl), ALLOCATABLE :: delphi_particle_fine(:,:,:)	! passive scalar contribut
 REAL(dbl), ALLOCATABLE :: phiTemp_fine(:,:,:)		! temporary storage of passive scalar
 ! Sc - same as Setup
 ! Dm,Dmcf - same as Setup
-REAL(dbl) :: Delta_fine									! scalar parameter
+! Delta_fine - same as Setup
 ! phiIC, phiWall - same as Setup
 REAL(dbl) :: phiAbsorbed_fine							! total amount of scalar absorbed up to current time
 REAL(dbl) :: phiAbsorbedS_fine							! total amount of scalar absorbed up to current time - through the macroscopic surface
@@ -202,20 +202,20 @@ real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_backYZ                                
 
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFC_topXZ
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFC_bottomXZ
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFC_frontYZ
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFC_backYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_backYZ
 
 real(dbl), allocatable, dimension(:,:,:) :: fFtoC_topXZ
 real(dbl), allocatable, dimension(:,:,:) :: fFtoC_bottomXZ
 real(dbl), allocatable, dimension(:,:,:) :: fFtoC_frontYZ
 real(dbl), allocatable, dimension(:,:,:) :: fFtoC_backYZ             
 
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFF_topXZ
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFF_bottomXZ
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFF_frontYZ
-real(dbl), allocatable, dimension(:,:,:,:) :: feqFF_backYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_backYZ
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

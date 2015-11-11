@@ -12,9 +12,11 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	USE Geometry
 	USE Geometry_fine
 	USE PassiveScalar
+	USE PassiveScalar_fine
 	USE ICBC	
 	USE ICBC_fine	
 	USE Output
+	USE Output_fine
 
 	IMPLICIT NONE
 
@@ -45,10 +47,13 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
-	CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
+        CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
+ 	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
 
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
+	CALL PrintParams_fine		! print simulation info [MODULE: Output]
+	CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintStatus		! Start simulation timer, print status [MODULE: Output]
 
         IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
@@ -67,6 +72,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
+        CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
         CALL spatialInterpolateToFineGrid      ! Do the spatial interpolation for required variables to fine grid
         DO subIter=1,gridRatio
            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
@@ -75,8 +81,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
            CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
            CALL Stream_Fine            ! Stream fine grid
            CALL Macro_Fine             ! Calculate Macro properties on fine grid
-              !    CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+           CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
         END DO
+        CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
         CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
   
 	!write(*,*) iter,MAXVAL(f(:,:,:,0)-f(:,:,:,nzSub))
@@ -136,6 +143,11 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
      CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
      CALL PrintMass			! print the total mass in the system (TEST)
      CALL PrintVolume			! print the volume in the system (TEST)
+
+     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
+     CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+     CALL PrintMass_fine		! print the total mass in the system (TEST)
+     CALL PrintVolume_fine		! print the volume in the system (TEST)
 
 !	  CALL PrintPeriodicRestart	! print periodic restart files (SAFE GUARD) [MODULE: Output]
 
