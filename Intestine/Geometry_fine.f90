@@ -308,7 +308,7 @@ SUBROUTINE BoundaryVelocity_fine	! defines the velocity of the solid boundaries 
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE 
 
-REAL(dbl) :: v1(0:nz+1), v2(0:nz+1)	! velocity arrays for each mode
+REAL(dbl) :: v1(0:nz_fine+1), v2(0:nz_fine+1)	! velocity arrays for each mode
 REAL(dbl) :: lambdaC						! wavelength of the cos segments (mode 2)
 REAL(dbl) :: time							! time
 INTEGER(lng) :: i,j,ii					! indices
