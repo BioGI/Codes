@@ -429,8 +429,9 @@ DO k=1,nzSub_fine
 
       IF(rijk .LT. r(k)) THEN
 
-         IF( ((i .eq. 1) .or. (i .eq. nx_fine)) .and. ((j .eq. 1) .or. (j .eq. ny_fine)) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
+         IF( ((i .eq. 1) .or. (i .eq. nx_fine)) .or. ((j .eq. 1) .or. (j .eq. ny_fine)) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
+            write(*,*) i," ",j," ", k
 
          ELSE
 
