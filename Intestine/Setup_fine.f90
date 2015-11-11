@@ -270,10 +270,6 @@ READ(10,*) NumSubsX			! number of subdomains in the X direction
 READ(10,*) NumSubsY			! number of subdomains in the Y direction
 READ(10,*) NumSubsZ			! number of subdomains in the Z direction
 
-READ(10,*) NumSubsX_fine		! number of subdomains in the X direction - fine mesh
-READ(10,*) NumSubsY_fine		! number of subdomains in the Y direction - fine mesh
-READ(10,*) NumSubsZ_fine		! number of subdomains in the Z direction - fine mesh
-
 READ(10,*) L					! length
 READ(10,*) D					! diameter
 READ(10,*) fractionDfine			! fraction of the diameter used for the fine mesh
