@@ -116,12 +116,6 @@ INTEGER(lng) :: numprocs_fine, myid_fine, mySub_fine			! number of processing un
 REAL(dbl) :: CommTime_f0_fine, CommTime_fEnd_fine, CommTime_f_fine	! communication time - distribution functions: start time, end time, current time
 REAL(dbl) :: CommTime_ds0_fine, CommTime_dsEnd_fine, CommTime_ds_fine   ! communication time - distribution functions: start time, end time, current time
 
-! Number of Subdomains in each direction
-INTEGER(lng) :: NumSubsX_fine				! number of subdomains in the X direction
-INTEGER(lng) :: NumSubsY_fine				! number of subdomains in the Y direction
-INTEGER(lng) :: NumSubsZ_fine				! number of subdomains in the Z direction
-INTEGER(lng) :: NumSubsTotal_fine			! total number of subdomains
-
 ! Starting/Ending indices for each subdomain
 INTEGER(lng) :: iMin_fine				! starting local i index
 INTEGER(lng) :: iMax_fine				! ending local i index
@@ -508,18 +502,18 @@ DO kSub=1,NumSubsZ
 END DO
 
 ! Define the local computational domain bounds (iMin:iMax,jMin:jMax,kMin:kMax)
-quotientX	= CEILING(REAL(nx_fine)/NumSubsX_fine)						! divide the number of nodes by the number of subdomains (round up)
-quotientY	= CEILING(REAL(ny_fine)/NumSubsY_fine)						! divide the number of nodes by the number of subdomains (round up)
-quotientZ	= CEILING(REAL(nz_fine)/NumSubsZ_fine)						! divide the number of nodes by the number of subdomains (round up)
+quotientX	= CEILING(REAL(nx_fine)/NumSubsX)	! divide the number of nodes by the number of subdomains (round up)
+quotientY	= CEILING(REAL(ny_fine)/NumSubsY)	! divide the number of nodes by the number of subdomains (round up)
+quotientZ	= CEILING(REAL(nz_fine)/NumSubsZ)	! divide the number of nodes by the number of subdomains (round up)
 
-iMin = MOD(myid,NumSubsX_fine)*quotientX + 1_lng					! starting local i index 
-iMax = iMin + (quotientX - 1_lng)								! ending local i index
+iMin = MOD(myid,NumSubsX)*quotientX + 1_lng				! starting local i index 
+iMax = iMin + (quotientX - 1_lng)					! ending local i index
 
-jMin = MOD((myid/NumSubsX_fine),NumSubsY_fine)*quotientY + 1_lng	! starting local j index
-jMax = jMin + (quotientY - 1_lng)								! ending local j index
+jMin = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1_lng	                ! starting local j index
+jMax = jMin + (quotientY - 1_lng)					! ending local j index
 
-kMin = (myid/(NumSubsX_fine*NumSubsY_fine))*quotientZ + 1_lng		! starting local k index 
-kMax = kMin + (quotientZ - 1_lng)								! ending local k index
+kMin = (myid/(NumSubsX*NumSubsY))*quotientZ + 1_lng		        ! starting local k index 
+kMax = kMin + (quotientZ - 1_lng)					! ending local k index
 
 ! Check the bounds
 IF(iMax .GT. nx) THEN
