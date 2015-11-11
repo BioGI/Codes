@@ -335,7 +335,7 @@ END DO
 !STOP
 
 ! Allocate the MPI_WAITALL status array
-ALLOCATE(waitStat(MPI_STATUS_SIZE,2*NumCommDirs))
+ALLOCATE(waitStat_fine(MPI_STATUS_SIZE,2*NumCommDirs))
 
 !------------------------------------------------
 END SUBROUTINE MPI_Initialize_Fine
