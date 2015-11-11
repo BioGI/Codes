@@ -32,8 +32,8 @@ IF(domaintype .EQ. 0) THEN
         ycf_fine	= (0.5_lng*D)/(ny-1_lng)		! length conversion factor: y-direction
 ELSE
         ! begin Balaji added
-        xcf_fine	= (1.0_lng*D*fractionDfine)/(nx_fine-1_lng)		! length conversion factor: x-direction
-        ycf_fine	= (1.0_lng*D*fractionDfine)/(ny_fine-1_lng)		! length conversion factor: y-direction
+        xcf_fine	= (1.0_lng*D*fractionDfine)/(nx_fine-1_lng - 2*gridRatio)	! length conversion factor: x-direction
+        ycf_fine	= (1.0_lng*D*fractionDfine)/(ny_fine-1_lng - 2*gridRatio)	! length conversion factor: y-direction
         ! end Balaji added
 ENDIF
 
