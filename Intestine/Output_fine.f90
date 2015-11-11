@@ -26,7 +26,7 @@ filenum_fine = 0_lng							! initialize to 0
 fileCount_fine = 0_lng							! initialize to 0
 
 ! allocate the radius array (stored at output iterations)
-ALLOCATE(radius_fine(0:nz+1,0:500))		! 500 is an arbitrarily large number of output iterations...
+ALLOCATE(radius_fine(0:nz_fine+1,0:500))		! 500 is an arbitrarily large number of output iterations...
 radcount_fine = 0_lng							! initialize the output count
 
 !------------------------------------------------
