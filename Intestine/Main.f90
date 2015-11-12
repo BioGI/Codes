@@ -6,17 +6,17 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
    	USE Setup
    	USE Setup_fine
 	USE Parallel    
-!	USE Parallel_fine   
+	USE Parallel_fine   
 	USE LBM      
-!	USE LBM_fine      
+	USE LBM_fine      
 	USE Geometry
-!	USE Geometry_fine
+	USE Geometry_fine
 	USE PassiveScalar
-!	USE PassiveScalar_fine
+	USE PassiveScalar_fine
 	USE ICBC	
-!	USE ICBC_fine	
+	USE ICBC_fine	
 	USE Output
-!	USE Output_fine
+	USE Output_fine
 
 	IMPLICIT NONE
 
