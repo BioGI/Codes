@@ -115,15 +115,15 @@ ELSE
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
-      DO i=0,nx+1
+      DO i=0,nx_fine+1
         xx_fine(i) = (i-1_lng-(xaxis-1_lng))*xcf_fine
       END DO
       
-      DO j=0,ny+1
+      DO j=0,ny_fine+1
         yy_fine(j) = (j-1_lng-(yaxis-1_lng))*ycf_fine
       END DO
       
-      DO k=0,nz+1
+      DO k=0,nz_fine+1
         zz_fine(k) = (k - 0.5_dbl)*zcf_fine
       END DO
       
@@ -267,7 +267,9 @@ END DO
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r_fine(0:nzSub_fine+1) = rDom_fine(kMin-1:kMax+1)
+write(*,*) 'kMin_fine = ', kMin_fine
+write(*,*) 'kMax_fine = ', kMax_fine
+r_fine(0:nzSub_fine+1) = rDom_fine(kMin_fine-1:kMax_fine+1)
 
 
 !------------------------------------------------
@@ -375,7 +377,7 @@ END DO
 !----------------------------------------------------------------------------
 
 ! Fill out the local velocity array
-vel_fine(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
+vel_fine(0:nzSub_fine+1) = velDom_fine(kMin_fine-1:kMax_fine+1)/vcf_fine
 
 !------------------------------------------------
 END SUBROUTINE BoundaryVelocity_fine
@@ -410,7 +412,7 @@ DO k=1,nzSub_fine
 
       rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
-      IF(rijk .LT. r(k)) THEN
+      IF(rijk .LT. r_fine(k)) THEN
 
          IF( ((i .eq. 1) .or. (i .eq. nx_fine)) .or. ((j .eq. 1) .or. (j .eq. ny_fine)) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
@@ -423,8 +425,8 @@ DO k=1,nzSub_fine
             IF(node_fine(i,j,k) .EQ. SOLID) THEN   ! just came into the domain
                ! calculate the wall velocity (boundary)
                
-               ubx = vel(k)*(x_fine(i)/rijk)
-               uby = vel(k)*(y_fine(j)/rijk)
+               ubx = vel_fine(k)*(x_fine(i)/rijk)
+               uby = vel_fine(k)*(y_fine(j)/rijk)
                ubz = 0.0_dbl
                
                CALL SetProperties_fine(i,j,k,ubx,uby,ubz)
@@ -449,7 +451,7 @@ END DO
 ! YZ Faces
 DO iComm=1,2
 
-  i = YZ_RecvIndex(OppCommDir(iComm))															! i index of the phantom nodes
+  i = YZ_RecvIndex_fine(OppCommDir(iComm))															! i index of the phantom nodes
  	
   DO j=0,nySub_fine+1_lng
 
@@ -457,7 +459,7 @@ DO iComm=1,2
 
     DO k=0,nzSub_fine+1_lng
 
-      IF(rijk .LT. r(k)) THEN
+      IF(rijk .LT. r_fine(k)) THEN
 
          IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
@@ -468,7 +470,7 @@ DO iComm=1,2
             node_fine(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
          END IF
       ELSE
-        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r_fine(k) then it's a SOLID node
 
       END IF
         
@@ -480,7 +482,7 @@ END DO
 ! ZX Faces
 DO iComm=3,4
 
-  j = ZX_RecvIndex(OppCommDir(iComm))															! j index of the phantom nodes
+  j = ZX_RecvIndex_fine(OppCommDir(iComm))															! j index of the phantom nodes
 
   DO i=0,nxSub_fine+1_lng
 
@@ -488,7 +490,7 @@ DO iComm=3,4
 
     DO k=0,nzSub_fine+1_lng
 
-      IF(rijk .LT. r(k)) THEN
+      IF(rijk .LT. r_fine(k)) THEN
 
          IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
 
@@ -500,7 +502,7 @@ DO iComm=3,4
 
          END IF
       ELSE
-        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r_fine(k) then it's a SOLID node
 
       END IF
         
@@ -513,14 +515,14 @@ END DO
 ! XY Faces
 DO iComm=5,6
 
-  k = XY_RecvIndex(OppCommDir(iComm))															! k index of the phantom nodes
+  k = XY_RecvIndex_fine(OppCommDir(iComm))															! k index of the phantom nodes
 
   DO j=0,nySub_fine+1_lng
     DO i=0,nxSub_fine+1_lng
 
       rijk = SQRT(x(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
-      IF(rijk .LT. r(k)) THEN
+      IF(rijk .LT. r_fine(k)) THEN
 
          IF(rijk .GT. (0.5*fractionDfine*D - 0.1*ycf_fine) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             
@@ -532,7 +534,7 @@ DO iComm=5,6
          END IF
          
       ELSE
-        node_fine(i,j,k) = SOLID																		! if rijk is GT r(k) then it's a SOLID node
+        node_fine(i,j,k) = SOLID																		! if rijk is GT r_fine(k) then it's a SOLID node
       END IF
 
     END DO

@@ -504,32 +504,32 @@ quotientX	= CEILING(REAL(nx_fine)/NumSubsX)	! divide the number of nodes by the 
 quotientY	= CEILING(REAL(ny_fine)/NumSubsY)	! divide the number of nodes by the number of subdomains (round up)
 quotientZ	= CEILING(REAL(nz_fine)/NumSubsZ)	! divide the number of nodes by the number of subdomains (round up)
 
-iMin = MOD(myid,NumSubsX)*quotientX + 1_lng				! starting local i index 
-iMax = iMin + (quotientX - 1_lng)					! ending local i index
+iMin_fine = MOD(myid,NumSubsX)*quotientX + 1_lng				! starting local i index 
+iMax_fine = iMin + (quotientX - 1_lng)					! ending local i index
 
-jMin = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1_lng	                ! starting local j index
-jMax = jMin + (quotientY - 1_lng)					! ending local j index
+jMin_fine = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1_lng	                ! starting local j index
+jMax_fine = jMin + (quotientY - 1_lng)					! ending local j index
 
-kMin = (myid/(NumSubsX*NumSubsY))*quotientZ + 1_lng		        ! starting local k index 
-kMax = kMin + (quotientZ - 1_lng)					! ending local k index
+kMin_fine = (myid/(NumSubsX*NumSubsY))*quotientZ + 1_lng		        ! starting local k index 
+kMax_fine = kMin + (quotientZ - 1_lng)					! ending local k index
 
 ! Check the bounds
-IF(iMax .GT. nx) THEN
-  iMax = nx_fine																! if iMax is greater than nx, correct it
+IF(iMax_fine .GT. nx_fine) THEN
+  iMax_fine = nx_fine																! if iMax is greater than nx, correct it
 END IF
 
-IF(jMax .GT. ny) THEN
-  jMax = ny_fine																! if jMax is greater than ny, correct it
+IF(jMax_fine .GT. ny_fine) THEN
+  jMax_fine = ny_fine																! if jMax is greater than ny, correct it
 END IF
 
-IF(kMax .GT. nz) THEN
-  kMax = nz_fine																! if kMax is greater than nz, correct it
+IF(kMax_fine .GT. nz_fine) THEN
+  kMax_fine = nz_fine																! if kMax is greater than nz, correct it
 END IF
 
 ! Determine the number of nodes in each direction
-nxSub_fine = (iMax - iMin) + 1_lng
-nySub_fine = (jMax - jMin) + 1_lng
-nzSub_fine = (kMax - kMin) + 1_lng
+nxSub_fine = (iMax_fine - iMin_fine) + 1_lng
+nySub_fine = (jMax_fine - jMin_fine) + 1_lng
+nzSub_fine = (kMax_fine - kMin_fine) + 1_lng
 
 ! Write the local bounds to a file [TEST]
 !OPEN(171,FILE='localBounds-'//sub//'.dat')
