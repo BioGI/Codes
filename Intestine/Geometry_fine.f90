@@ -420,6 +420,18 @@ REAL(dbl)		:: rijk				! radius of the current node
 REAL(dbl)      :: ubx,uby,ubz		! boundary velocity
 INTEGER(lng) :: mpierr										! MPI standard error variable 
 
+DO i=1,nxSub
+      write(*,*) 'x(',i,')=',x(i)
+END DO
+
+DO j=1,nySub
+      write(*,*) 'y(',j,')=',y(j)
+END DO
+
+DO k=1,nzSub
+      write(*,*) 'z(',k,')=',z(k)
+END DO
+
 ! Flag the interior nodes and give values to nodes that just came in
 DO k=1,nzSub_fine
   DO j=1,nySub_fine
