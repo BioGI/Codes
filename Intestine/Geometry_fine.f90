@@ -365,14 +365,14 @@ v2(nz_fine-1:nz_fine+1) = v2(1)
 
 !----------------------------------------------------------------------------
 
-! !-------------------------------- Mode Sum  ---------------------------------
+!-------------------------------- Mode Sum  ---------------------------------
 
-! ! Sum the modes in a weighted linear combination
-! DO i=0,nz_fine+1
-!   velDom_fine(i) = wc1*v1(i) + wc2*v2(i)
-! END DO
+! Sum the modes in a weighted linear combination
+DO i=0,nz_fine+1
+  velDom_fine(i) = wc1*v1(i) + wc2*v2(i)
+END DO
 
-! !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 
 ! ! Fill out the local velocity array
 ! vel(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
