@@ -229,7 +229,7 @@ SUBROUTINE Global_Setup		! sets up simulation
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-CALL ReadInput					! read input from file
+! CALL ReadInput					! read input from file
 CALL SubDomainSetup			! set up the MPI subdomains
 CALL AllocateArrays			! allocate global variable arrays
 

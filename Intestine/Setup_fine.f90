@@ -239,9 +239,7 @@ SUBROUTINE Global_Setup_Fine		! sets up simulation
 IMPLICIT NONE
 
 CALL ReadInput_fine			! read input from file
-CALL SubDomainSetup			! set up the MPI subdomains
 CALL SubDomainSetup_fine		! set up the MPI subdomains
-CALL AllocateArrays			! allocate global variable arrays
 CALL AllocateArrays_fine		! allocate global variable arrays
 
 !------------------------------------------------
