@@ -504,14 +504,14 @@ quotientX	= CEILING(REAL(nx_fine)/NumSubsX)	! divide the number of nodes by the 
 quotientY	= CEILING(REAL(ny_fine)/NumSubsY)	! divide the number of nodes by the number of subdomains (round up)
 quotientZ	= CEILING(REAL(nz_fine)/NumSubsZ)	! divide the number of nodes by the number of subdomains (round up)
 
-iMin_fine = MOD(myid,NumSubsX)*quotientX + 1_lng				! starting local i index 
-iMax_fine = iMin + (quotientX - 1_lng)					! ending local i index
+iMin_fine = MOD(myid,NumSubsX)*quotientX + 1				! starting local i index 
+iMax_fine = iMin_fine + (quotientX - 1)					! ending local i index
 
-jMin_fine = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1_lng	                ! starting local j index
-jMax_fine = jMin + (quotientY - 1_lng)					! ending local j index
+jMin_fine = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1	                ! starting local j index
+jMax_fine = jMin_fine + (quotientY - 1)					! ending local j index
 
-kMin_fine = (myid/(NumSubsX*NumSubsY))*quotientZ + 1_lng		        ! starting local k index 
-kMax_fine = kMin + (quotientZ - 1_lng)					! ending local k index
+kMin_fine = (myid/(NumSubsX*NumSubsY))*quotientZ + 1		        ! starting local k index 
+kMax_fine = kMin_fine + (quotientZ - 1)					! ending local k index
 
 ! Check the bounds
 IF(iMax_fine .GT. nx_fine) THEN

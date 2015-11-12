@@ -98,20 +98,20 @@ IF(domaintype .EQ. 0) THEN
 ELSE
       ! begin Balaji added 
       !INTEGER(lng) :: xaxis,yaxis								! axes index variables
-      xaxis=ANINT(0.5_dbl*(nx+1))
-      yaxis=ANINT(0.5_dbl*(ny+1))
+      xaxis=ANINT(0.5_dbl*(nx_fine+1))
+      yaxis=ANINT(0.5_dbl*(ny_fine+1))
       
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub_fine+1
-        x_fine(i) = ((iMin - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf_fine
+        x_fine(i) = ((iMin_fine - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf_fine
       END DO
       
       DO j=0,nySub_fine+1
-        y_fine(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf_fine
+        y_fine(j) = ((jMin_fine - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf_fine
       END DO
       
       DO k=-gridRatio+1,nzSub_fine+gridRatio
-        z_fine(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
+        z_fine(k) = (((kMin_fine - 1_lng) + k) - 0.5_dbl)*zcf_fine
       END DO
       
       ! Fill out xx,yy,zz arrays (global)

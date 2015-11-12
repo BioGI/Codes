@@ -243,6 +243,7 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
   WRITE(61,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
   WRITE(61,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',nxSub_fine,' J=',nySub_fine,' K=',nzSub_fine,'F=POINT'
 
+
   DO k=1,nzSub_fine
     DO j=1,nySub_fine
       DO i=1,nxSub_fine
