@@ -44,18 +44,18 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
  	CALL Geometry_Setup_Fine	! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry_fine]
 	CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
 	CALL Output_Setup		! set up the output [MODULE: Output]
-!	CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
+	CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
 
 	CALL ICs			! set initial conditions [MODULE: ICBC]
-!	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
+	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
         CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
-! 	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
+ 	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
 
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
-!	CALL PrintParams_fine		! print simulation info [MODULE: Output]
-!	CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
+	CALL PrintParams_fine		! print simulation info [MODULE: Output]
+	CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintStatus		! Start simulation timer, print status [MODULE: Output]
 
         IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
@@ -74,19 +74,19 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-        ! CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
-        ! CALL spatialInterpolateToFineGrid      ! Do the spatial interpolation for required variables to fine grid
-        ! DO subIter=1,gridRatio
-        !    CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
-        !    CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-        !    CALL Collision_Fine     ! Collision step on the fine grid
-        !    CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
-        !    CALL Stream_Fine            ! Stream fine grid
-        !    CALL Macro_Fine             ! Calculate Macro properties on fine grid
-        !    CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
-        ! END DO
-        ! CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
-        ! CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
+        CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
+        CALL spatialInterpolateToFineGrid      ! Do the spatial interpolation for required variables to fine grid
+        DO subIter=1,gridRatio
+           CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
+           CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
+           CALL Collision_Fine     ! Collision step on the fine grid
+           CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
+           CALL Stream_Fine            ! Stream fine grid
+           CALL Macro_Fine             ! Calculate Macro properties on fine grid
+           CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+        END DO
+        CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
+        CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
   
 	!write(*,*) iter,MAXVAL(f(:,:,:,0)-f(:,:,:,nzSub))
 	!write(*,*) iter,MAXVAL(f(:,:,:,nzSub+1)-f(:,:,:,1))
