@@ -374,8 +374,8 @@ END DO
 
 !----------------------------------------------------------------------------
 
-! ! Fill out the local velocity array
-! vel(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
+! Fill out the local velocity array
+vel_fine(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
 
 !------------------------------------------------
 END SUBROUTINE BoundaryVelocity_fine
