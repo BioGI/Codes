@@ -152,7 +152,7 @@ IMPLICIT NONE
 CALL BoundaryPosition_fine
 
 ! Calculate the velocity at boundary point
-! CALL BoundaryVelocity_fine
+CALL BoundaryVelocity_fine
 
 ! Flag the fluid/solid nodes based on the new geometry
 CALL SetNodes_fine
@@ -302,8 +302,8 @@ DO i=0,nz_fine-1 ! Balaji added to ensure periodicity just like in h1.
 END DO
 
 ! Balaji added
-v1(nz)=v1(0)
-v1(nz+1)=v1(1)
+v1(nz_fine)=v1(0)
+v1(nz_fine+1)=v1(1)
 !----------------------------------------------------------------------------
 
 !------------------- Mode 2 - segmental contractions  -----------------------
@@ -365,17 +365,17 @@ v2(nz_fine-1:nz_fine+1) = v2(1)
 
 !----------------------------------------------------------------------------
 
-!-------------------------------- Mode Sum  ---------------------------------
+! !-------------------------------- Mode Sum  ---------------------------------
 
-! Sum the modes in a weighted linear combination
-DO i=0,nz+1
-  velDom_fine(i) = wc1*v1(i) + wc2*v2(i)
-END DO
+! ! Sum the modes in a weighted linear combination
+! DO i=0,nz_fine+1
+!   velDom_fine(i) = wc1*v1(i) + wc2*v2(i)
+! END DO
 
-!----------------------------------------------------------------------------
+! !----------------------------------------------------------------------------
 
-! Fill out the local velocity array
-vel(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
+! ! Fill out the local velocity array
+! vel(0:nzSub_fine+1) = velDom_fine(kMin-1:kMax+1)/vcf_fine
 
 !------------------------------------------------
 END SUBROUTINE BoundaryVelocity_fine
