@@ -155,7 +155,7 @@ CALL BoundaryPosition_fine
 ! CALL BoundaryVelocity_fine
 
 ! Flag the fluid/solid nodes based on the new geometry
-! CALL SetNodes_fine
+CALL SetNodes_fine
 
 !------------------------------------------------
 END SUBROUTINE AdvanceGeometry_fine
