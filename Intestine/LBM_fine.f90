@@ -137,7 +137,7 @@ DO k=2,nzSub_fine-1
   DO j=2,nySub_fine-1
     DO i=2,nxSub_fine-1
 
-      IF(node(i,j,k) .EQ. FLUID) THEN
+      IF(node_fine(i,j,k) .EQ. FLUID) THEN
       
         DO m=1,NumDistDirs
         

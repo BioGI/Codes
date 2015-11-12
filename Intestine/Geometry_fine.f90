@@ -98,8 +98,8 @@ IF(domaintype .EQ. 0) THEN
 ELSE
       ! begin Balaji added 
       !INTEGER(lng) :: xaxis,yaxis								! axes index variables
-      xaxis=ANINT(0.5_dbl*(nx_fine+1))
-      yaxis=ANINT(0.5_dbl*(ny_fine+1))
+      xaxis=ANINT(0.5_dbl*(nx+1))
+      yaxis=ANINT(0.5_dbl*(ny+1))
       
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub_fine+1
@@ -431,7 +431,9 @@ DO k=1,nzSub_fine
 
          IF( ((i .eq. 1) .or. (i .eq. nx_fine)) .or. ((j .eq. 1) .or. (j .eq. ny_fine)) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
-            write(*,*) i," ",j," ", k
+            IF(k .eq. 201) THEN
+               write(*,*) i," ",j," ",k
+            END if
 
          ELSE
 
