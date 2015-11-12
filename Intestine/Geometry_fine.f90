@@ -134,10 +134,10 @@ ELSE
       ! end Balaji added 
 ENDIF
 
-! IF(restart .EQV. .FALSE.) THEN
-!   ! Initialize the Geometry
-!   CALL AdvanceGeometry_fine
-! END IF
+IF(restart .EQV. .FALSE.) THEN
+  ! Initialize the Geometry
+  CALL AdvanceGeometry_fine
+END IF
 
 !------------------------------------------------
 END SUBROUTINE Geometry_Setup_fine
@@ -152,10 +152,10 @@ IMPLICIT NONE
 CALL BoundaryPosition_fine
 
 ! Calculate the velocity at boundary point
-CALL BoundaryVelocity_fine
+! CALL BoundaryVelocity_fine
 
 ! Flag the fluid/solid nodes based on the new geometry
-CALL SetNodes_fine
+! CALL SetNodes_fine
 
 !------------------------------------------------
 END SUBROUTINE AdvanceGeometry_fine
@@ -185,7 +185,7 @@ rDom_fine	= 0.0_dbl						! summed height
 time	= iter*tcf
 
 !------------------------- Mode 1 - peristalsis -----------------------------
-DO i=0,nz-1
+DO i=0,nz_fine-1
 
   h1(i) 	= amp1*(COS(kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
 
@@ -193,8 +193,8 @@ END DO
 
 ! since PI cannot be stored exactly, the wavelength(s) does/do not EXACTLY span the domain...
 ! set h1(nz) to h1(0) and h1(nz+1) to h(1) to ensure periodicity
-h1(nz) 	= h1(0)
-h1(nz+1)= h1(1)
+h1(nz_fine) 	= h1(0)
+h1(nz_fine+1)= h1(1)
 
 !------------------- Mode 2 - segmental contractions ------------------------
 
