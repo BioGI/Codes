@@ -133,40 +133,11 @@ ELSE
       ! Ck = ANINT(0.5_dbl*nz)
       ! end Balaji added 
 ENDIF
-! Mode 1 - Peristalsis
-a1				= (0.5_dbl*D)/(2.0_dbl - epsOVERa1)					! mean half-width of wave1
-eps1 			= epsOVERa1*a1												! occlusional distance
-lambda1		= L/numw1													! wavelength
-aOVERlam1	= a1/lambda1												! ratio of mean half-width to wavelength 
-kw1			= (2.0_dbl*PI)/lambda1									! wave number
-amp1			= 0.5_dbl*((0.5_dbl*D)-eps1)							! amplitude of the wave
-Tp				= lambda1/s1												! peristaltic period
-Re1			= ((s1*(0.5_dbl*D))/nu)*((0.5_dbl*D)/lambda1)	! Reynolds number based on mode 1
 
-! Mode 2 - Segmental Contractions
-a2				= (0.5_dbl*D)/(2.0_dbl - epsOVERa2)					! mean half-width of wave1 (based on peristalsis definition)
-eps2 			= epsOVERa2*a2												! occlusional distance
-lambda2		= L/numw2													! wavelength (physical units)
-nlambda2		= nz/numw2													! wavelength (nodes)
-aOVERlam2	= a2/lambda2												! ratio of mean half-width to wavelength 
-amp2			= 0.5_dbl*((0.5_dbl*D)-eps2)							! amplitude of the wave
-shift2		= 0.5_dbl*((0.5_dbl*D)+eps2)							! amplitude of the wave
-segment		= nlambda2/6_lng											! length of each segment of the segmental wave   !!!!! CAREFUL HERE WITH SYMMETRY!
-seg1L			= 1_lng + segment											! left point of sloped segement 1
-seg1R			= 1_lng + 2_lng*segment									! right point of sloped segement 1
-seg2R			= nlambda2 - segment										! right point of sloped segement 2
-seg2L			= nlambda2 - (2_lng*segment)							! left point of sloped segement 2
-s2				= (0.5_dbl*D)/Ts											! speed of collapse fo segmental contraction
-Re2			= (s2*(0.5_dbl*D))/nu									! Reynolds number based on mode 2
-
-
-!IF(restart .EQ. .FALSE.) THEN
-IF(restart .EQV. .FALSE.) THEN
-
-  ! Initialize the Geometry
-  CALL AdvanceGeometry_fine
-
-END IF
+! IF(restart .EQV. .FALSE.) THEN
+!   ! Initialize the Geometry
+!   CALL AdvanceGeometry_fine
+! END IF
 
 !------------------------------------------------
 END SUBROUTINE Geometry_Setup_fine
