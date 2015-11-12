@@ -51,14 +51,14 @@ IF(restart) THEN											! restart from  file
 ELSE															! clean start
 
   ! Initial conditions on velocity, density, and scalar
-  DO k=0,nzSub+1_lng
-    DO j=0,nySub+1_lng
-      DO i=0,nxSub+1_lng
+  DO k=0,nzSub_fine+1_lng
+    DO j=0,nySub_fine+1_lng
+      DO i=0,nxSub_fine+1_lng
 
-        u(i,j,k)   = 0.0_dbl							! x-velocity
-        v(i,j,k)   = 0.0_dbl							! y-velocity
-        w(i,j,k)   = 0.0_dbl							! z-velocity
-        rho(i,j,k) = denL								! density
+        u_fine(i,j,k)   = 0.0_dbl							! x-velocity
+        v_fine(i,j,k)   = 0.0_dbl							! y-velocity
+        w_fine(i,j,k)   = 0.0_dbl							! z-velocity
+        rho_fine(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)
 	DO m=0,NumDistDirs
