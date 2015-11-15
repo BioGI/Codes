@@ -71,36 +71,30 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	DO iter = iter0-0_lng,nt
 
 	CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
-	CALL Collision			! collision step [MODULE: Algorithm]
+!	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-        CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
-        CALL spatialInterpolateToFineGrid      ! Do the spatial interpolation for required variables to fine grid
-        DO subIter=1,gridRatio
-           CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
-           CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-           CALL Collision_Fine     ! Collision step on the fine grid
-           CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
-           CALL Stream_Fine            ! Stream fine grid
-           CALL Macro_Fine             ! Calculate Macro properties on fine grid
-           CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
-        END DO
-        CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
-        CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
-  
-	!write(*,*) iter,MAXVAL(f(:,:,:,0)-f(:,:,:,nzSub))
-	!write(*,*) iter,MAXVAL(f(:,:,:,nzSub+1)-f(:,:,:,1))
+        ! CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
+        ! CALL spatialInterpolateToFineGrid      ! Do the spatial interpolation for required variables to fine grid
+        ! DO subIter=1,gridRatio
+            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
+        !    CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
+        !    CALL Collision_Fine     ! Collision step on the fine grid
+        !    CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
+        !    CALL Stream_Fine            ! Stream fine grid
+        !    CALL Macro_Fine             ! Calculate Macro properties on fine grid
+        !    CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+        ! END DO
+        ! CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
+        ! CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
 
-	CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
-	!CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+	! CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 
-	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
-	!CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+	! CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
-	IF(iter .GE. phiStart) THEN
-		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
-	END IF
-	!CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+	! IF(iter .GE. phiStart) THEN
+	! 	CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
+	! END IF
 
 	! Balaji added to test value with time
   	!h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
@@ -135,18 +129,13 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	        close(173)
 
 	ENDIF
-	!CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
-
-
-!     CALL FixMass			! enforce conservation of mass
-!     CALL CheckVariables		! check the magnitude of selected variables (TEST)
 
      CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
-     CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
-     CALL PrintMass			! print the total mass in the system (TEST)
-     CALL PrintVolume			! print the volume in the system (TEST)
+     ! CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+     ! CALL PrintMass			! print the total mass in the system (TEST)
+     ! CALL PrintVolume			! print the volume in the system (TEST)
 
-!     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
+     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
 !     CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
 !     CALL PrintMass_fine		! print the total mass in the system (TEST)
 !     CALL PrintVolume_fine		! print the volume in the system (TEST)
@@ -164,13 +153,15 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
    CALL PrintFinalRestart		! print a final set of restart files to continue if desired [MODULE: Output]
 
-	CALL DEAllocateArrays		! clean up the memory [MODULE: Setup]
+   CALL DEAllocateArrays		! clean up the memory [MODULE: Setup]
+   CALL DEAllocateArrays_fine		! clean up the memory [MODULE: Setup_fine]
 
    CALL CloseOutputFiles		! closes output files [MODULE: Output.f90]
+   CALL CloseOutputFiles_fine		! closes output files [MODULE: Output_fine.f90]
 
-	CALL MergeOutput		! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
-
-	CALL MPI_FINALIZE(mpierr)	! end the MPI simulation [Intrinsic]
+   CALL MergeOutput		! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
+   
+   CALL MPI_FINALIZE(mpierr)	! end the MPI simulation [Intrinsic]
 
 !================================================ 
 END PROGRAM LBM3D

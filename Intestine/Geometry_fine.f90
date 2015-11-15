@@ -574,7 +574,7 @@ DO m=1,NumDistDirs
      ((jj .GE. 0) .AND. (jj .LE. nySub_fine+1_lng)) .AND.	&
      ((kk .GE. 0) .AND. (kk .LE. nzSub_fine+1_lng))) THEN
 
-    IF(node(ii,jj,kk) .EQ. FLUID) THEN
+    IF(node_fine(ii,jj,kk) .EQ. FLUID) THEN
       rhoSum = rhoSum + rho_fine(ii,jj,kk)
       numFLUIDs = numFLUIDs + 1_lng     
     END IF       
