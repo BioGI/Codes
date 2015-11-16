@@ -28,13 +28,6 @@ fileCount = 0_lng							! initialize to 0
 ALLOCATE(radius(0:nz+1,0:500))		! 500 is an arbitrarily large number of output iterations...
 radcount = 0_lng							! initialize the output count
 
-write(*,*) 'xcf = ', xcf
-do i=1,nxSub
-   write(*,*) 'x(', i, ') = ', x(i)
-   write(*,*) 'xx(', i, ') = ', xx(i)
-end do
-write(*,*) 'a1 = ', a1
-
 !------------------------------------------------
 END SUBROUTINE Output_Setup
 !------------------------------------------------
