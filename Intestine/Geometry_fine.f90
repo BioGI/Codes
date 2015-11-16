@@ -267,8 +267,6 @@ END DO
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-write(*,*) 'kMin_fine = ', kMin_fine
-write(*,*) 'kMax_fine = ', kMax_fine
 r_fine(0:nzSub_fine+1) = rDom_fine(kMin_fine-1:kMax_fine+1)
 
 
@@ -393,18 +391,6 @@ REAL(dbl)		:: rijk				! radius of the current node
 REAL(dbl)      :: ubx,uby,ubz		! boundary velocity
 INTEGER(lng) :: mpierr										! MPI standard error variable 
 
-DO i=1,nxSub
-      write(*,*) 'x(',i,')=',x(i)
-END DO
-
-DO j=1,nySub
-      write(*,*) 'y(',j,')=',y(j)
-END DO
-
-DO k=1,nzSub
-      write(*,*) 'z(',k,')=',z(k)
-END DO
-
 ! Flag the interior nodes and give values to nodes that just came in
 DO k=1,nzSub_fine
   DO j=1,nySub_fine
@@ -416,9 +402,6 @@ DO k=1,nzSub_fine
 
          IF( ((i .eq. 1) .or. (i .eq. nx_fine)) .or. ((j .eq. 1) .or. (j .eq. ny_fine)) ) THEN !Trying to find the outermost node on the fine mesh, set that as COARSEMESH
             node_fine(i,j,k) = COARSEMESH !No computations to be carried out in these nodes
-            IF(k .eq. 201) THEN
-               write(*,*) i," ",j," ",k
-            END if
 
          ELSE
 

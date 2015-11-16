@@ -103,21 +103,17 @@ ELSE
       xaxis=ANINT(0.5_dbl*(nx+1))
       yaxis=ANINT(0.5_dbl*(ny+1))
       
-      write(*,*) 'From Geometry.f90'
       ! Fill out x,y,z arrays (local)
       DO i=0,nxSub+1
         x(i) = ((iMin - 1_lng - (xaxis-1_lng)) + (i-1_lng))*xcf
-        write(*,*) 'x(',i,')=',x(i)
       END DO
       
       DO j=0,nySub+1
         y(j) = ((jMin - 1_lng - (yaxis-1_lng)) + (j-1_lng))*ycf
-        write(*,*) 'y(',j,')=',y(j)
       END DO
       
       DO k=0,nzSub+1
         z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf
-        write(*,*) 'z(',k,')=',z(k)
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
