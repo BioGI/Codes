@@ -271,11 +271,6 @@ IF (gridRatio .gt. 1) THEN
    nx_fine = ( fractionDfine * (nx - 1) + 2 ) * gridRatio + 1
    ny_fine = ( fractionDfine * (ny - 1) + 2 ) * gridRatio + 1
    nz_fine = nz * gridRatio
-   IF ((nx_fine .eq. ny_fine) .and. (nx_fine .eq. nz_fine)) THEN
-      write(*,*) 'nx_fine = ny_fine = nz_fine = ', nx_fine, ' All ok. Proceeding'
-   ELSE
-      write(*,*) 'Please set dimensions such that nx = ny = nz'      
-   END IF
 END IF
 
 
