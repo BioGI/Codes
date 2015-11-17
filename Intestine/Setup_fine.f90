@@ -197,12 +197,16 @@ real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendLeft_bottomXZ   !Array 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvLeft_bottomXZ   !Array to receive two buffer coarse mesh layers on the bottom from the left processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendLeft_frontYZ    !Array to send two buffer coarse mesh layers on the front to the left processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvLeft_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendLeft_backYZ    !Array to send two buffer coarse mesh layers on the front to the left processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvLeft_backYZ
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_topXZ     !Array to send two buffer coarse mesh layers on the top to the right processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_topXZ     !Array to receive two buffer coarse mesh layers on the top from the right processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_bottomXZ  !Array to send two buffer coarse mesh layers on the top to the right processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_bottomXZ  !Array to receive two buffer coarse mesh layers on the bottom from the right processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_frontYZ   !Array to send two buffer coarse mesh layers on the front to the right processor 
 real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_frontYZ   !Array to receive two buffer coarse mesh layers on the top from the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_backYZ   !Array to send two buffer coarse mesh layers on the front to the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_backYZ   !Array to receive two buffer coarse mesh layers on the top from the right processor 
 
 !Same set of arrays for the equibrium distribution function
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_topXZ
@@ -211,12 +215,19 @@ real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_bottomXZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvLeft_bottomXZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_frontYZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvLeft_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_backYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvLeft_backYZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_topXZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_topXZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_bottomXZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_bottomXZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_frontYZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_backYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_backYZ
+
+INTEGER(lng), ALLOCATABLE :: reqInterpolatioBuffer(:)			! array of MPI send/receive requests 
+INTEGER(lng), ALLOCATABLE :: waitStatInterpolatioBuffer(:,:)		! array of MPI_WAITALL status objects
 
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_topXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
