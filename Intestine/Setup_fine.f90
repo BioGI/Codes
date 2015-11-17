@@ -700,10 +700,10 @@ allocate(feqFC_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indice
 
 
 !Post collision density distribution from the coarse mesh for the fine mesh
-allocate(fCtoF_topXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(fCtoF_bottomXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(fCtoF_frontYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
-allocate(fCtoF_backYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(fCtoF_topXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fCtoF_bottomXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fCtoF_frontYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(fCtoF_backYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
 
 !Equilibrium density distribution from the coarse mesh for the fine mesh
 allocate(feqFF_topXZ(1:14,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index

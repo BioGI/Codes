@@ -1000,6 +1000,20 @@ SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
 
   CALL MPI_WAITALL(8,reqInterpolationBuffer,waitStatInterpolationBuffer,mpierr)  
 
+  fCtoF_bottomXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_bottomXZ(:,1,:)
+  fCtoF_topXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_topXZ(:,1,:)
+  fCtoF_bottomXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_bottomXZ(:,1,:)
+  fCtoF_bottomXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_bottomXZ(:,2,:)
+  fCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(:,1,:)
+  fCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(:,2,:)
+
+  fCtoF_frontYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_frontYZ(:,1,:)
+  fCtoF_backYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_backYZ(:,1,:)
+  fCtoF_frontYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_frontYZ(:,1,:)
+  fCtoF_frontYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_frontYZ(:,2,:)
+  fCtoF_backYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_backYZ(:,1,:)
+  fCtoF_backYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_backYZ(:,2,:)
+
 END SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
 
 !================================================
