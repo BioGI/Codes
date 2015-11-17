@@ -905,6 +905,176 @@ END SELECT
 END SUBROUTINE UnPackData_Fine
 !------------------------------------------------
 
+SUBROUTINE PackAndSendDataBufferInterpolation
+  
+!Packs the data for the buffers for the cubic spline interpolation for the multiGrid algorithm
+
+  integer :: m,i,j,k       !Iteration variables
+  integer :: iComm         !Communication direction
+  integer :: dest	   ! rank of destination processing unit
+  integer :: tag	   ! message tag
+  integer :: mpierr	   ! MPI standard error variable 
+  integer :: bufferSize    ! Size of message being transferred
+
+  do i=46,56
+     do m=1,14
+        fC_bufferSendLeft_bottomXZ(m,1,i) = fPlus(m,i,46,1)
+        fC_bufferSendLeft_bottomXZ(m,2,i) = fPlus(m,i,46,2)
+        fC_bufferSendLeft_topXZ(m,1,i) = fPlus(m,i,56,1)
+        fC_bufferSendLeft_topXZ(m,1,i) = fPlus(m,i,56,2)
+        fC_bufferSendRight_bottomXZ(m,1,i) = fPlus(m,i,46,nzSub-1)
+        fC_bufferSendRight_bottomXZ(m,2,i) = fPlus(m,i,46,nzSub)
+        fC_bufferSendRight_topXZ(m,1,i) = fPlus(m,i,56,nzSub-1)
+        fC_bufferSendRight_topXZ(m,2,i) = fPlus(m,i,56,nzSub)
+        
+        feqC_bufferSendLeft_bottomXZ(m,1,i) = fPlus(m,i,46,1)
+        feqC_bufferSendLeft_bottomXZ(m,2,i) = fPlus(m,i,46,2)
+        feqC_bufferSendLeft_topXZ(m,1,i) = fPlus(m,i,56,1)
+        feqC_bufferSendLeft_topXZ(m,1,i) = fPlus(m,i,56,2)
+        feqC_bufferSendRight_bottomXZ(m,1,i) = fPlus(m,i,46,nzSub-1)
+        feqC_bufferSendRight_bottomXZ(m,2,i) = fPlus(m,i,46,nzSub)
+        feqC_bufferSendRight_topXZ(m,1,i) = fPlus(m,i,56,nzSub-1)
+        feqC_bufferSendRight_topXZ(m,2,i) = fPlus(m,i,56,nzSub)
+
+     end do
+  end do
+
+  do j=47,55
+     do m=1,14
+        fC_bufferSendLeft_frontYZ(m,1,j) = fPlus(m,46,j,1)
+        fC_bufferSendLeft_frontYZ(m,2,j) = fPlus(m,46,j,2)
+        fC_bufferSendLeft_backYZ(m,1,j) = fPlus(m,56,j,1)
+        fC_bufferSendLeft_backYZ(m,2,j) = fPlus(m,56,j,2)
+        fC_bufferSendRight_frontYZ(m,1,j) = fPlus(m,46,j,nzSub-1)
+        fC_bufferSendRight_frontYZ(m,2,j) = fPlus(m,46,j,nzSub)
+        fC_bufferSendRight_backYZ(m,1,j) = fPlus(m,56,j,nzSub-1)
+        fC_bufferSendRight_backYZ(m,2,j) = fPlus(m,56,j,nzSub)
+
+        feqC_bufferSendLeft_frontYZ(m,1,j) = fPlus(m,46,j,1)
+        feqC_bufferSendLeft_frontYZ(m,2,j) = fPlus(m,46,j,2)
+        feqC_bufferSendLeft_backYZ(m,1,j) = fPlus(m,56,j,1)
+        feqC_bufferSendLeft_backYZ(m,2,j) = fPlus(m,56,j,2)
+        feqC_bufferSendRight_frontYZ(m,1,j) = fPlus(m,46,j,nzSub-1)
+        feqC_bufferSendRight_frontYZ(m,2,j) = fPlus(m,46,j,nzSub-1)
+        feqC_bufferSendRight_backYZ(m,1,j) = fPlus(m,56,j,nzSub-1)
+        feqC_bufferSendRight_backYZ(m,2,j) = fPlus(m,56,j,nzSub)
+     end do
+  end do
+
+  iComm = 6                      !Send to processor on the left in the z direction
+  dest = SubID(iComm) - 1_lng    ! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng		  
+  CALL MPI_ISEND(fC_bufferSendLeft_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(1),mpierr)
+  tag = iComm*100_lng + 1	  
+  CALL MPI_ISEND(fC_bufferSendLeft_topXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(2),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 2
+  CALL MPI_ISEND(fC_bufferSendLeft_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(3),mpierr)
+  tag = iComm*100_lng + 3
+  CALL MPI_ISEND(fC_bufferSendLeft_backYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(4),mpierr)
+
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng + 4		  
+  CALL MPI_ISEND(feqC_bufferSendLeft_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(5),mpierr)
+  tag = iComm*100_lng + 5	  
+  CALL MPI_ISEND(feqC_bufferSendLeft_topXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(6),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 6
+  CALL MPI_ISEND(feqC_bufferSendLeft_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(7),mpierr)
+  tag = iComm*100_lng + 7
+  CALL MPI_ISEND(feqC_bufferSendLeft_backYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(8),mpierr)
+  
+  iComm = 5                      !Send to processor on the right in the z direction
+  dest = SubID(iComm) - 1_lng    ! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng		  
+  CALL MPI_ISEND(fC_bufferSendRight_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(9),mpierr)
+  tag = iComm*100_lng + 1	  
+  CALL MPI_ISEND(fC_bufferSendRight_topXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(10),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 2
+  CALL MPI_ISEND(fC_bufferSendRight_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(11),mpierr)
+  tag = iComm*100_lng + 3
+  CALL MPI_ISEND(fC_bufferSendRight_backYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(12),mpierr)
+
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng + 4		  
+  CALL MPI_ISEND(feqC_bufferSendRight_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(13),mpierr)
+  tag = iComm*100_lng + 5	  
+  CALL MPI_ISEND(feqC_bufferSendRight_topXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(14),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 6
+  CALL MPI_ISEND(feqC_bufferSendRight_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(15),mpierr)
+  tag = iComm*100_lng + 7
+  CALL MPI_ISEND(feqC_bufferSendRight_backYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(16),mpierr)
+
+END SUBROUTINE PackAndSendDataBufferInterpolation
+
+
+SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
+  
+!Packs the data for the buffers for the cubic spline interpolation for the multiGrid algorithm
+
+  integer :: m,i,j,k       ! Iteration variables
+  integer :: iComm         ! Communication direction
+  integer :: src	   ! rank of source processing unit
+  integer :: tag	   ! message tag
+  integer :: mpierr	   ! MPI standard error variable 
+  integer :: bufferSize    ! Size of message being transferred
+  
+  iComm = 6                ! Send to processor on the left in the z direction
+  src = SubID(OppCommDir(iComm)) - 1_lng  
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng		  
+  CALL MPI_IRECV(fC_bufferRecvRight_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(1),mpierr)
+  tag = iComm*100_lng + 1	  
+  CALL MPI_IRECV(fC_bufferRecvRight_topXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(2),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 2
+  CALL MPI_IRECV(fC_bufferRecvRight_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(3),mpierr)
+  tag = iComm*100_lng + 3
+  CALL MPI_IRECV(fC_bufferRecvRight_backYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(4),mpierr)
+
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng + 4		  
+  CALL MPI_IRECV(feqC_bufferRecvRight_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(5),mpierr)
+  tag = iComm*100_lng + 5	  
+  CALL MPI_IRECV(feqC_bufferRecvRight_topXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(6),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 6
+  CALL MPI_IRECV(feqC_bufferRecvRight_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(7),mpierr)
+  tag = iComm*100_lng + 7
+  CALL MPI_IRECV(feqC_bufferRecvRight_backYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(8),mpierr)
+  
+  iComm = 5                      !Send to processor on the right in the z direction
+  src = SubID(OppCommDir(iComm)) - 1_lng    ! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng		  
+  CALL MPI_IRECV(fC_bufferRecvLeft_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(9),mpierr)
+  tag = iComm*100_lng + 1	  
+  CALL MPI_IRECV(fC_bufferRecvLeft_topXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(10),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 2
+  CALL MPI_IRECV(fC_bufferRecvLeft_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(11),mpierr)
+  tag = iComm*100_lng + 3
+  CALL MPI_IRECV(fC_bufferRecvLeft_backYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(12),mpierr)
+
+  bufferSize = 14 * 2 * 11
+  tag = iComm*100_lng + 4		  
+  CALL MPI_IRECV(feqC_bufferRecvLeft_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(13),mpierr)
+  tag = iComm*100_lng + 5	  
+  CALL MPI_IRECV(feqC_bufferRecvLeft_topXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(14),mpierr)
+  bufferSize = 14 * 2 * 9
+  tag = iComm*100_lng + 6
+  CALL MPI_IRECV(feqC_bufferRecvLeft_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(15),mpierr)
+  tag = iComm*100_lng + 7
+  CALL MPI_IRECV(feqC_bufferRecvLeft_backYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(16),mpierr)
+
+  CALL MPI_WAITALL(16,reqInterpolationBuffer,waitStatInterpolationBuffer,mpierr)  
+
+END SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
+
 !================================================
 END MODULE Parallel_Fine
 !================================================
