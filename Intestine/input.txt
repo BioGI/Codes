@@ -4,7 +4,7 @@
 200				! number of nodes in the z-direction						(nz)
 1				! number of x-subdomains							(NumSubsX)
 1				! number of y-subdomains							(NumSubsY)
-1				! number of z-subdomains							(NumSubsZ)
+4				! number of z-subdomains							(NumSubsZ)
 0.024				! gut segment length [m] 							(L)
 0.012				! gut diameter [m]								(D)
 0.1                             ! Fraction of gut diameter to be resolved by fine mesh                          (fractionDfine)
