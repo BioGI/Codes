@@ -191,6 +191,33 @@ INTEGER ::   gridRatio						! Ratio of coarse/fine grid size
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~~~~~~~~~~~~~~~~~Multi-grid algorithm variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendLeft_topXZ      !Array to send two buffer coarse mesh layers on the top to the left processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvLeft_topXZ      !Array to receive two buffer coarse mesh layers on the top from the left processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendLeft_bottomXZ   !Array to send two buffer coarse mesh layers on the bottom to the left processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvLeft_bottomXZ   !Array to receive two buffer coarse mesh layers on the bottom from the left processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendLeft_frontYZ    !Array to send two buffer coarse mesh layers on the front to the left processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvLeft_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_topXZ     !Array to send two buffer coarse mesh layers on the top to the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_topXZ     !Array to receive two buffer coarse mesh layers on the top from the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_bottomXZ  !Array to send two buffer coarse mesh layers on the top to the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_bottomXZ  !Array to receive two buffer coarse mesh layers on the bottom from the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferSendRight_frontYZ   !Array to send two buffer coarse mesh layers on the front to the right processor 
+real(dbl), allocatable, dimension(:,:,:) :: fC_bufferRecvRight_frontYZ   !Array to receive two buffer coarse mesh layers on the top from the right processor 
+
+!Same set of arrays for the equibrium distribution function
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvLeft_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvLeft_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendLeft_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvLeft_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_frontYZ
+
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_topXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
@@ -673,6 +700,42 @@ allocate(feqFF_bottomXZ(1:14,46:56,nzSub))  !Includes the ends - Indices are dir
 allocate(feqFF_frontYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 allocate(feqFF_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
+allocate(fC_bufferSendLeft_topXZ(1:14,2,46:56))
+allocate(fC_bufferRecvLeft_topXZ(1:14,2,46:56))
+allocate(fC_bufferSendLeft_bottomXZ(1:14,2,46:56))
+allocate(fC_bufferRecvLeft_bottomXZ(1:14,2,46:56))
+allocate(fC_bufferSendLeft_frontYZ(1:14,2,47:55))
+allocate(fC_bufferRecvLeft_frontYZ(1:14,2,47:55))
+allocate(fC_bufferSendLeft_backYZ(1:14,2,47:55))
+allocate(fC_bufferRecvLeft_backYZ(1:14,2,47:55))
+
+allocate(fC_bufferSendRight_topXZ(1:14,2,46:56))
+allocate(fC_bufferRecvRight_topXZ(1:14,2,46:56))
+allocate(fC_bufferSendRight_bottomXZ(1:14,2,46:56))
+allocate(fC_bufferRecvRight_bottomXZ(1:14,2,46:56))
+allocate(fC_bufferSendRight_frontYZ(1:14,2,47:55))
+allocate(fC_bufferRecvRight_frontYZ(1:14,2,47:55))
+allocate(fC_bufferSendRight_backYZ(1:14,2,47:55))
+allocate(fC_bufferRecvRight_backYZ(1:14,2,47:55))
+
+!Same set of arrays for the equibrium distribution function
+allocate(feqC_bufferSendLeft_topXZ(1:14,2,46:56))
+allocate(feqC_bufferRecvLeft_topXZ(1:14,2,46:56))
+allocate(feqC_bufferSendLeft_bottomXZ(1:14,2,46:56))
+allocate(feqC_bufferRecvLeft_bottomXZ(1:14,2,46:56))
+allocate(feqC_bufferSendLeft_frontYZ(1:14,2,47:55))
+allocate(feqC_bufferRecvLeft_frontYZ(1:14,2,47:55))
+allocate(feqC_bufferSendLeft_backYZ(1:14,2,47:55))
+allocate(feqC_bufferRecvLeft_backYZ(1:14,2,47:55))
+
+allocate(feqC_bufferSendRight_topXZ(1:14,2,46:56))
+allocate(feqC_bufferRecvRight_topXZ(1:14,2,46:56))
+allocate(feqC_bufferSendRight_bottomXZ(1:14,2,46:56))
+allocate(feqC_bufferRecvRight_bottomXZ(1:14,2,46:56))
+allocate(feqC_bufferSendRight_frontYZ(1:14,2,47:55))
+allocate(feqC_bufferRecvRight_frontYZ(1:14,2,47:55))
+allocate(feqC_bufferSendRight_backYZ(1:14,2,47:55))
+allocate(feqC_bufferRecvRight_backYZ(1:14,2,47:55))
 
 !------------------------------------------------
 END SUBROUTINE AllocateArrays_Fine
