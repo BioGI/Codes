@@ -226,8 +226,8 @@ real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_frontYZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferSendRight_backYZ
 real(dbl), allocatable, dimension(:,:,:) :: feqC_bufferRecvRight_backYZ
 
-INTEGER(lng), ALLOCATABLE :: reqInterpolatioBuffer(:)			! array of MPI send/receive requests 
-INTEGER(lng), ALLOCATABLE :: waitStatInterpolatioBuffer(:,:)		! array of MPI_WAITALL status objects
+INTEGER(lng), ALLOCATABLE :: reqInterpolationBuffer(:)			! array of MPI send/receive requests 
+INTEGER(lng), ALLOCATABLE :: waitStatInterpolationBuffer(:,:)		! array of MPI_WAITALL status objects
 
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_topXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
@@ -711,43 +711,44 @@ allocate(feqFF_bottomXZ(1:14,46:56,nzSub))  !Includes the ends - Indices are dir
 allocate(feqFF_frontYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 allocate(feqFF_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
-allocate(fC_bufferSendLeft_topXZ(1:14,2,46:56))
-allocate(fC_bufferRecvLeft_topXZ(1:14,2,46:56))
-allocate(fC_bufferSendLeft_bottomXZ(1:14,2,46:56))
-allocate(fC_bufferRecvLeft_bottomXZ(1:14,2,46:56))
-allocate(fC_bufferSendLeft_frontYZ(1:14,2,47:55))
-allocate(fC_bufferRecvLeft_frontYZ(1:14,2,47:55))
-allocate(fC_bufferSendLeft_backYZ(1:14,2,47:55))
-allocate(fC_bufferRecvLeft_backYZ(1:14,2,47:55))
+allocate(fC_bufferSendLeft_topXZ(1:14,2,1:nx_fine))
+allocate(fC_bufferRecvLeft_topXZ(1:14,1,1:nx_fine))
+allocate(fC_bufferSendLeft_bottomXZ(1:14,2,1:nx_fine))
+allocate(fC_bufferRecvLeft_bottomXZ(1:14,1,1:nx_fine))
+allocate(fC_bufferSendLeft_frontYZ(1:14,2,2:ny_fine-1))
+allocate(fC_bufferRecvLeft_frontYZ(1:14,1,2:ny_fine-1))
+allocate(fC_bufferSendLeft_backYZ(1:14,2,2:ny_fine-1))
+allocate(fC_bufferRecvLeft_backYZ(1:14,1,2:ny_fine-1))
 
-allocate(fC_bufferSendRight_topXZ(1:14,2,46:56))
-allocate(fC_bufferRecvRight_topXZ(1:14,2,46:56))
-allocate(fC_bufferSendRight_bottomXZ(1:14,2,46:56))
-allocate(fC_bufferRecvRight_bottomXZ(1:14,2,46:56))
-allocate(fC_bufferSendRight_frontYZ(1:14,2,47:55))
-allocate(fC_bufferRecvRight_frontYZ(1:14,2,47:55))
-allocate(fC_bufferSendRight_backYZ(1:14,2,47:55))
-allocate(fC_bufferRecvRight_backYZ(1:14,2,47:55))
+allocate(fC_bufferSendRight_topXZ(1:14,1,1:nx_fine))
+allocate(fC_bufferRecvRight_topXZ(1:14,2,1:nx_fine))
+allocate(fC_bufferSendRight_bottomXZ(1:14,1,1:nx_fine))
+allocate(fC_bufferRecvRight_bottomXZ(1:14,2,1:nx_fine))
+allocate(fC_bufferSendRight_frontYZ(1:14,1,2:ny_fine-1))
+allocate(fC_bufferRecvRight_frontYZ(1:14,2,2:ny_fine-1))
+allocate(fC_bufferSendRight_backYZ(1:14,1,2:ny_fine-1))
+allocate(fC_bufferRecvRight_backYZ(1:14,2,2:ny_fine-1))
 
 !Same set of arrays for the equibrium distribution function
-allocate(feqC_bufferSendLeft_topXZ(1:14,2,46:56))
-allocate(feqC_bufferRecvLeft_topXZ(1:14,2,46:56))
-allocate(feqC_bufferSendLeft_bottomXZ(1:14,2,46:56))
-allocate(feqC_bufferRecvLeft_bottomXZ(1:14,2,46:56))
-allocate(feqC_bufferSendLeft_frontYZ(1:14,2,47:55))
-allocate(feqC_bufferRecvLeft_frontYZ(1:14,2,47:55))
-allocate(feqC_bufferSendLeft_backYZ(1:14,2,47:55))
-allocate(feqC_bufferRecvLeft_backYZ(1:14,2,47:55))
+allocate(feqC_bufferSendLeft_topXZ(1:14,2,1:nx_fine))
+allocate(feqC_bufferRecvLeft_topXZ(1:14,1,1:nx_fine))
+allocate(feqC_bufferSendLeft_bottomXZ(1:14,2,1:nx_fine))
+allocate(feqC_bufferRecvLeft_bottomXZ(1:14,1,1:nx_fine))
+allocate(feqC_bufferSendLeft_frontYZ(1:14,2,2:ny_fine-1))
+allocate(feqC_bufferRecvLeft_frontYZ(1:14,1,2:ny_fine-1))
+allocate(feqC_bufferSendLeft_backYZ(1:14,2,2:ny_fine-1))
+allocate(feqC_bufferRecvLeft_backYZ(1:14,1,2:ny_fine-1))
 
-allocate(feqC_bufferSendRight_topXZ(1:14,2,46:56))
-allocate(feqC_bufferRecvRight_topXZ(1:14,2,46:56))
-allocate(feqC_bufferSendRight_bottomXZ(1:14,2,46:56))
-allocate(feqC_bufferRecvRight_bottomXZ(1:14,2,46:56))
-allocate(feqC_bufferSendRight_frontYZ(1:14,2,47:55))
-allocate(feqC_bufferRecvRight_frontYZ(1:14,2,47:55))
-allocate(feqC_bufferSendRight_backYZ(1:14,2,47:55))
-allocate(feqC_bufferRecvRight_backYZ(1:14,2,47:55))
+allocate(feqC_bufferSendRight_topXZ(1:14,1,1:nx_fine))
+allocate(feqC_bufferRecvRight_topXZ(1:14,2,1:nx_fine))
+allocate(feqC_bufferSendRight_bottomXZ(1:14,1,1:nx_fine))
+allocate(feqC_bufferRecvRight_bottomXZ(1:14,2,1:nx_fine))
+allocate(feqC_bufferSendRight_frontYZ(1:14,1,2:ny_fine-1))
+allocate(feqC_bufferRecvRight_frontYZ(1:14,2,2:ny_fine-1))
+allocate(feqC_bufferSendRight_backYZ(1:14,1,2:ny_fine-1))
+allocate(feqC_bufferRecvRight_backYZ(1:14,2,2:ny_fine-1))
 
+ALLOCATE(reqInterpolationBuffer(16))
 !------------------------------------------------
 END SUBROUTINE AllocateArrays_Fine
 !------------------------------------------------
