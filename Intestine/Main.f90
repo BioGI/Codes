@@ -74,7 +74,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-        ! CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
+        CALL ComputeEquilibriumForFineGrid     ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
+        CALL PackAndSendDataBufferInterpolation
+        CALL ReceiveAndUnpackDataBufferInterpolation
         ! CALL spatialInterpolateToFineGrid      ! Do the spatial interpolation for required variables to fine grid
         ! DO subIter=1,gridRatio
             CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
@@ -110,23 +112,20 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
              	!write(70,*) iter,w(Ci,Cj,Ck),w(Ci,Cj,Ck-1),w(Ci,Cj,Ck+1),(w(Ci,Cj,Ck)+w(Ci,Cj,Ck-1))*0.5
 	        !close(70)
         	open(70,file='t-history.dat',position='append')
-             	write(70,*) iter,w(Ci,Cj,Ck),w(Ci,Cj,Ck+10),w(Ci,Cj,Ck+20)
+             	write(70,*) iter
 	        close(70)
-        	open(71,file='t-history-1.dat',position='append')
-             	write(71,*) iter,w(Ci+1,Cj,Ck),w(Ci+3,Cj,Ck),w(Ci+5,Cj,Ck)
-	        close(71)
-        	open(170,file='hh-history.dat',position='append')
-             	write(170,*) iter,rDom(Ck),rDom(Ck+10),rDom(Ck+20)
-	        close(170)
-	       	open(171,file='vel-history.dat',position='append')
-             	write(171,*) iter,velDom(Ck),velDom(Ck+10),velDom(Ck+20)
-	        close(171)
-	       	open(172,file='rho-history.dat',position='append')
-             	write(172,*) iter,rho(Ci,Cj,Ck),rho(Ci,Cj,Ck+10),rho(Ci,Cj,Ck+20)
-	        close(172)
-	  	open(173,file='phi-history.dat',position='append')
-             	write(173,*) iter,phi(Ci,Cj,Ck),phi(Ci,Cj,Ck+10),phi(Ci,Cj,Ck+20)
-	        close(173)
+        	! open(170,file='hh-history.dat',position='append')
+             	! write(170,*) iter,rDom(Ck),rDom(Ck+10),rDom(Ck+20)
+	        ! close(170)
+	       	! open(171,file='vel-history.dat',position='append')
+             	! write(171,*) iter,velDom(Ck),velDom(Ck+10),velDom(Ck+20)
+	        ! close(171)
+	       	! open(172,file='rho-history.dat',position='append')
+             	! write(172,*) iter,rho(Ci,Cj,Ck),rho(Ci,Cj,Ck+10),rho(Ci,Cj,Ck+20)
+	        ! close(172)
+	  	! open(173,file='phi-history.dat',position='append')
+             	! write(173,*) iter,phi(Ci,Cj,Ck),phi(Ci,Cj,Ck+10),phi(Ci,Cj,Ck+20)
+	        ! close(173)
 
 	ENDIF
 
