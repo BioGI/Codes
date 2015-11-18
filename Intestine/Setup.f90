@@ -192,6 +192,26 @@ INTEGER(lng) :: numVilliGroups							! number of groups of villi
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~Multi-grid algorithm variables~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFC_backYZ
+
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: fFtoC_backYZ             
+
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_topXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_bottomXZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_frontYZ
+real(dbl), allocatable, dimension(:,:,:) :: feqFF_backYZ
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 REAL(dbl), ALLOCATABLE		:: radius(:,:)				! radius stored during output iterations
@@ -636,6 +656,34 @@ ALLOCATE(rDom0(0:nz+1),rDom(0:nz+1),r(0:nzSub+1))		! intial and current radius (
 ALLOCATE(velDom(0:nz+1),vel(0:nzSub+1))					! global and local wall velocities
 ALLOCATE(x(0:nxSub+1),y(0:nySub+1),z(0:nzSub+1))		! x, y, z, physical coordinate arrays (local)
 ALLOCATE(xx(0:nx+1),yy(0:ny+1),zz(0:nz+1))				! x, y, z, physical coordinate arrays (global)
+
+!Multigrid algorithm variables
+!Post collision density distribution from the fine mesh for the coarse mesh
+allocate(fFtoC_topXZ(1:14,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(fFtoC_bottomXZ(1:14,46:56,nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(fFtoC_frontYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(fFtoC_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+
+!Equilibrium density distribution from the fine mesh for the coarse mesh
+allocate(feqFC_topXZ(1:14,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFC_bottomXZ(1:14,46:56,nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFC_frontYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(feqFC_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+
+!Equilibrium density distribution from the coarse mesh for the fine mesh
+allocate(feqFF_topXZ(1:14,44:58,1:nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFF_bottomXZ(1:14,44:58,1:nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFF_frontYZ(1:14,45:57,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(feqFF_backYZ(1:14,45:57,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+
+if (allocated(feqFF_bottomXZ)) then
+   write(*,*) 'nzSub = ', nzSub
+   write(*,*) 'Allocated feqFF_bottomXZ of dimensions ', size(feqFF_bottomXZ,1), ' ', size(feqFF_bottomXZ,2), ' ', size(feqFF_bottomXZ,3)
+   write(*,*) 'Allocated feqFF_topXZ of dimensions ', size(feqFF_topXZ,1), ' ', size(feqFF_topXZ,2), ' ', size(feqFF_topXZ,3)
+   write(*,*) 'Allocated feqFF_frontYZ of dimensions ', size(feqFF_frontYZ,1), ' ', size(feqFF_frontYZ,2), ' ', size(feqFF_frontYZ,3)
+   write(*,*) 'Allocated feqFF_backYZ of dimensions ', size(feqFF_backYZ,1), ' ', size(feqFF_backYZ,2), ' ', size(feqFF_backYZ,3)
+end if
+
 
 !------------------------------------------------
 END SUBROUTINE AllocateArrays

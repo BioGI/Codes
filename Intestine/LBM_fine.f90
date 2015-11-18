@@ -499,7 +499,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               
               feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-!              feqFF_topXZ(m,i,k) = feq
+              feqFF_topXZ(m,i,k) = feq
               
            END DO
            
@@ -524,7 +524,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               
               feq = (wt(m)*rho(46,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-!              feqFF_frontYZ(m,j,k) = feq
+              feqFF_frontYZ(m,j,k) = feq
               
            END DO
            
@@ -543,7 +543,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               
               feq = (wt(m)*rho(56,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-!              feqFF_backYZ(m,j,k) = feq
+              feqFF_backYZ(m,j,k) = feq
               
            END DO
            
