@@ -463,9 +463,10 @@ SUBROUTINE ComputeEquilibriumForFineGrid
   REAL(dbl) :: uu,ue,ve,we,Usum		! precalculated quantities for use in the feq equation
   REAL(dbl) :: feq			! equilibrium distribution function
 
+ 
   !Do the bottom and top x-z planes first
   do k = 1, nzSub
-     do i = 46, 56
+     do i = 44, 58
         IF(node(i,46,k) .EQ. FLUID) THEN
            
            uu = u(i,46,k)*u(i,46,k) + v(i,46,k)*v(i,46,k) + w(i,46,k)*w(i,46,k)						! u . u
@@ -478,7 +479,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               Usum	= ue + ve + we				! U . e
               
               feq = (wt(m)*rho(i,46,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
-              
+
               feqFF_bottomXZ(m,i,k) = feq
               
            END DO
@@ -498,7 +499,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               
               feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-              feqFF_topXZ(m,i,k) = feq
+!              feqFF_topXZ(m,i,k) = feq
               
            END DO
            
@@ -509,7 +510,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
 
   !Fill in the remaining points on the front and back planes
   do k = 1, nzSub
-     do j = 47, 55
+     do j = 45, 57
         IF(node(46,j,k) .EQ. FLUID) THEN
            
            uu = u(46,j,k)*u(46,j,k) + v(46,j,k)*v(46,j,k) + w(46,j,k)*w(46,j,k)						! u . u
@@ -523,7 +524,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               
               feq = (wt(m)*rho(46,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-              feqFF_frontYZ(m,j,k) = feq
+!              feqFF_frontYZ(m,j,k) = feq
               
            END DO
            
@@ -542,7 +543,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               
               feq = (wt(m)*rho(56,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
-              feqFF_backYZ(m,j,k) = feq
+!              feqFF_backYZ(m,j,k) = feq
               
            END DO
            
@@ -569,6 +570,8 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         do m=1,14	  
            lCxIndex = lowerCoarseXindex(x_fine(i))  ! Lower Coarse x Index
            lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index
+
+           write(*,*) 'k = ', k, 'z_fine(k) = ', z_fine(k), ' lowerCoarseZindex(k) = ', lCzIndex
            
            xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
 
