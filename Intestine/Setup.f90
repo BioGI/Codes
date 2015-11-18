@@ -676,15 +676,6 @@ allocate(feqFF_bottomXZ(1:14,44:58,1:nzSub))  !Includes the ends - Indices are d
 allocate(feqFF_frontYZ(1:14,45:57,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 allocate(feqFF_backYZ(1:14,45:57,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
-if (allocated(feqFF_bottomXZ)) then
-   write(*,*) 'nzSub = ', nzSub
-   write(*,*) 'Allocated feqFF_bottomXZ of dimensions ', size(feqFF_bottomXZ,1), ' ', size(feqFF_bottomXZ,2), ' ', size(feqFF_bottomXZ,3)
-   write(*,*) 'Allocated feqFF_topXZ of dimensions ', size(feqFF_topXZ,1), ' ', size(feqFF_topXZ,2), ' ', size(feqFF_topXZ,3)
-   write(*,*) 'Allocated feqFF_frontYZ of dimensions ', size(feqFF_frontYZ,1), ' ', size(feqFF_frontYZ,2), ' ', size(feqFF_frontYZ,3)
-   write(*,*) 'Allocated feqFF_backYZ of dimensions ', size(feqFF_backYZ,1), ' ', size(feqFF_backYZ,2), ' ', size(feqFF_backYZ,3)
-end if
-
-
 !------------------------------------------------
 END SUBROUTINE AllocateArrays
 !------------------------------------------------
