@@ -111,9 +111,10 @@ ELSE
       END DO
       
       DO k=-gridRatio+1,nzSub_fine+gridRatio
-        z_fine(k) = (((kMin_fine - 1_lng) + k) - 0.5_dbl)*zcf_fine
+!        z_fine(k) = (((kMin_fine - 1_lng) + k) - 0.5_dbl)*zcf_fine
+        z_fine(k) = z(1) + (k-1)*zcf_fine
       END DO
-      
+
       ! Fill out xx,yy,zz arrays (global)
       DO i=0,nx_fine+1
         xx_fine(i) = (i-1_lng-(xaxis-1_lng))*xcf_fine
