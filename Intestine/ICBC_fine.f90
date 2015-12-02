@@ -401,7 +401,7 @@ IF((node_fine(ip1,jp1,kp1) .EQ. FLUID) .AND. (node_fine(ip2,jp2,kp2) .EQ. FLUID)
     fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus_fine(bb(m),i,j,k) 															&
         + (1.0_dbl - 4.0_dbl*q*q)*fplus_fine(bb(m),ip1,jp1,kp1) 													& 
         - q*(1.0_dbl - 2.0_dbl*q)*fplus_fine(bb(m),ip2,jp2,kp2) 													&
-        + 6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))
+        + 6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))
   ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
     fbb = fplus_fine(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
         + ((2.0_dbl*q - 1.0_dbl)*fplus_fine(m,i,j,k))/q																&

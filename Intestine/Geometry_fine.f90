@@ -183,7 +183,7 @@ h2 	= 0.0_dbl						! mode 2 height
 rDom_fine	= 0.0_dbl						! summed height
 
 ! Current Physical Time
-time	= iter*tcf
+time	= iter*tcf + subIter*tcf_fine
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz_fine-1

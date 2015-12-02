@@ -351,7 +351,7 @@ DO k=1,nzSub_fine
           w_fine(i,j,k)	= w_fine(i,j,k)   + f_fine(m,i,j,k)*ez(m)	! z-velocity
         END DO
 
-        IF(rho(i,j,k) .NE. 0) THEN
+        IF(rho_fine(i,j,k) .NE. 0) THEN
           u_fine(i,j,k) = u_fine(i,j,k)/rho_fine(i,j,k)					! x-velocity
           v_fine(i,j,k) = v_fine(i,j,k)/rho_fine(i,j,k)					! y-velocity
           w_fine(i,j,k) = w_fine(i,j,k)/rho_fine(i,j,k)					! z-velocity
@@ -813,8 +813,8 @@ SUBROUTINE TemporalInterpolateToFineGrid
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
         do m=1,14
-           fPlus_fine(m,i,1,k) = temporalInterpolate(fCtoF_frontYZ(m,1,i,k),fCtoF_frontYZ(m,1,i,k),fCtoF_frontYZ(m,3,i,k),tInterp)
-           fPlus_fine(m,i,ny_fine,k) = temporalInterpolate(fCtoF_backYZ(m,1,i,k),fCtoF_backYZ(m,1,i,k),fCtoF_backYZ(m,3,i,k),tInterp)
+           fPlus_fine(m,j,1,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
+           fPlus_fine(m,j,ny_fine,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
         end do
      end do
   end do
@@ -958,7 +958,7 @@ FUNCTION temporalInterpolate(f1,f2,f3,t)
 
   REAL(dbl) :: f1, f2, f3, t
   REAL(dbl) :: temporalInterpolate
-  write(*,*) 'Dummy temporal interpolation returning middle value f2 for now'
+!  write(*,*) 'Dummy temporal interpolation returning middle value f2 for now'
   
   temporalInterpolate = f2
   RETURN
