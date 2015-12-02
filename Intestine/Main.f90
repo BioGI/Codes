@@ -90,8 +90,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         !    CALL Macro_Fine             ! Calculate Macro properties on fine grid
         !    CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
         ! END DO
-        ! CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
-        ! CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
+        CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
+        CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
 
 	! CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 
