@@ -177,7 +177,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
    CALL CloseOutputFiles		! closes output files [MODULE: Output.f90]
    CALL CloseOutputFiles_fine		! closes output files [MODULE: Output_fine.f90]
 
-   CALL MergeOutput		! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
+!   CALL MergeOutput		! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
    
    CALL MPI_FINALIZE(mpierr)	! end the MPI simulation [Intrinsic]
 
