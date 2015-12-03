@@ -504,7 +504,7 @@ DO iComm=5,6
   DO j=0,nySub_fine+1_lng
     DO i=0,nxSub_fine+1_lng
 
-      rijk = SQRT(x(i)*x_fine(i) + y_fine(j)*y_fine(j))
+      rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(j)*y_fine(j))
 
       IF(rijk .LT. r_fine(k)) THEN
 
