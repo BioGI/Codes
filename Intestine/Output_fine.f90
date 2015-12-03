@@ -235,8 +235,8 @@ CHARACTER(7)	:: iter_char				! iteration stored as a character
   WRITE(iter_char(1:7),'(I7.7)') iter
 
   ! store the current iteration in "filenum"
-  filenum(fileCount) = iter
-  fileCount = fileCount + 1_lng
+  filenum(fileCount_fine) = iter
+  fileCount_fine = fileCount_fine + 1_lng
 
   ! open the proper output file
   OPEN(61,FILE='out_fine-'//iter_char//'-'//sub//'.dat')
@@ -584,11 +584,11 @@ ELSE
   END DO
 
   ! combine the output files from each subdomain
-  DO n = 0,(fileCount-1)
+  DO n = 0,(fileCount_fine-1)
 
     ! print combining status...
     WRITE(6,*)
-    WRITE(6,*) 'combining field output file',n+1,'of',fileCount
+    WRITE(6,*) 'combining field output file',n+1,'of',fileCount_fine
     WRITE(6,*) 'reading/deleting...'
     CALL FLUSH(6)
 
