@@ -739,8 +739,8 @@ IF(randORord .EQ. RANDOM) THEN
   DEALLOCATE(rnd)						! array of random numbers for random villi phase angles
 END IF
 !Particle arrays
-DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNBbyCV)
-DEALLOCATE(par_conc,bulk_conc,sh,gamma_cont,rpold)
+!DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNBbyCV)
+!DEALLOCATE(par_conc,bulk_conc,sh,gamma_cont,rpold)
 !------------------------------------------------
 END SUBROUTINE DEAllocateArrays
 !------------------------------------------------
