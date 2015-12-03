@@ -523,8 +523,8 @@ CHARACTER(7)	:: iter_char				! iteration stored as a character
   WRITE(iter_char(1:7),'(I7.7)') iter
 
   ! store the current iteration in "filenum"
-  filenum(fileCount) = iter
-  fileCount = fileCount + 1_lng
+  filenum(fileCount_fine) = iter
+  fileCount_fine = fileCount_fine + 1_lng
 
   ! open the proper output file
   OPEN(60,FILE='out-TEST-'//iter_char//'-'//sub//'.dat')
