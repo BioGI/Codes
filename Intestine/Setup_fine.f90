@@ -321,8 +321,6 @@ READ(10,*) restart			! use restart file? (0 if no, 1 if yes)
 READ(10,*) ParticleTrack		! A flag to indicate if particle is on or off (0 if off, 1 if on)
 CLOSE(10)
 
-tau=1.0_dbl
-
 ! Check to make sure the number of processors (numprocs) and the number of subdomains are equal
 NumSubsTotal = NumSubsX*NumSubsY*NumSubsZ
 IF(NumSubsTotal .NE. numprocs) THEN
