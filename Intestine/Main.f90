@@ -49,6 +49,15 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
+        !Setup interpolation 
+        CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
+        CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
+        CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
+        CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
+        CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
+        CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
+        CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
+
         CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
  	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
 

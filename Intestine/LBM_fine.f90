@@ -700,14 +700,6 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
            f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
            
-           write(31,*) 'tau_fine = ', tau_fine, ' tau = ', tau
-           write(31,*) 'gridRatio = ', gridRatio
-           WRITE(31,*) '(tau_fine - 1.0)/(gridRatio * (tau - 1.0)) = ', (tau_fine - 1.0)/(gridRatio * (tau - 1.0))
-           WRITE(31,*) 'f1 = ', f(m,lCxIndex-1,46,lCzIndex), ' f2 = ', f(m,lCxIndex,46,lCzIndex), ' f3 = ', f(m,lCxIndex+1,46,lCzIndex), ' f4 = ', f(m,lCxIndex+2,46,lCzIndex)
-           WRITE(31,*) 'feq1 = ', feqFF_bottomXZ(m,lCxIndex-1,lCzIndex), ' feq2 = ', feqFF_bottomXZ(m,lCxIndex,lCzIndex), ' feq3 = ', feqFF_bottomXZ(m,lCxIndex+1,lCzIndex), ' feq4 = ', feqFF_bottomXZ(m,lCxIndex+2,lCzIndex)
-           WRITE(31,*) 'xInterp = ', xInterp, ' f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4
-           WRITE(31,*) 'fCtoF_bottomXZ(', m, ',3', i, ',', k, ') = ', fCtoF_bottomXZ(m,3,i,k)
-
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
            f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
@@ -1000,6 +992,34 @@ FUNCTION spatialInterpolate(f1,f2,f3,f4,s)
   
 END FUNCTION spatialInterpolate
 
+SUBROUTINE InitializeAllTemporalInterpolation
+!!! To begin with set all the 3 values for temporal interpolation to the latest available value
+
+  INTEGER :: i,j,k,m !Counter variables
+  
+  do k=1,nzSub_fine
+     do i=1,nxSub_fine
+        do m=1,14
+           fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the first time step
+           fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
+           fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the first time step
+           fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
+        end do
+     end do
+  end do
+
+  do k=1,nzSub_fine
+     do j=2,nySub_fine-1
+        do m=1,14
+           fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the first time step
+           fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
+           fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the first time step
+           fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
+        end do
+     end do
+  end do
+  
+END SUBROUTINE InitializeAllTemporalInterpolation
 
 !================================================
 END MODULE LBM_FINE
