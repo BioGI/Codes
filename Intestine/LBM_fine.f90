@@ -581,7 +581,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         
         xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
 
-        do m=1,14	  
+        do m=1,NumDistDirs	  
 
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
@@ -632,7 +632,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         
         yInterp = dble( MODULO(j-1, gridRatio) ) / dble(gridRatio)
         
-        do m=1,14	  
+        do m=1,NumDistDirs	  
            
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
@@ -691,7 +691,7 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
         xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
 
 
-        do m=1,14	  
+        do m=1,NumDistDirs	  
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
            f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
@@ -722,7 +722,7 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
         
         yInterp = dble( MODULO(j-1, gridRatio) ) / dble(gridRatio)
         
-        do m=1,14	  
+        do m=1,NumDistDirs	  
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
            f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
@@ -758,7 +758,7 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
   do k=1,nzSub_fine
      IF ( MODULO(k-1, gridRatio) .gt. 0 ) THEN
         do i=1,nxSub_fine
-           do m=1,4
+           do m=1,NumDistDirs
               lFzIndex = k - MODULO(k-1, gridRatio)  ! Lower Fine z Index 
               
               zInterp = dble(MODULO(k-1, gridRatio)) / dble(gridRatio)
@@ -781,7 +781,7 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
   do k=1,nzSub_fine
      IF ( MODULO(k-1, gridRatio) .gt. 0) THEN
         do j=2,nySub_fine-1
-           do m=1,14
+           do m=1,NumDistDirs
               lFzIndex = k - MODULO(k-1, gridRatio)  ! Lower Fine z Index 
               
               zInterp = dble( MODULO(k-1, gridRatio) ) / dble(gridRatio)
@@ -811,7 +811,7 @@ SUBROUTINE TemporalInterpolateToFineGrid
   !Do the bottom and top x-z planes first
   do k=1,nzSub_fine
      do i=1,nxSub_fine
-        do m=1,14
+        do m=1,NumDistDirs
            f_fine(m,i,1,k) = temporalInterpolate(fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,3,i,k),tInterp)
            f_fine(m,i,ny_fine,k) = temporalInterpolate(fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,3,i,k),tInterp)
         end do
@@ -821,7 +821,7 @@ SUBROUTINE TemporalInterpolateToFineGrid
   !Fill out the remaining points on the front and back y-z planes
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
-        do m=1,14
+        do m=1,NumDistDirs
            f_fine(m,j,1,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
            f_fine(m,j,ny_fine,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
         end do
@@ -941,7 +941,7 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   !Do the bottom and top x-z planes first
   do k=1,nzSub
      do i=46,56
-        do m=1,14
+        do m=1,NumDistDirs
            f(m,i,46,k) = feqFC_bottomXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) -  feqFC_bottomXZ(m,i,k))
            f(m,i,56,k) = feqFC_topXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) - feqFC_topXZ(m,i,k))
         end do
@@ -951,7 +951,7 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   !Fill out the remaining points on the front and back y-z planes
   do k=1,nzSub
      do j=47,55
-        do m=1,14
+        do m=1,NumDistDirs
            f(m,46,j,k) = feqFC_frontYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_frontYZ(m,j,k))
            f(m,56,j,k) = feqFC_backYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_backYZ(m,j,k))
         end do
@@ -999,7 +999,7 @@ SUBROUTINE InitializeAllTemporalInterpolation
   
   do k=1,nzSub_fine
      do i=1,nxSub_fine
-        do m=1,14
+        do m=1,NumDistDirs
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the first time step
@@ -1010,7 +1010,7 @@ SUBROUTINE InitializeAllTemporalInterpolation
 
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
-        do m=1,14
+        do m=1,NumDistDirs
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
            fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the first time step
