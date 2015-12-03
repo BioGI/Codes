@@ -5,7 +5,6 @@ USE SetPrecision
 USE Setup
 USE Setup_fine
 USE ICBC_fine
-USE Output
 
 IMPLICIT NONE
 
@@ -485,7 +484,6 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               feq = (wt(m)*rho(i,46,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
 
               feqFF_bottomXZ(m,i,k) = feq
-!              WRITE(31,*) 'feqFF_bottomXZ(', m, ',', i, ',', k, ') = ', feqFF_bottomXZ(m,i,k)
               
            END DO
            
@@ -505,7 +503,6 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
               feqFF_topXZ(m,i,k) = feq
-!              WRITE(31,*) 'feqFF_topXZ(', m, ',', i, ',', k, ') = ', feqFF_topXZ(m,i,k)
               
            END DO
            
@@ -514,8 +511,6 @@ SUBROUTINE ComputeEquilibriumForFineGrid
      end do
   end do
 
-  CALL FLUSH(31)
-  
   !Fill in the remaining points on the front and back planes
   do k = 1, nzSub
      do j = 44, 58
@@ -598,7 +593,6 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
-!           WRITE(31,*) 'fCtoF_bottomXZ(', m, ',3', i, ',', nzSub_fine-gridRatio+1-k+1, ') = ', fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1)
 
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
@@ -607,7 +601,6 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
-!           WRITE(31,*) 'fCtoF_topXZ(', m, ',3', i, ',', k, ') = ', fCtoF_topXZ(m,3,i,k)
 
            fCtoF_topXZ(m,1,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_topXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
@@ -616,7 +609,6 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
-!           WRITE(31,*) 'fCtoF_topXZ(', m, ',3', i, ',', nzSub_fine-gridRatio+1-k+1, ') = ', fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1)
 
         end do
      end do
@@ -766,12 +758,11 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
               fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
               fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
               fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
-              WRITE(31,*) 'fCtoF_bottomXZ(', m, ',3', i, ',', k, ') = ', fCtoF_bottomXZ(m,3,i,k)
 
               fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
               fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
               fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fCtoF_topXZ(m,3,i,lFzIndex-gridRatio),fCtoF_topXZ(m,3,i,lFzIndex),fCtoF_topXZ(m,3,i,lFzIndex+gridRatio),fCtoF_topXZ(m,3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
-              WRITE(31,*) 'fCtoF_topXZ(', m, ',3', i, ',', k, ') = ', fCtoF_topXZ(m,3,i,k)
+
               
            end do
         end do
@@ -791,12 +782,10 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
               fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
               fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
               fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(fCtoF_frontYZ(m,3,j,lFzIndex-gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex),fCtoF_frontYZ(m,3,j,lFzIndex+gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
-              WRITE(31,*) 'fCtoF_frontYZ(', m, ',3', j, ',', k, ') = ', fCtoF_frontYZ(m,3,j,k)
               
               fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
               fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
               fCtoF_backYZ(m,3,j,k) = spatialInterpolate(fCtoF_backYZ(m,3,j,lFzIndex-gridRatio),fCtoF_backYZ(m,3,j,lFzIndex),fCtoF_backYZ(m,3,j,lFzIndex+gridRatio),fCtoF_backYZ(m,3,j,lFzIndex+2*gridRatio),zInterp) 
-              WRITE(31,*) 'fCtoF_backYZ(', m, ',3', j, ',', k, ') = ', fCtoF_backYZ(m,3,j,k)
               
            end do
         end do
