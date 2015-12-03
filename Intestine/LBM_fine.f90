@@ -485,7 +485,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               feq = (wt(m)*rho(i,46,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
 
               feqFF_bottomXZ(m,i,k) = feq
-              WRITE(31,*) 'feqFF_bottomXZ(', m, ',', i, ',', k, ') = ', feqFF_bottomXZ(m,i,k)
+!              WRITE(31,*) 'feqFF_bottomXZ(', m, ',', i, ',', k, ') = ', feqFF_bottomXZ(m,i,k)
               
            END DO
            
@@ -505,7 +505,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
               feqFF_topXZ(m,i,k) = feq
-              WRITE(31,*) 'feqFF_topXZ(', m, ',', i, ',', k, ') = ', feqFF_topXZ(m,i,k)
+!              WRITE(31,*) 'feqFF_topXZ(', m, ',', i, ',', k, ') = ', feqFF_topXZ(m,i,k)
               
            END DO
            
@@ -590,6 +590,14 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
+
+           write(31,*) 'tau_fine = ', tau_fine, ' tau = ', tau
+           write(31,*) 'gridRatio = ', gridRatio
+           WRITE(31,*) '(tau_fine - 1.0)/(gridRatio * (tau - 1.0)) = ', (tau_fine - 1.0)/(gridRatio * (tau - 1.0))
+           WRITE(31,*) 'fPlus1 = ', fPlus(m,lCxIndex-1,46,lCzIndex), ' fPlus2 = ', fPlus(m,lCxIndex,46,lCzIndex), ' fPlus3 = ', fPlus(m,lCxIndex+1,46,lCzIndex), ' fPlus4 = ', fPlus(m,lCxIndex+2,46,lCzIndex)
+           WRITE(31,*) 'feq1 = ', feqFF_bottomXZ(m,lCxIndex-1,lCzIndex), ' feq2 = ', feqFF_bottomXZ(m,lCxIndex,lCzIndex), ' feq3 = ', feqFF_bottomXZ(m,lCxIndex+1,lCzIndex), ' feq4 = ', feqFF_bottomXZ(m,lCxIndex+2,lCzIndex)
+           WRITE(31,*) 'xInterp = ', xInterp, ' f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4
+           WRITE(31,*) 'fCtoF_bottomXZ(', m, ',3', i, ',', k, ') = ', fCtoF_bottomXZ(m,3,i,k)
            
            fCtoF_bottomXZ(m,1,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_bottomXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
@@ -598,6 +606,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
+!           WRITE(31,*) 'fCtoF_bottomXZ(', m, ',3', i, ',', nzSub_fine-gridRatio+1-k+1, ') = ', fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1)
 
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
@@ -606,6 +615,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
+!           WRITE(31,*) 'fCtoF_topXZ(', m, ',3', i, ',', k, ') = ', fCtoF_topXZ(m,3,i,k)
 
            fCtoF_topXZ(m,1,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_topXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
@@ -614,6 +624,8 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
            f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (fPlus(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
+!           WRITE(31,*) 'fCtoF_topXZ(', m, ',3', i, ',', nzSub_fine-gridRatio+1-k+1, ') = ', fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1)
+
         end do
      end do
   end do
