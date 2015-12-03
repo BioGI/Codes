@@ -5,6 +5,7 @@ USE SetPrecision
 USE Setup
 USE Setup_fine
 USE ICBC_fine
+USE Output
 
 IMPLICIT NONE
 
@@ -484,6 +485,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               feq = (wt(m)*rho(i,46,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
 
               feqFF_bottomXZ(m,i,k) = feq
+              WRITE(31,*) 'feqFF_bottomXZ(', m, ',', i, ',', k, ') = ', feqFF_bottomXZ(m,i,k)
               
            END DO
            
@@ -503,6 +505,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
               feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
               feqFF_topXZ(m,i,k) = feq
+              WRITE(31,*) 'feqFF_topXZ(', m, ',', i, ',', k, ') = ', feqFF_topXZ(m,i,k)
               
            END DO
            
@@ -511,6 +514,8 @@ SUBROUTINE ComputeEquilibriumForFineGrid
      end do
   end do
 
+  CALL FLUSH(31)
+  
   !Fill in the remaining points on the front and back planes
   do k = 1, nzSub
      do j = 44, 58

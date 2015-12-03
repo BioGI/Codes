@@ -62,6 +62,9 @@ IF(myid .EQ. master) THEN
 
 END IF
 
+! Debug interpolation variables
+OPEN(31,FILE='interpolation-'//sub//'.dat')
+
 ! Mass
 OPEN(2458,FILE='mass-'//sub//'.dat')
 WRITE(2458,*) 'VARIABLES = "period", "mass_actual", "mass_theoretical"'
@@ -98,6 +101,9 @@ IF(myid .EQ. master) THEN
   CLOSE(2460)
 
 END IF
+
+!Interpolation variables
+CLOSE(31)
 
 ! Mass
 !CLOSE(2458)
