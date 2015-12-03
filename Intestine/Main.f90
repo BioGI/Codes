@@ -92,17 +92,11 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
         DO subIter=1,gridRatio
             CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
-            write(*,*) 'myid = ', myid, ' finished AdvanceGeometry_fine'
             CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-            write(*,*) 'myid = ', myid, ' finished temporalInterpolateToFineGrid'            
             CALL Collision_Fine     ! Collision step on the fine grid
-            write(*,*) 'myid = ', myid, ' finished Collision_Fine'            
             CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
-            write(*,*) 'myid = ', myid, ' finished MPI_Transfer_Fine'            
             CALL Stream_Fine            ! Stream fine grid
-            write(*,*) 'myid = ', myid, ' finished Stream_Fine'            
             CALL Macro_Fine             ! Calculate Macro properties on fine grid
-            write(*,*) 'myid = ', myid, ' finished Macro_Fine'            
 !            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
 !            write(*,*) 'myid = ', myid, ' finished Scalar_Fine'
          END DO
@@ -113,9 +107,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
-	IF(iter .GE. phiStart) THEN
-		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
-	END IF
+!	IF(iter .GE. phiStart) THEN
+!		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
+!	END IF
 
 	! Balaji added to test value with time
   	!h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
