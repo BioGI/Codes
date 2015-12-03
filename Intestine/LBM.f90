@@ -641,6 +641,8 @@ DO k=2,nzSub-1
     
           IF(node(im1,jm1,km1) .EQ. FLUID) THEN 
             f(m,i,j,k) = fplus(m,im1,jm1,km1)
+          ELSE IF(node(im1,jm1,km1) .EQ. FINEMESH) THEN 
+            f(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN															! macro- boundary
             !CALL BounceBack2(m,i,j,k,im1,jm1,km1,fbb)					  										! implement the bounceback BCs [MODULE: ICBC]
 	    ! Balaji added after commenting out the earlier method
@@ -652,7 +654,7 @@ DO k=2,nzSub-1
             f(m,i,j,k) = fbb
           ELSE
             OPEN(1000,FILE="error.txt")
-            WRITE(1000,'(A75)') "error in LBM.f90 at Line 89: node(im1,jm1,km1) is out of range"
+            WRITE(1000,'(A75)') "error in LBM.f90 at Line 655: node(im1,jm1,km1) is out of range"
             WRITE(1000,*) "iter", iter
             WRITE(1000,*) "m=",m
             WRITE(1000,*) "i=",i,"j=",j,"k=",k
@@ -691,6 +693,8 @@ DO k=1,nzSub,(nzSub-1)
           !IF(km1.eq.nzSub+1) km1=1 ! Balaji added
 
           IF(node(im1,jm1,km1) .EQ. FLUID) THEN 
+            f(m,i,j,k) = fplus(m,im1,jm1,km1)
+          ELSE IF(node(im1,jm1,km1) .EQ. FINEMESH) THEN 
             f(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN															! macro- boundary
             CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  												! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
@@ -738,6 +742,8 @@ DO j=1,nySub,(nySub-1)
         
           IF(node(im1,jm1,km1) .EQ. FLUID) THEN
             f(m,i,j,k) = fplus(m,im1,jm1,km1)
+          ELSE IF(node(im1,jm1,km1) .EQ. FINEMESH) THEN 
+            f(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
             CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
             f(m,i,j,k) = fbb
@@ -782,6 +788,8 @@ DO i=1,nxSub,(nxSub-1)
           km1 = k - ez(m)
         
           IF(node(im1,jm1,km1) .EQ. FLUID) THEN 
+            f(m,i,j,k) = fplus(m,im1,jm1,km1)
+          ELSE IF(node(im1,jm1,km1) .EQ. FINEMESH) THEN 
             f(m,i,j,k) = fplus(m,im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN									! macro- boundary
             CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)			  						! implement the bounceback BCs (Ladd BB) [MODULE: ICBC]
