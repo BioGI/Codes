@@ -44,7 +44,6 @@ pcf 		= cs*cs*vcf*vcf					! pressure conversion factor
 
 ! Determine the number of time steps to run
 nt = ANINT((nPers*Tmix)/tcf)
-nt = 1
 
 ! Initialize arrays
 node		= -99_lng							! node flag array
