@@ -150,9 +150,9 @@ DO k=2,nzSub_fine-1
             f_fine(m,i,j,k) = fplus_fine(m,im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN 
              f_fine(m,i,j,k) = fplus_fine(m,im1,jm1,km1)
-             write(31,*) 'i = ', i, 'j = ', j, 'k = ', k, ' m = ', m
-             write(31,*) 'im1 = ', im1, 'jm1 = ', jm1, 'km1 = ', km1
-             write(31,*) 'f_fine(m,i,j,k) = ', f_fine(m,i,j,k)
+             ! write(31,*) 'i = ', i, 'j = ', j, 'k = ', k, ' m = ', m
+             ! write(31,*) 'im1 = ', im1, 'jm1 = ', jm1, 'km1 = ', km1
+             ! write(31,*) 'f_fine(m,i,j,k) = ', f_fine(m,i,j,k)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN														 ! macro- boundary
             ! CALL BounceBack2(m,i,j,k,im1,jm1,km1,fbb)					  										 ! implement the bounceback BCs [MODULE: ICBC]
 	    ! Balaji added after commenting out the earlier method
@@ -473,18 +473,18 @@ SUBROUTINE ComputeEquilibriumForFineGrid
   !Do the bottom and top x-z planes first
   do k = 1, nzSub
      do i = 44, 59
-        IF(node(i,46,k) .EQ. FLUID) THEN
+        IF(node(i,45,k) .EQ. FLUID) THEN
            
-           uu = u(i,46,k)*u(i,46,k) + v(i,46,k)*v(i,46,k) + w(i,46,k)*w(i,46,k)						! u . u
+           uu = u(i,45,k)*u(i,45,k) + v(i,45,k)*v(i,45,k) + w(i,45,k)*w(i,45,k)						! u . u
            DO m=1,NumDistDirs
               
-              ue	= u(i,46,k)*ex(m)		! u . e
-              ve	= v(i,46,k)*ey(m)		! v . e
-              we	= w(i,46,k)*ez(m)		! w . e
+              ue	= u(i,45,k)*ex(m)		! u . e
+              ve	= v(i,45,k)*ey(m)		! v . e
+              we	= w(i,45,k)*ez(m)		! w . e
               
               Usum	= ue + ve + we				! U . e
               
-              feq = (wt(m)*rho(i,46,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              feq = (wt(m)*rho(i,45,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
 
               feqFF_bottomXZ(m,i,k) = feq
 
@@ -493,18 +493,18 @@ SUBROUTINE ComputeEquilibriumForFineGrid
            
         END IF
 
-        IF(node(i,56,k) .EQ. FLUID) THEN
+        IF(node(i,57,k) .EQ. FLUID) THEN
            
-           uu = u(i,56,k)*u(i,56,k) + v(i,56,k)*v(i,56,k) + w(i,56,k)*w(i,56,k)						! u . u
+           uu = u(i,57,k)*u(i,57,k) + v(i,57,k)*v(i,57,k) + w(i,57,k)*w(i,57,k)						! u . u
            DO m=1,NumDistDirs
               
-              ue	= u(i,56,k)*ex(m)		! u . e
-              ve	= v(i,56,k)*ey(m)		! v . e
-              we	= w(i,56,k)*ez(m)		! w . e
+              ue	= u(i,57,k)*ex(m)		! u . e
+              ve	= v(i,57,k)*ey(m)		! v . e
+              we	= w(i,57,k)*ez(m)		! w . e
               
               Usum	= ue + ve + we				! U . e
               
-              feq = (wt(m)*rho(i,56,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              feq = (wt(m)*rho(i,57,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
               feqFF_topXZ(m,i,k) = feq
               
@@ -518,37 +518,38 @@ SUBROUTINE ComputeEquilibriumForFineGrid
   !Fill in the remaining points on the front and back planes
   do k = 1, nzSub
      do j = 44, 58
-        IF(node(46,j,k) .EQ. FLUID) THEN
+        IF(node(45,j,k) .EQ. FLUID) THEN
            
-           uu = u(46,j,k)*u(46,j,k) + v(46,j,k)*v(46,j,k) + w(46,j,k)*w(46,j,k)						! u . u
+           uu = u(45,j,k)*u(45,j,k) + v(45,j,k)*v(45,j,k) + w(45,j,k)*w(45,j,k)						! u . u
            DO m=1,NumDistDirs
               
-              ue	= u(46,j,k)*ex(m)		! u . e
-              ve	= v(46,j,k)*ey(m)		! v . e
-              we	= w(46,j,k)*ez(m)		! w . e
+              ue	= u(45,j,k)*ex(m)		! u . e
+              ve	= v(45,j,k)*ey(m)		! v . e
+              we	= w(45,j,k)*ez(m)		! w . e
               
               Usum	= ue + ve + we				! U . e
               
-              feq = (wt(m)*rho(46,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              feq = (wt(m)*rho(45,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
               feqFF_frontYZ(m,j,k) = feq
               
+              write(31,*) 'j = ', j, ' k = ', k, ' feqFF_frontYZ(m,j,k) = ', feqFF_frontYZ(m,j,k)
            END DO
            
         END IF
 
-        IF(node(56,j,k) .EQ. FLUID) THEN
+        IF(node(57,j,k) .EQ. FLUID) THEN
            
-           uu = u(56,j,k)*u(56,j,k) + v(56,j,k)*v(56,j,k) + w(56,j,k)*w(56,j,k)	! u . u
+           uu = u(57,j,k)*u(57,j,k) + v(57,j,k)*v(57,j,k) + w(57,j,k)*w(57,j,k)	! u . u
            DO m=1,NumDistDirs
               
-              ue	= u(56,j,k)*ex(m)		! u . e
-              ve	= v(56,j,k)*ey(m)		! v . e
-              we	= w(56,j,k)*ez(m)		! w . e
+              ue	= u(57,j,k)*ex(m)		! u . e
+              ve	= v(57,j,k)*ey(m)		! v . e
+              we	= w(57,j,k)*ez(m)		! w . e
               
               Usum	= ue + ve + we				! U . e
               
-              feq = (wt(m)*rho(56,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
+              feq = (wt(m)*rho(57,j,k))*(1.0_dbl + 3.0_dbl*Usum + 4.5_dbl*Usum*Usum - 1.5_dbl*uu)	! equilibrium distribution function
               
               feqFF_backYZ(m,j,k) = feq
               
@@ -584,34 +585,34 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
 
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
-           f2 =  feqFF_bottomXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex,lCzIndex))
-           f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
-           f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
+           f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
+           f2 =  feqFF_bottomXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex,lCzIndex))
+           f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
+           f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
 
            fCtoF_bottomXZ(m,1,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_bottomXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
-           f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
-           f2 =  feqFF_bottomXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex,lCzIndex))
-           f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
-           f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
+           f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
+           f2 =  feqFF_bottomXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex,lCzIndex))
+           f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
+           f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
 
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
-           f2 =  feqFF_topXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,56,lCzIndex) - feqFF_topXZ(m,lCxIndex,lCzIndex))
-           f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
-           f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
+           f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,57,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
+           f2 =  feqFF_topXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,57,lCzIndex) - feqFF_topXZ(m,lCxIndex,lCzIndex))
+           f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,57,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
+           f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,57,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
 
            fCtoF_topXZ(m,1,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_topXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,nzSub_fine-gridRatio+1-k+1) = fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
-           f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
-           f2 =  feqFF_topXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,56,lCzIndex) - feqFF_topXZ(m,lCxIndex,lCzIndex))
-           f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
-           f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
+           f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,57,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
+           f2 =  feqFF_topXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,57,lCzIndex) - feqFF_topXZ(m,lCxIndex,lCzIndex))
+           f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,57,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
+           f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,57,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
 
         end do
@@ -632,34 +633,34 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
            
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
-           f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
-           f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
-           f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
+           f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
+           f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
+           f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
+           f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
            fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(f1,f2,f3,f4,yInterp) !Interpolate the latest value to the last(third) time step
            
            fCtoF_frontYZ(m,1,j,nzSub_fine-gridRatio+1-k+1) = fCtoF_frontYZ(m,2,j,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_frontYZ(m,2,j,nzSub_fine-gridRatio+1-k+1) = fCtoF_frontYZ(m,3,j,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
-           f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
-           f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
-           f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
-           f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
+           f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
+           f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
+           f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
+           f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
            fCtoF_frontYZ(m,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,yInterp) !Interpolate the latest value to the last(third) time step
 
            fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_backYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex-1,lCzIndex) - feqFF_backYZ(m,lCyIndex-1,lCzIndex))
-           f2 =  feqFF_backYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex,lCzIndex) - feqFF_backYZ(m,lCyIndex,lCzIndex))
-           f3 =  feqFF_backYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex+1,lCzIndex) - feqFF_backYZ(m,lCyIndex+1,lCzIndex))
-           f4 =  feqFF_backYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex+2,lCzIndex) - feqFF_backYZ(m,lCyIndex+2,lCzIndex))           
+           f1 =  feqFF_backYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex-1,lCzIndex) - feqFF_backYZ(m,lCyIndex-1,lCzIndex))
+           f2 =  feqFF_backYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex,lCzIndex) - feqFF_backYZ(m,lCyIndex,lCzIndex))
+           f3 =  feqFF_backYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex+1,lCzIndex) - feqFF_backYZ(m,lCyIndex+1,lCzIndex))
+           f4 =  feqFF_backYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex+2,lCzIndex) - feqFF_backYZ(m,lCyIndex+2,lCzIndex))           
            fCtoF_backYZ(m,3,j,k) = spatialInterpolate(f1,f2,f3,f4,yInterp) !Interpolate the latest value to the last(third) time step
 
            fCtoF_backYZ(m,1,j,nzSub_fine-gridRatio+1-k+1) = fCtoF_backYZ(m,2,j,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
            fCtoF_backYZ(m,2,j,nzSub_fine-gridRatio+1-k+1) = fCtoF_backYZ(m,3,j,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
-           f1 =  feqFF_backYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex-1,lCzIndex) - feqFF_backYZ(m,lCyIndex-1,lCzIndex))
-           f2 =  feqFF_backYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex,lCzIndex) - feqFF_backYZ(m,lCyIndex,lCzIndex))
-           f3 =  feqFF_backYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex+1,lCzIndex) - feqFF_backYZ(m,lCyIndex+1,lCzIndex))
-           f4 =  feqFF_backYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex+2,lCzIndex) - feqFF_backYZ(m,lCyIndex+2,lCzIndex))           
+           f1 =  feqFF_backYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex-1,lCzIndex) - feqFF_backYZ(m,lCyIndex-1,lCzIndex))
+           f2 =  feqFF_backYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex,lCzIndex) - feqFF_backYZ(m,lCyIndex,lCzIndex))
+           f3 =  feqFF_backYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex+1,lCzIndex) - feqFF_backYZ(m,lCyIndex+1,lCzIndex))
+           f4 =  feqFF_backYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex+2,lCzIndex) - feqFF_backYZ(m,lCyIndex+2,lCzIndex))           
            fCtoF_backYZ(m,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,yInterp) !Interpolate the latest value to the last(third) time step
            
         end do
@@ -683,17 +684,20 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
 
         lCxIndex = lowerCoarseXindex(x_fine(i))  ! Lower Coarse x Index
         lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index
-        
-        xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
 
+        ! write(31,*) 'iFine = ', i, ' kFine = ', k
+        ! write(31,*) 'x_fine(iFine) = ', x_fine(i), ' z_fine(kFine) = ', z_fine(k)
+        ! write(31,*) 'x(lCxIndex) = ', x(lCxIndex), ' z(lCzIndex) = ', z(lCzIndex)
+        
+        xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)        
 
         do m=1,NumDistDirs	  
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
-           f2 =  feqFF_bottomXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex,lCzIndex))
-           f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
-           f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,46,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
+           f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
+           f2 =  feqFF_bottomXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex,lCzIndex))
+           f3 =  feqFF_bottomXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+1,lCzIndex))
+           f4 =  feqFF_bottomXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
            if(fCtoF_bottomXZ(m,3,i,k) .lt. 0) then
               write(31,*) 'i = ', i, ' k = ', k
@@ -702,10 +706,10 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
            end if
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
-           f2 =  feqFF_topXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,56,lCzIndex) - feqFF_topXZ(m,lCxIndex,lCzIndex))
-           f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
-           f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,56,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
+           f1 =  feqFF_topXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,57,lCzIndex) - feqFF_topXZ(m,lCxIndex-1,lCzIndex))
+           f2 =  feqFF_topXZ(m,lCxIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex,57,lCzIndex) - feqFF_topXZ(m,lCxIndex,lCzIndex))
+           f3 =  feqFF_topXZ(m,lCxIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+1,57,lCzIndex) - feqFF_topXZ(m,lCxIndex+1,lCzIndex))
+           f4 =  feqFF_topXZ(m,lCxIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex+2,57,lCzIndex) - feqFF_topXZ(m,lCxIndex+2,lCzIndex))           
            fCtoF_topXZ(m,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
            ! if(fCtoF_bottomXZ(m,3,i,k) .lt. 0) then
            !    write(31,*) 'i = ', i, ' j = ', j, ' k = ', k
@@ -728,23 +732,23 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
         do m=1,NumDistDirs	  
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
-           f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
-           f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
-           f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,46,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
+           f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
+           f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
+           f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
+           f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
            fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(f1,f2,f3,f4,yInterp) !Interpolate the latest value to the last(third) time step
            ! if(fCtoF_frontYZ(m,3,j,k) .lt. 0) then
            !    write(31,*) 'j = ', j, ' k = ', k
            !    write(31,*) ' f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4
-           !    write(31,*) 'f(m,46,lCyIndex,lCzIndex) = ', f(m,46,lCyIndex,lCzIndex), ' feqFF_frontYZ(m,lCyIndex,lCzIndex) = ', feqFF_frontYZ(m,lCyIndex,lCzIndex)
+           !    write(31,*) 'f(m,45,lCyIndex,lCzIndex) = ', f(m,45,lCyIndex,lCzIndex), ' feqFF_frontYZ(m,lCyIndex,lCzIndex) = ', feqFF_frontYZ(m,lCyIndex,lCzIndex)
            ! end if
            
            fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
-           f1 =  feqFF_backYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex-1,lCzIndex) - feqFF_backYZ(m,lCyIndex-1,lCzIndex))
-           f2 =  feqFF_backYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex,lCzIndex) - feqFF_backYZ(m,lCyIndex,lCzIndex))
-           f3 =  feqFF_backYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex+1,lCzIndex) - feqFF_backYZ(m,lCyIndex+1,lCzIndex))
-           f4 =  feqFF_backYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,56,lCyIndex+2,lCzIndex) - feqFF_backYZ(m,lCyIndex+2,lCzIndex))           
+           f1 =  feqFF_backYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex-1,lCzIndex) - feqFF_backYZ(m,lCyIndex-1,lCzIndex))
+           f2 =  feqFF_backYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex,lCzIndex) - feqFF_backYZ(m,lCyIndex,lCzIndex))
+           f3 =  feqFF_backYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex+1,lCzIndex) - feqFF_backYZ(m,lCyIndex+1,lCzIndex))
+           f4 =  feqFF_backYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,57,lCyIndex+2,lCzIndex) - feqFF_backYZ(m,lCyIndex+2,lCzIndex))           
            fCtoF_backYZ(m,3,j,k) = spatialInterpolate(f1,f2,f3,f4,yInterp) !Interpolate the latest value to the last(third) time step
 
         end do
@@ -851,8 +855,8 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
   !Do the bottom and top x-z planes first
   do k = 1, nzSub
      kFine = 1 + k*gridRatio
-     do i = 46, 56
-        iFine = 1 + (i-46)*gridRatio
+     do i = 45, 57
+        iFine = 1 + (i-45)*gridRatio
         IF(node_fine(iFine,1,kFine) .EQ. FLUID) THEN
            
            uu = u_fine(iFine,1,kFine)*u_fine(iFine,1,kFine) + v_fine(iFine,1,kFine)*v_fine(iFine,1,kFine) + w_fine(iFine,1,kFine)*w_fine(iFine,1,kFine)						! u . u
@@ -897,8 +901,8 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
   !Fill in the remaining points on the front and back planes
   do k = 1, nzSub
      kFine = 1 + k*gridRatio
-     do j = 47, 55
-        jFine = 1 + (j-46)*gridRatio
+     do j = 45, 57
+        jFine = 1 + (j-45)*gridRatio
         IF(node_fine(1,jFine,kFine) .EQ. FLUID) THEN
            
            uu = u_fine(1,jFine,kFine)*u_fine(1,jFine,kFine) + v_fine(1,jFine,kFine)*v_fine(1,jFine,kFine) + w_fine(1,jFine,kFine)*w_fine(1,jFine,kFine)						! u . u
@@ -952,8 +956,8 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   do k=1,nzSub
      do i=46,56
         do m=1,NumDistDirs
-           f(m,i,46,k) = feqFC_bottomXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) -  feqFC_bottomXZ(m,i,k))
-           f(m,i,56,k) = feqFC_topXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) - feqFC_topXZ(m,i,k))
+           f(m,i,45,k) = feqFC_bottomXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) -  feqFC_bottomXZ(m,i,k))
+           f(m,i,57,k) = feqFC_topXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) - feqFC_topXZ(m,i,k))
         end do
      end do
   end do
@@ -962,8 +966,8 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   do k=1,nzSub
      do j=47,55
         do m=1,NumDistDirs
-           f(m,46,j,k) = feqFC_frontYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_frontYZ(m,j,k))
-           f(m,56,j,k) = feqFC_backYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_backYZ(m,j,k))
+           f(m,45,j,k) = feqFC_frontYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_frontYZ(m,j,k))
+           f(m,57,j,k) = feqFC_backYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_backYZ(m,j,k))
         end do
      end do
   end do
