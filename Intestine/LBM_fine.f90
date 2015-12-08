@@ -832,8 +832,8 @@ SUBROUTINE TemporalInterpolateToFineGrid
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
         do m=1,NumDistDirs
-           f_fine(m,j,1,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
-           f_fine(m,j,ny_fine,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
+           f_fine(m,1,j,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
+           f_fine(m,nx_fine,j,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
         end do
      end do
   end do
