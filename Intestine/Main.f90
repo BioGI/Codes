@@ -102,6 +102,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
          END DO
         CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
         CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
+        
+        CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
 	CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 
