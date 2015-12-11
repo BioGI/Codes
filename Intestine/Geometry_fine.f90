@@ -38,7 +38,7 @@ ELSE
 ENDIF
 
 zcf_fine 		= L/nz_fine					! length conversion factor: z-direction
-tcf_fine 		= nuL*((xcf_fine*xcf_fine)/nu)				! time conversion factor
+tcf_fine 		= nuL_fine*((xcf_fine*xcf_fine)/nu)				! time conversion factor
 dcf_fine 		= den/denL							! density conversion factor
 vcf_fine 		= xcf_fine/tcf_fine							! velocity conversion factor
 pcf_fine 		= cs*cs*vcf_fine*vcf_fine					! pressure conversion factor

@@ -22,7 +22,8 @@ INTEGER(lng), 	ALLOCATABLE :: node_fine(:,:,:)    					! node flags (FLUID/SOLID
 REAL(dbl), 		ALLOCATABLE :: wt_fine(:)    							! weighting coefficients for the equilibrium distribution functions
 
 ! den, denL - same as Setup 
-! nu, nuL - same as Setup
+REAL(dbl)		:: nuL_fine	       ! kinematic viscosity (lattice units)
+! nu - same as Setup
 ! cs - same as Setup
 REAL(dbl)		:: tau_fine            ! relaxation parameters of coarse and fine blocks
 REAL(dbl)		:: oneOVERtau_fine     ! reciprical of tau
