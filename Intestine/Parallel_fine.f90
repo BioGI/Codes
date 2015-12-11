@@ -650,7 +650,7 @@ DO iComm = 1,NumCommDirs
 
 END DO
 
-CALL MPI_WAITALL(numReqs,req(1:numReqs),waitStat,mpierr)
+CALL MPI_WAITALL(numReqs,req(1:numReqs),waitStat_fine,mpierr)
 
 ! Store the Data
 DO iComm = 1,NumCommDirs
