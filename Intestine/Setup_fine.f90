@@ -217,6 +217,11 @@ real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_bottomXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_frontYZ
 real(dbl), allocatable, dimension(:,:,:,:) :: fCtoF_backYZ                                
 
+real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_topXZ
+real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_bottomXZ
+real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_frontYZ
+real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_backYZ                                
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -654,28 +659,35 @@ ALLOCATE(xx_fine(0:nx_fine+1),yy_fine(0:ny_fine+1),zz_fine(0:nz_fine+1))				! x,
 !Multigrid algorithm variables
 
 !Post collision density distribution from the coarse mesh for the fine mesh
-allocate(fCtoF_topXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(fCtoF_bottomXZ(1:14,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(fCtoF_frontYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
-allocate(fCtoF_backYZ(1:14,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
-  
-allocate(fC_bufferSendLeft_topXZ(1:14,2,1:nx_fine))
-allocate(fC_bufferRecvLeft_topXZ(1:14,1,1:nx_fine))
-allocate(fC_bufferSendLeft_bottomXZ(1:14,2,1:nx_fine))
-allocate(fC_bufferRecvLeft_bottomXZ(1:14,1,1:nx_fine))
-allocate(fC_bufferSendLeft_frontYZ(1:14,2,2:ny_fine-1))
-allocate(fC_bufferRecvLeft_frontYZ(1:14,1,2:ny_fine-1))
-allocate(fC_bufferSendLeft_backYZ(1:14,2,2:ny_fine-1))
-allocate(fC_bufferRecvLeft_backYZ(1:14,1,2:ny_fine-1))
+allocate(fCtoF_topXZ(1:NumDistDirs,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fCtoF_bottomXZ(1:NumDistDirs,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(fCtoF_frontYZ(1:NumDistDirs,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(fCtoF_backYZ(1:NumDistDirs,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
 
-allocate(fC_bufferSendRight_topXZ(1:14,1,1:nx_fine))
-allocate(fC_bufferRecvRight_topXZ(1:14,2,1:nx_fine))
-allocate(fC_bufferSendRight_bottomXZ(1:14,1,1:nx_fine))
-allocate(fC_bufferRecvRight_bottomXZ(1:14,2,1:nx_fine))
-allocate(fC_bufferSendRight_frontYZ(1:14,1,2:ny_fine-1))
-allocate(fC_bufferRecvRight_frontYZ(1:14,2,2:ny_fine-1))
-allocate(fC_bufferSendRight_backYZ(1:14,1,2:ny_fine-1))
-allocate(fC_bufferRecvRight_backYZ(1:14,2,2:ny_fine-1))
+!Density and scalar from the coarse to the fine mesh
+allocate(dsCtoF_topXZ(2,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(dsCtoF_bottomXZ(2,3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(dsCtoF_frontYZ(2,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(dsCtoF_backYZ(2,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+
+!When sending and receiving buffers, the first NumDistDirs components are the density distributions. The last two are the density and scalar concentration.
+allocate(fC_bufferSendLeft_topXZ(1:NumDistDirs+2,2,1:nx_fine))
+allocate(fC_bufferRecvLeft_topXZ(1:NumDistDirs+2,1,1:nx_fine))
+allocate(fC_bufferSendLeft_bottomXZ(1:NumDistDirs+2,2,1:nx_fine))
+allocate(fC_bufferRecvLeft_bottomXZ(1:NumDistDirs+2,1,1:nx_fine))
+allocate(fC_bufferSendLeft_frontYZ(1:NumDistDirs+2,2,2:ny_fine-1))
+allocate(fC_bufferRecvLeft_frontYZ(1:NumDistDirs+2,1,2:ny_fine-1))
+allocate(fC_bufferSendLeft_backYZ(1:NumDistDirs+2,2,2:ny_fine-1))
+allocate(fC_bufferRecvLeft_backYZ(1:NumDistDirs+2,1,2:ny_fine-1))
+
+allocate(fC_bufferSendRight_topXZ(1:NumDistDirs+2,1,1:nx_fine))
+allocate(fC_bufferRecvRight_topXZ(1:NumDistDirs+2,2,1:nx_fine))
+allocate(fC_bufferSendRight_bottomXZ(1:NumDistDirs+2,1,1:nx_fine))
+allocate(fC_bufferRecvRight_bottomXZ(1:NumDistDirs+2,2,1:nx_fine))
+allocate(fC_bufferSendRight_frontYZ(1:NumDistDirs+2,1,2:ny_fine-1))
+allocate(fC_bufferRecvRight_frontYZ(1:NumDistDirs+2,2,2:ny_fine-1))
+allocate(fC_bufferSendRight_backYZ(1:NumDistDirs+2,1,2:ny_fine-1))
+allocate(fC_bufferRecvRight_backYZ(1:NumDistDirs+2,2,2:ny_fine-1))
 
 ALLOCATE(reqInterpolationBuffer(8))
 !------------------------------------------------
