@@ -911,8 +911,15 @@ DO iComm=1,2
 
     DO k=0,nzSub+1_lng
 
-      IF(rijk .LT. r(k)) THEN
-        node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+       IF(rijk .LT. r(k)) THEN
+
+          IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
+             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+             
+          ELSE
+
+             node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+          END IF
 
 	  !! Balaji added
 	  !ubx = vel(k)*(x(i)/rijk)
@@ -946,8 +953,16 @@ DO iComm=3,4
 
     DO k=0,nzSub+1_lng
 
-      IF(rijk .LT. r(k)) THEN
-        node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+       IF(rijk .LT. r(k)) THEN
+
+
+          IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
+             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+             
+          ELSE
+             
+             node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+          END IF
 	  
 	  !! Balaji added
 	  !ubx = vel(k)*(x(i)/rijk)
@@ -982,7 +997,14 @@ DO iComm=5,6
       rijk = SQRT(x(i)*x(i) + y(j)*y(j))
 
       IF(rijk .LT. r(k)) THEN
-        node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+
+          IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
+             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+             
+          ELSE
+             
+             node(i,j,k) = FLUID																		! set the SOLID node that just came in to FLUID
+          END IF
 
 	  !! Balaji added
 	  !ubx = vel(k)*(x(i)/rijk)
