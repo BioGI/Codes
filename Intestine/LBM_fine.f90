@@ -985,8 +985,8 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
            dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(dsCtoF_frontYZ(1,3,j,lFzIndex-gridRatio),dsCtoF_frontYZ(1,3,j,lFzIndex),dsCtoF_frontYZ(1,3,j,lFzIndex+gridRatio),dsCtoF_frontYZ(1,3,j,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
            dsCtoF_frontYZ(2,3,j,k) = spatialInterpolate(dsCtoF_frontYZ(2,3,j,lFzIndex-gridRatio),dsCtoF_frontYZ(2,3,j,lFzIndex),dsCtoF_frontYZ(2,3,j,lFzIndex+gridRatio),dsCtoF_frontYZ(2,3,j,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
            
-           dsCtoF_backYZ(:,1,j,k) = dsCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
-           dsCtoF_backYZ(:,2,j,k) = dsCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
+           dsCtoF_backYZ(:,1,j,k) = dsCtoF_backYZ(:,2,j,k) !Cycle the second time step to the first time step
+           dsCtoF_backYZ(:,2,j,k) = dsCtoF_backYZ(:,3,j,k) !Cycle the last time step to the second time step
            dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(dsCtoF_backYZ(1,3,j,lFzIndex-gridRatio),dsCtoF_backYZ(1,3,j,lFzIndex),dsCtoF_backYZ(1,3,j,lFzIndex+gridRatio),dsCtoF_backYZ(1,3,j,lFzIndex+2*gridRatio),zInterp) 
            dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(dsCtoF_backYZ(2,3,j,lFzIndex-gridRatio),dsCtoF_backYZ(2,3,j,lFzIndex),dsCtoF_backYZ(2,3,j,lFzIndex+gridRatio),dsCtoF_backYZ(2,3,j,lFzIndex+2*gridRatio),zInterp) 
            

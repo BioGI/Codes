@@ -932,7 +932,7 @@ SUBROUTINE PackAndSendDataBufferInterpolation
   fC_bufferSendRight_topXZ(1:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,nzSub_fine-gridRatio+1)
 
   fC_bufferSendRight_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,nzSub_fine-gridRatio+1)
-  fC_bufferSendRight_topXZ(NumDistDirs+1:NumDistDirs+2,1,:) = fCtoF_topXZ(:,3,:,nzSub_fine-gridRatio+1)
+  fC_bufferSendRight_topXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_topXZ(:,3,:,nzSub_fine-gridRatio+1)
 
   fC_bufferSendLeft_frontYZ(1:NumDistDirs,1,:) = fCtoF_frontYZ(:,3,:,1)
   fC_bufferSendLeft_frontYZ(1:NumDistDirs,2,:) = fCtoF_frontYZ(:,3,:,1+gridRatio)
