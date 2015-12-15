@@ -633,8 +633,8 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         dsCtoF_bottomXZ(2,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
 
         lCzIndex = lowerCoarseZindex(z_fine(nzSub_fine-gridRatio+1-k+1))  ! Lower Coarse z Index           
-        dsCtoF_bottomXZ(1,1,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_bottomXZ(1,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
-        dsCtoF_bottomXZ(1,2,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
+        dsCtoF_bottomXZ(:,1,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_bottomXZ(:,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
+        dsCtoF_bottomXZ(:,2,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_bottomXZ(:,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
         f1 =  rho(lCxIndex-1,45,lCzIndex)
         f2 =  rho(lCxIndex,45,lCzIndex)
         f3 =  rho(lCxIndex+1,45,lCzIndex)
@@ -646,8 +646,8 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         f4 =  phi(lCxIndex+2,45,lCzIndex)
         dsCtoF_bottomXZ(2,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time ste        
         lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index
-        dsCtoF_topXZ(1,1,i,k) = dsCtoF_topXZ(1,2,i,k) !Cycle the second time step to the first time step
-        dsCtoF_topXZ(1,2,i,k) = dsCtoF_topXZ(1,3,i,k) !Cycle the last time step to the second time step
+        dsCtoF_topXZ(:,1,i,k) = dsCtoF_topXZ(:,2,i,k) !Cycle the second time step to the first time step
+        dsCtoF_topXZ(:,2,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the second time step
         f1 =  rho(lCxIndex-1,57,lCzIndex) 
         f2 =  rho(lCxIndex,57,lCzIndex) 
         f3 =  rho(lCxIndex+1,57,lCzIndex) 
@@ -660,8 +660,8 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         dsCtoF_topXZ(2,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
         
         lCzIndex = lowerCoarseZindex(z_fine(nzSub_fine-gridRatio+1-k+1))  ! Lower Coarse z Index           
-        dsCtoF_topXZ(1,1,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_topXZ(1,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
-        dsCtoF_topXZ(1,2,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_topXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
+        dsCtoF_topXZ(:,1,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_topXZ(:,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
+        dsCtoF_topXZ(:,2,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_topXZ(:,3,i,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
         f1 =  rho(lCxIndex-1,57,lCzIndex) 
         f2 =  rho(lCxIndex,57,lCzIndex) 
         f3 =  rho(lCxIndex+1,57,lCzIndex) 
@@ -839,8 +839,8 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
         dsCtoF_bottomXZ(2,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
         
         lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index
-        dsCtoF_topXZ(1,1,i,k) = dsCtoF_topXZ(1,2,i,k) !Cycle the second time step to the first time step
-        dsCtoF_topXZ(1,2,i,k) = dsCtoF_topXZ(1,3,i,k) !Cycle the last time step to the second time step
+        dsCtoF_topXZ(:,1,i,k) = dsCtoF_topXZ(:,2,i,k) !Cycle the second time step to the first time step
+        dsCtoF_topXZ(:,2,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the second time step
         f1 =  rho(lCxIndex-1,57,lCzIndex) 
         f2 =  rho(lCxIndex,57,lCzIndex) 
         f3 =  rho(lCxIndex+1,57,lCzIndex) 
@@ -1024,10 +1024,10 @@ SUBROUTINE TemporalInterpolateToFineGrid
            f_fine(m,1,j,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,2,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
            f_fine(m,nx_fine,j,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,2,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
         end do
-        rho_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(1,1,j,k),fCtoF_frontYZ(1,2,j,k),fCtoF_frontYZ(1,3,j,k),tInterp)
-        phi_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(2,1,j,k),fCtoF_frontYZ(2,2,j,k),fCtoF_frontYZ(2,3,j,k),tInterp)
-        rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),fCtoF_backYZ(1,2,j,k),fCtoF_backYZ(1,3,j,k),tInterp)
-        phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),fCtoF_backYZ(2,2,j,k),fCtoF_backYZ(2,3,j,k),tInterp)        
+        rho_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(1,1,j,k),dsCtoF_frontYZ(1,2,j,k),dsCtoF_frontYZ(1,3,j,k),tInterp)
+        phi_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k),tInterp)
+        rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k),tInterp)
+        phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k),tInterp)        
      end do
   end do
 
