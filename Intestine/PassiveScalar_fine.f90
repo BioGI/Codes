@@ -60,7 +60,7 @@ DO k=1,nzSub_fine
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
-            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
+!            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error_fine.txt")
             WRITE(1000,'(A75)') "error in PassiveScalar_fine.f90 at Line 66: node(im1,jm1,km1) is out of range"
