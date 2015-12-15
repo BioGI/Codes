@@ -15,13 +15,13 @@ SUBROUTINE Scalar_Setup	! sets up the passive scalar component
 IMPLICIT NONE
 
 ! initialize arrays
-phi    		= 0.0_dbl								! scalar
-phiTemp		= 0.0_dbl								! temporary scalar
+phi    		= 0.0_dbl					! scalar
+phiTemp		= 0.0_dbl					! temporary scalar
 
 ! scalar parameters
-Dm   			= nuL/Sc									! binary molecular diffusivity (scalar in fluid)
-Dmcf			= (zcf*zcf)/tcf						! conversion factor for diffusivity
-Delta			= 1.0_dbl - 6.0_dbl*Dm				! scalar diffusion parameter
+Dm   			= nuL/Sc				! binary molecular diffusivity (scalar in fluid)
+Dmcf			= (zcf*zcf)/tcf				! conversion factor for diffusivity
+Delta			= 1.0_dbl - 6.0_dbl*Dm			! scalar diffusion parameter
 
 ! set scalar values at sources/sinks
 phiWall		= 0.0_dbl								! value of scalar at the boundary

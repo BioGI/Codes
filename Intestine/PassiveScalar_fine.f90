@@ -6,6 +6,7 @@ USE Setup
 USE ICBC
 USE Setup_fine
 USE ICBC_fine
+USE PassiveScalar
 
 IMPLICIT NONE 
 
@@ -19,6 +20,10 @@ IMPLICIT NONE
 ! initialize arrays
 phi_fine  = 0.0_dbl		! scalar
 phiTemp_fine  = 0.0_dbl		! temporary scalar
+
+! scalar parameters
+Dmcf_fine = (zcf_fine*zcf_fine)/tcf_fine		! conversion factor for diffusivity
+Delta_fine = 1.0_dbl - gridRatio*(1.0_dbl - Delta)	! scalar diffusion parameter
 
 !------------------------------------------------
 END SUBROUTINE Scalar_Setup_fine
@@ -45,7 +50,7 @@ DO k=1,nzSub_fine
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
       
 	phiTemp_fine(i,j,k) = phiTemp_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
-        phi_fine(i,j,k) = Delta*phiTemp_fine(i,j,k)
+        phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
 	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
         DO m=0,NumDistDirs
@@ -56,7 +61,7 @@ DO k=1,nzSub_fine
           km1 = k - ez(m)
 
           IF( (node_fine(im1,jm1,km1) .EQ. FLUID) .or. (node_fine(im1,jm1,km1) .EQ. COARSEMESH) ) THEN 
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta)*phiTemp_fine(im1,jm1,km1)
+            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
@@ -107,7 +112,7 @@ REAL(dbl), INTENT(IN) :: phiBC     				! scalar contribution from the boundary c
 REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
 
 phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
-phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
+phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
 
 phiAbsorbedS = phiAbsorbedS + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
 
@@ -143,9 +148,9 @@ DO iComm=5,6
             km1 = k - ez(bb(f_Comps(iComm,m)))
 
             IF(node(im1,jm1,km1) .NE. SOLID) THEN
-              phiIN = (fplus(bb(f_Comps(iComm,m)),im1,jm1,km1)/rho(im1,jm1,km1) - wt(bb(f_Comps(iComm,m)))*Delta)	&								! scalar contribution from inlet/outlet to current node
+              phiIN = (fplus(bb(f_Comps(iComm,m)),im1,jm1,km1)/rho(im1,jm1,km1) - wt(bb(f_Comps(iComm,m)))*Delta_fine)	&								! scalar contribution from inlet/outlet to current node
                       *phiTemp(im1,jm1,km1)		
-              phiOUT	= (fplus(f_Comps(iComm,m),i,j,k)/rho(i,j,k) - wt(f_Comps(iComm,m))*Delta)*phiTemp(i,j,k)										! scalar contribution from current node to inlet/outlet
+              phiOUT	= (fplus(f_Comps(iComm,m),i,j,k)/rho(i,j,k) - wt(f_Comps(iComm,m))*Delta_fine)*phiTemp(i,j,k)										! scalar contribution from current node to inlet/outlet
               phiInOut = phiInOut + (phiOUT - phiIN)
             END IF
 

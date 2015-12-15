@@ -46,7 +46,9 @@ REAL(dbl), ALLOCATABLE :: phi_fine(:,:,:)			! passive scalar
 REAL(dbl), ALLOCATABLE :: delphi_particle_fine(:,:,:)	! passive scalar contribution from particles
 REAL(dbl), ALLOCATABLE :: phiTemp_fine(:,:,:)		! temporary storage of passive scalar
 ! Sc - same as Setup
-! Dm,Dmcf - same as Setup
+! Dm - same as Setup
+REAL(dbl) :: Dmcf_fine		! binary molecular diffusivity (passive scalar in fluid), diffusivity conversion factor
+REAL(dbl) :: Delta_fine		! scalar parameter
 ! Delta_fine - same as Setup
 ! phiIC, phiWall - same as Setup
 REAL(dbl) :: phiAbsorbed_fine							! total amount of scalar absorbed up to current time
