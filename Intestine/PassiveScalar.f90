@@ -63,7 +63,7 @@ DO k=1,nzSub
         phi(i,j,k) = Delta*phiTemp(i,j,k)
 	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
-        DO m=1,NumDistDirs
+        DO m=0,NumDistDirs
       
           ! i,j,k location of neighboring node
           im1 = i - ex(m)
