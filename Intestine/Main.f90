@@ -42,7 +42,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL LBM_Setup_Fine		! set up LBM simulation [MODULE: LBM_fine]
 	CALL Geometry_Setup		! set up the geometry of the physical simulation [MODULE: Geometry]
  	CALL Geometry_Setup_Fine	! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry_fine]
-	CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
+        CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
+  	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
 	CALL Output_Setup		! set up the output [MODULE: Output]
 	CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
 
@@ -97,7 +98,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
             CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
             CALL Stream_Fine            ! Stream fine grid
             CALL Macro_Fine             ! Calculate Macro properties on fine grid
-!            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
 !            write(*,*) 'myid = ', myid, ' finished Scalar_Fine'
          END DO
         CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
@@ -109,9 +110,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
-!	IF(iter .GE. phiStart) THEN
-!		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
-!	END IF
+	IF(iter .GE. phiStart) THEN
+		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
+	END IF
 
 	! Balaji added to test value with time
   	!h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
