@@ -36,17 +36,23 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !OPEN(6678,FILE='debug.'//sub//'.txt')
 !WRITE(6678,*) 'hello from processor', myid
 
+
         CALL MPI_Setup			! set up MPI component of the simulation [MODULE: Parallel]
 	CALL MPI_Setup_Fine		! set up MPI component of the simulation [MODULE: Parallel_fine]
         CALL LBM_Setup			! set up LBM simulation [MODULE: LBM]
         CALL LBM_Setup_Fine		! set up LBM simulation [MODULE: LBM_fine]
 	CALL Geometry_Setup		! set up the geometry of the physical simulation [MODULE: Geometry]
  	CALL Geometry_Setup_Fine	! set up the geometry of the fine mesh in the physical simulation [MODULE: Geometry_fine]
-        CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
-  	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
 	CALL Output_Setup		! set up the output [MODULE: Output]
 	CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
-
+        CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
+ 	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
+        iter=1
+        write(31,*) 'Trying to call Scalar_Setup now'
+        CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
+        write(31,*) 'Trying to call Scalar_Setup_fine now'
+  	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
+        iter=iter0
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
@@ -59,8 +65,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
         CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
 
-        CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
- 	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
 
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
