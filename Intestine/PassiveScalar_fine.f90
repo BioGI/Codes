@@ -25,6 +25,9 @@ phiTemp_fine  = 0.0_dbl		! temporary scalar
 Dmcf_fine = (zcf_fine*zcf_fine)/tcf_fine		! conversion factor for diffusivity
 Delta_fine = 1.0_dbl - gridRatio*(1.0_dbl - Delta)	! scalar diffusion parameter
 
+write(31,*) 'Trying to call ScalarDistribution_fine to set initial conditions now'
+CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC_fine.f90]
+
 !------------------------------------------------
 END SUBROUTINE Scalar_Setup_fine
 !------------------------------------------------

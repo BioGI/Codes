@@ -35,6 +35,9 @@ IF (phiPer.EQ.0.0) THEN
 	phiStart 	= NINT((phiPer*Tmix)/tcf)+1 ! Balaji changed this to add 1 as for phiPer=0, phiSTart=0. But iter never has a value 0.
 ENDIF
 
+write(31,*) 'Trying to call ScalarDistribution to set initial conditions now'
+CALL ScalarDistribution						! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
+
 !------------------------------------------------
 END SUBROUTINE Scalar_Setup
 !------------------------------------------------
