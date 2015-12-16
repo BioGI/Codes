@@ -626,11 +626,16 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         f3 =  rho(lCxIndex+1,45,lCzIndex)
         f4 =  rho(lCxIndex+2,45,lCzIndex)
         dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
+        ! write(31,*) 'i = ', i, ' k = ', k, ' lCxIndex = ', lCxIndex,  ' lCzIndex = ', lCzIndex
+        ! write(31,*) 'f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4, ' xInterp = ', xInterp
+        ! write(31,*) 'spatialInterpolate(f1,f2,f3,f4,xInterp) = ', spatialInterpolate(f1,f2,f3,f4,xInterp)
         f1 =  phi(lCxIndex-1,45,lCzIndex)
         f2 =  phi(lCxIndex,45,lCzIndex) 
         f3 =  phi(lCxIndex+1,45,lCzIndex)
         f4 =  phi(lCxIndex+2,45,lCzIndex)
         dsCtoF_bottomXZ(2,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
+        ! write(31,*) 'f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4, ' xInterp = ', xInterp
+        ! write(31,*) 'spatialInterpolate(f1,f2,f3,f4,xInterp) = ', spatialInterpolate(f1,f2,f3,f4,xInterp)
 
         lCzIndex = lowerCoarseZindex(z_fine(nzSub_fine-gridRatio+1-k+1))  ! Lower Coarse z Index           
         dsCtoF_bottomXZ(:,1,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_bottomXZ(:,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
@@ -1012,18 +1017,18 @@ SUBROUTINE TemporalInterpolateToFineGrid
            f_fine(m,i,ny_fine,k) = temporalInterpolate(fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,2,i,k),fCtoF_topXZ(m,3,i,k),tInterp)
         end do
         tmp = temporalInterpolate(dsCtoF_bottomXZ(1,1,i,k),dsCtoF_bottomXZ(1,2,i,k),dsCtoF_bottomXZ(1,3,i,k),tInterp)
-        IF( abs(tmp-rho_fine(i,1,k)) .gt. 1e-10) THEN
-           write(31,*) 'i = ', i, ' k = ', k           
-           write(31,*) 'dsCtoF_bottomXZ(1,1,i,k) = ', dsCtoF_bottomXZ(1,1,i,k), ' dsCtoF_bottomXZ(1,2,i,k) = ', dsCtoF_bottomXZ(1,2,i,k), ' dsCtoF_bottomXZ(1,3,i,k) = ', dsCtoF_bottomXZ(1,3,i,k), ' tInterp = ', tInterp
-           write(31,*) 'rho_fine(i,1,k) = ', rho_fine(i,1,k), ' new rho_fine(i,1,k) = ', tmp
-        END if
+        ! IF( abs(tmp-rho_fine(i,1,k)) .gt. 1e-10) THEN
+        !    write(31,*) 'i = ', i, ' k = ', k           
+        !    write(31,*) 'dsCtoF_bottomXZ(1,1,i,k) = ', dsCtoF_bottomXZ(1,1,i,k), ' dsCtoF_bottomXZ(1,2,i,k) = ', dsCtoF_bottomXZ(1,2,i,k), ' dsCtoF_bottomXZ(1,3,i,k) = ', dsCtoF_bottomXZ(1,3,i,k), ' tInterp = ', tInterp
+        !    write(31,*) 'rho_fine(i,1,k) = ', rho_fine(i,1,k), ' new rho_fine(i,1,k) = ', tmp
+        ! END if
         rho_fine(i,1,k) = tmp
         tmp = temporalInterpolate(dsCtoF_bottomXZ(2,1,i,k),dsCtoF_bottomXZ(2,2,i,k),dsCtoF_bottomXZ(2,3,i,k),tInterp)
-        IF( abs(tmp-phi_fine(i,1,k)) .gt. 1e-10) THEN
-           write(31,*) 'i = ', i, ' k = ', k
-           write(31,*) 'dsCtoF_bottomXZ(2,1,i,k) = ', dsCtoF_bottomXZ(2,1,i,k), ' dsCtoF_bottomXZ(2,2,i,k) = ', dsCtoF_bottomXZ(2,2,i,k), ' dsCtoF_bottomXZ(2,3,i,k) = ', dsCtoF_bottomXZ(2,3,i,k), ' tInterp = ', tInterp
-           write(31,*) 'phi_fine(i,1,k) = ', phi_fine(i,1,k), ' new phi_fine(i,1,k) = ', tmp
-        END if
+        ! IF( abs(tmp-phi_fine(i,1,k)) .gt. 1e-10) THEN
+        !    write(31,*) 'i = ', i, ' k = ', k
+        !    write(31,*) 'dsCtoF_bottomXZ(2,1,i,k) = ', dsCtoF_bottomXZ(2,1,i,k), ' dsCtoF_bottomXZ(2,2,i,k) = ', dsCtoF_bottomXZ(2,2,i,k), ' dsCtoF_bottomXZ(2,3,i,k) = ', dsCtoF_bottomXZ(2,3,i,k), ' tInterp = ', tInterp
+        !    write(31,*) 'phi_fine(i,1,k) = ', phi_fine(i,1,k), ' new phi_fine(i,1,k) = ', tmp
+        ! END if
         phi_fine(i,1,k) = tmp
         rho_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(1,1,i,k),dsCtoF_topXZ(1,2,i,k),dsCtoF_topXZ(1,3,i,k),tInterp)
         phi_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k),tInterp)

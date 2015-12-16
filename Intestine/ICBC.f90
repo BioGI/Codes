@@ -154,6 +154,7 @@ INTEGER(lng) :: i,j,k,ii,jj		! lattice indices
 	!write(*,*) iter
 	!pause
 ! INTRODUCTION OF SCALAR
+write(31,*) 'ScalarDistribution iter = ', iter, ' phiStart = ', phiStart
 IF(iter .EQ. phiStart) THEN
 	!write(*,*) sclrIC
 	!pause
@@ -173,6 +174,7 @@ IF(iter .EQ. phiStart) THEN
 
     CASE(LINE) 						! line of scalar along axis
   
+       write(31,*) 'Setting Scalar Initial conditions now'
       DO k=0,nzSub+1
         DO j=0,nySub+1
           DO i=0,nxSub+1
