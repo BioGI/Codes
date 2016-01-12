@@ -21,6 +21,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	IMPLICIT NONE
 
         INTEGER(lng) :: mpierr					! MPI standard error variable
+        INTEGER :: i,j,k,m
+        REAL(dbl) :: feq
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MPI Setup ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -47,12 +49,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
         CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
  	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
-        iter=1
-        write(31,*) 'Trying to call Scalar_Setup now'
         CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
-        write(31,*) 'Trying to call Scalar_Setup_fine now'
   	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
-        iter=iter0
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
@@ -64,7 +62,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
         CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
-
 
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
@@ -84,6 +81,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	DO iter = iter0-0_lng,nt
 
+        write(31,*) 'iter = ', iter
 	CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
 	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
@@ -103,16 +101,16 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
             CALL Stream_Fine            ! Stream fine grid
             CALL Macro_Fine             ! Calculate Macro properties on fine grid
             CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
-!            write(*,*) 'myid = ', myid, ' finished Scalar_Fine'
          END DO
         CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
         CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
-        
+
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
 	CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 
 	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
+
 
 	IF(iter .GE. phiStart) THEN
 		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
