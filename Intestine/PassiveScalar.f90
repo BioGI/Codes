@@ -32,10 +32,9 @@ sigma = 0.1_dbl*D										! 1/10 of the Diameter
 ! determine scalar starting iteration
 phiStart 	= NINT((phiPer*Tmix)/tcf)
 IF (phiPer.EQ.0.0) THEN
-	phiStart 	= NINT((phiPer*Tmix)/tcf)+1 ! Balaji changed this to add 1 as for phiPer=0, phiSTart=0. But iter never has a value 0.
+	phiStart 	= NINT((phiPer*Tmix)/tcf) ! Balaji changed this to add 1 as for phiPer=0, phiSTart=0. But iter never has a value 0.
 ENDIF
 
-write(31,*) 'Trying to call ScalarDistribution to set initial conditions now'
 CALL ScalarDistribution						! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
 
 !------------------------------------------------
