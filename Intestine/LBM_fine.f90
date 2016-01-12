@@ -53,7 +53,7 @@ DO k=1,nzSub_fine+0
 !  DO j=0,nySub+1
 !    DO i=0,nxSub+1
 
-      IF(node_fine(i,j,k) .EQ. FLUID) THEN
+      IF( (node_fine(i,j,k) .EQ. FLUID) ) THEN
       
         uu = u_fine(i,j,k)*u_fine(i,j,k) + v_fine(i,j,k)*v_fine(i,j,k) + w_fine(i,j,k)*w_fine(i,j,k)						! u . u
       
@@ -391,7 +391,7 @@ DO k=1,nzSub_fine
 
         END IF
 
-      ELSE
+      ELSE IF (node_fine(i,j,k) .EQ. SOLID) THEN
       
         rho_fine(i,j,k)	= denL									! density (zero gauge pressure)
         u_fine(i,j,k)		= 0.0_dbl								! x-velocity
@@ -476,7 +476,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
         IF(node(i,45,k) .EQ. FLUID) THEN
            
            uu = u(i,45,k)*u(i,45,k) + v(i,45,k)*v(i,45,k) + w(i,45,k)*w(i,45,k)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u(i,45,k)*ex(m)		! u . e
               ve	= v(i,45,k)*ey(m)		! v . e
@@ -495,7 +495,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
         IF(node(i,57,k) .EQ. FLUID) THEN
            
            uu = u(i,57,k)*u(i,57,k) + v(i,57,k)*v(i,57,k) + w(i,57,k)*w(i,57,k)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u(i,57,k)*ex(m)		! u . e
               ve	= v(i,57,k)*ey(m)		! v . e
@@ -520,7 +520,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
         IF(node(45,j,k) .EQ. FLUID) THEN
            
            uu = u(45,j,k)*u(45,j,k) + v(45,j,k)*v(45,j,k) + w(45,j,k)*w(45,j,k)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u(45,j,k)*ex(m)		! u . e
               ve	= v(45,j,k)*ey(m)		! v . e
@@ -539,7 +539,7 @@ SUBROUTINE ComputeEquilibriumForFineGrid
         IF(node(57,j,k) .EQ. FLUID) THEN
            
            uu = u(57,j,k)*u(57,j,k) + v(57,j,k)*v(57,j,k) + w(57,j,k)*w(57,j,k)	! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u(57,j,k)*ex(m)		! u . e
               ve	= v(57,j,k)*ey(m)		! v . e
@@ -578,7 +578,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         
         xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
 
-        do m=1,NumDistDirs	  
+        do m=0,NumDistDirs	  
 
            lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
@@ -626,16 +626,11 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         f3 =  rho(lCxIndex+1,45,lCzIndex)
         f4 =  rho(lCxIndex+2,45,lCzIndex)
         dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
-        ! write(31,*) 'i = ', i, ' k = ', k, ' lCxIndex = ', lCxIndex,  ' lCzIndex = ', lCzIndex
-        ! write(31,*) 'f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4, ' xInterp = ', xInterp
-        ! write(31,*) 'spatialInterpolate(f1,f2,f3,f4,xInterp) = ', spatialInterpolate(f1,f2,f3,f4,xInterp)
         f1 =  phi(lCxIndex-1,45,lCzIndex)
         f2 =  phi(lCxIndex,45,lCzIndex) 
         f3 =  phi(lCxIndex+1,45,lCzIndex)
         f4 =  phi(lCxIndex+2,45,lCzIndex)
         dsCtoF_bottomXZ(2,3,i,k) = spatialInterpolate(f1,f2,f3,f4,xInterp) !Interpolate the latest value to the last(third) time step
-        ! write(31,*) 'f1 = ', f1, ' f2 = ', f2, ' f3 = ', f3, ' f4 = ', f4, ' xInterp = ', xInterp
-        ! write(31,*) 'spatialInterpolate(f1,f2,f3,f4,xInterp) = ', spatialInterpolate(f1,f2,f3,f4,xInterp)
 
         lCzIndex = lowerCoarseZindex(z_fine(nzSub_fine-gridRatio+1-k+1))  ! Lower Coarse z Index           
         dsCtoF_bottomXZ(:,1,i,nzSub_fine-gridRatio+1-k+1) = dsCtoF_bottomXZ(:,2,i,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
@@ -690,7 +685,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
         
         yInterp = dble( MODULO(j-1, gridRatio) ) / dble(gridRatio)
         
-        do m=1,NumDistDirs	  
+        do m=0,NumDistDirs	  
            
            lCzIndex = lowerCoarseZindex(z_fine(k))  ! Lower Coarse z Index - No interpolation in z
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
@@ -811,7 +806,7 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
 
         xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)        
 
-        do m=1,NumDistDirs	  
+        do m=0,NumDistDirs	  
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
            f1 =  feqFF_bottomXZ(m,lCxIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,lCxIndex-1,45,lCzIndex) - feqFF_bottomXZ(m,lCxIndex-1,lCzIndex))
@@ -870,7 +865,7 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
         
         yInterp = dble( MODULO(j-1, gridRatio) ) / dble(gridRatio)
         
-        do m=1,NumDistDirs	  
+        do m=0,NumDistDirs	  
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
            f1 =  feqFF_frontYZ(m,lCyIndex-1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex-1,lCzIndex) - feqFF_frontYZ(m,lCyIndex-1,lCzIndex))
@@ -936,7 +931,7 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
   do k=1,nzSub_fine
      IF ( MODULO(k-1, gridRatio) .gt. 0 ) THEN
         do i=1,nxSub_fine
-           do m=1,NumDistDirs
+           do m=0,NumDistDirs
               lFzIndex = k - MODULO(k-1, gridRatio)  ! Lower Fine z Index 
               
               zInterp = dble(MODULO(k-1, gridRatio)) / dble(gridRatio)
@@ -970,7 +965,7 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
   do k=1,nzSub_fine
      IF ( MODULO(k-1, gridRatio) .gt. 0) THEN
         do j=2,nySub_fine-1
-           do m=1,NumDistDirs
+           do m=0,NumDistDirs
               lFzIndex = k - MODULO(k-1, gridRatio)  ! Lower Fine z Index 
               
               zInterp = dble( MODULO(k-1, gridRatio) ) / dble(gridRatio)
@@ -1012,7 +1007,7 @@ SUBROUTINE TemporalInterpolateToFineGrid
   !Do the bottom and top x-z planes first
   do k=1,nzSub_fine
      do i=1,nxSub_fine
-        do m=1,NumDistDirs
+        do m=0,NumDistDirs
            f_fine(m,i,1,k) = temporalInterpolate(fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,2,i,k),fCtoF_bottomXZ(m,3,i,k),tInterp)
            f_fine(m,i,ny_fine,k) = temporalInterpolate(fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,2,i,k),fCtoF_topXZ(m,3,i,k),tInterp)
         end do
@@ -1038,7 +1033,7 @@ SUBROUTINE TemporalInterpolateToFineGrid
   !Fill out the remaining points on the front and back y-z planes
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
-        do m=1,NumDistDirs
+        do m=0,NumDistDirs
            f_fine(m,1,j,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,2,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
            f_fine(m,nx_fine,j,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,2,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
         end do
@@ -1067,7 +1062,7 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
         IF(node_fine(iFine,1+gridRatio,kFine) .EQ. FLUID) THEN
 
            uu = u_fine(iFine,1+gridRatio,kFine)*u_fine(iFine,1+gridRatio,kFine) + v_fine(iFine,1+gridRatio,kFine)*v_fine(iFine,1+gridRatio,kFine) + w_fine(iFine,1+gridRatio,kFine)*w_fine(iFine,1+gridRatio,kFine)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u_fine(iFine,1+gridRatio,kFine)*ex(m)		! u . e
               ve	= v_fine(iFine,1+gridRatio,kFine)*ey(m)		! v . e
@@ -1086,7 +1081,7 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
         IF(node_fine(iFine,nySub_fine-gridRatio,kFine) .EQ. FLUID) THEN
            
            uu = u_fine(iFine,nySub_fine-gridRatio,kFine)*u_fine(iFine,nySub_fine-gridRatio,kFine) + v_fine(iFine,nySub_fine-gridRatio,kFine)*v_fine(iFine,nySub_fine-gridRatio,kFine) + w_fine(iFine,nySub_fine-gridRatio,kFine)*w_fine(iFine,nySub_fine-gridRatio,kFine)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u_fine(iFine,nySub_fine-gridRatio,kFine)*ex(m)		! u . e
               ve	= v_fine(iFine,nySub_fine-gridRatio,kFine)*ey(m)		! v . e
@@ -1113,7 +1108,7 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
         IF(node_fine(1+gridRatio,jFine,kFine) .EQ. FLUID) THEN
            
            uu = u_fine(1+gridRatio,jFine,kFine)*u_fine(1+gridRatio,jFine,kFine) + v_fine(1+gridRatio,jFine,kFine)*v_fine(1+gridRatio,jFine,kFine) + w_fine(1+gridRatio,jFine,kFine)*w_fine(1+gridRatio,jFine,kFine)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u_fine(1+gridRatio,jFine,kFine)*ex(m)		! u . e
               ve	= v_fine(1+gridRatio,jFine,kFine)*ey(m)		! v . e
@@ -1132,7 +1127,7 @@ SUBROUTINE ComputeEquilibriumForCoarseGrid
         IF(node_fine(nxSub_fine-gridRatio, jFine, kFine) .EQ. FLUID) THEN
            
            uu = u_fine(nxSub_fine-gridRatio, jFine, kFine)*u_fine(nxSub_fine-gridRatio, jFine, kFine) + v_fine(nxSub_fine-gridRatio, jFine, kFine)*v_fine(nxSub_fine-gridRatio, jFine, kFine) + w_fine(nxSub_fine-gridRatio, jFine, kFine)*w_fine(nxSub_fine-gridRatio, jFine, kFine)						! u . u
-           DO m=1,NumDistDirs
+           DO m=0,NumDistDirs
               
               ue	= u_fine(nxSub_fine-gridRatio, jFine, kFine)*ex(m)		! u . e
               ve	= v_fine(nxSub_fine-gridRatio, jFine, kFine)*ey(m)		! v . e
@@ -1162,11 +1157,13 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   !Do the bottom and top x-z planes first
   do k=1,nzSub
      do i=46,56
-        do m=1,NumDistDirs
+        do m=0,NumDistDirs
            f(m,i,46,k) = feqFC_bottomXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) -  feqFC_bottomXZ(m,i,k))
            f(m,i,56,k) = feqFC_topXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) - feqFC_topXZ(m,i,k))
         end do
         rho(i,46,k) = rho_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
+        ! write(31,*) ' k = ', k, ' i = ', i
+        ! write(31,*) ' old phi(i,46,k) = ', phi(i,46,k), ' new phi(i,46,k) = ', phi_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
         phi(i,46,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
         rho(i,56,k) = rho_fine(closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))
         phi(i,56,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))        
@@ -1176,7 +1173,7 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
   !Fill out the remaining points on the front and back y-z planes
   do k=1,nzSub
      do j=47,55
-        do m=1,NumDistDirs
+        do m=0,NumDistDirs
            f(m,46,j,k) = feqFC_frontYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_frontYZ(m,j,k))
            f(m,56,j,k) = feqFC_backYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (fPlus_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_backYZ(m,j,k))
         end do
@@ -1229,7 +1226,7 @@ SUBROUTINE InitializeAllTemporalInterpolation
   
   do k=1,nzSub_fine
      do i=1,nxSub_fine
-        do m=1,NumDistDirs
+        do m=0,NumDistDirs
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the first time step
            fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
            fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the first time step
@@ -1244,7 +1241,7 @@ SUBROUTINE InitializeAllTemporalInterpolation
 
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
-        do m=1,NumDistDirs
+        do m=0,NumDistDirs
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the first time step
            fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
            fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the first time step

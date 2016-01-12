@@ -657,22 +657,22 @@ ALLOCATE(xx(0:nx+1),yy(0:ny+1),zz(0:nz+1))				! x, y, z, physical coordinate arr
 
 !Multigrid algorithm variables
 !Post collision density distribution from the fine mesh for the coarse mesh
-allocate(fFtoC_topXZ(1:14,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
-allocate(fFtoC_bottomXZ(1:14,46:56,nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
-allocate(fFtoC_frontYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
-allocate(fFtoC_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(fFtoC_topXZ(0:NumDistDirs,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(fFtoC_bottomXZ(0:NumDistDirs,46:56,nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(fFtoC_frontYZ(0:NumDistDirs,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(fFtoC_backYZ(0:NumDistDirs,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
 !Equilibrium density distribution from the fine mesh for the coarse mesh
-allocate(feqFC_topXZ(1:14,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
-allocate(feqFC_bottomXZ(1:14,46:56,nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
-allocate(feqFC_frontYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
-allocate(feqFC_backYZ(1:14,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(feqFC_topXZ(0:NumDistDirs,46:56,nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFC_bottomXZ(0:NumDistDirs,46:56,nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFC_frontYZ(0:NumDistDirs,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(feqFC_backYZ(0:NumDistDirs,47:55,nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
 !Equilibrium density distribution from the coarse mesh for the fine mesh
-allocate(feqFF_topXZ(1:14,44:59,1:nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
-allocate(feqFF_bottomXZ(1:14,44:59,1:nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
-allocate(feqFF_frontYZ(1:14,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
-allocate(feqFF_backYZ(1:14,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(feqFF_topXZ(0:NumDistDirs,44:59,1:nzSub))     !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFF_bottomXZ(0:NumDistDirs,44:59,1:nzSub))  !Includes the ends - Indices are directionalDensity, x Index, z Index
+allocate(feqFF_frontYZ(0:NumDistDirs,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
+allocate(feqFF_backYZ(0:NumDistDirs,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
 !------------------------------------------------
 END SUBROUTINE AllocateArrays

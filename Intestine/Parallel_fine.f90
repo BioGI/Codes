@@ -918,34 +918,34 @@ SUBROUTINE PackAndSendDataBufferInterpolation
   integer :: mpierr	   ! MPI standard error variable 
   integer :: bufferSize    ! Size of message being transferred
 
-  fC_bufferSendLeft_bottomXZ(1:NumDistDirs,1,:) = fCtoF_bottomXZ(:,3,:,1)
-  fC_bufferSendLeft_bottomXZ(1:NumDistDirs,2,:) = fCtoF_bottomXZ(:,3,:,1+gridRatio)
-  fC_bufferSendLeft_topXZ(1:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,1)
-  fC_bufferSendLeft_topXZ(1:NumDistDirs,2,:) = fCtoF_topXZ(:,3,:,1+gridRatio)
+  fC_bufferSendLeft_bottomXZ(0:NumDistDirs,1,:) = fCtoF_bottomXZ(:,3,:,1)
+  fC_bufferSendLeft_bottomXZ(0:NumDistDirs,2,:) = fCtoF_bottomXZ(:,3,:,1+gridRatio)
+  fC_bufferSendLeft_topXZ(0:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,1)
+  fC_bufferSendLeft_topXZ(0:NumDistDirs,2,:) = fCtoF_topXZ(:,3,:,1+gridRatio)
 
   fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,1)
   fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,1+gridRatio)  
   fC_bufferSendLeft_topXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_topXZ(:,3,:,1)
   fC_bufferSendLeft_topXZ(NumDistDirs+1:NumDistDirs+2,2,:) = dsCtoF_topXZ(:,3,:,1+gridRatio)
   
-  fC_bufferSendRight_bottomXZ(1:NumDistDirs,1,:) = fCtoF_bottomXZ(:,3,:,nzSub_fine-gridRatio+1)
-  fC_bufferSendRight_topXZ(1:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,nzSub_fine-gridRatio+1)
+  fC_bufferSendRight_bottomXZ(0:NumDistDirs,1,:) = fCtoF_bottomXZ(:,3,:,nzSub_fine-gridRatio+1)
+  fC_bufferSendRight_topXZ(0:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,nzSub_fine-gridRatio+1)
 
   fC_bufferSendRight_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,nzSub_fine-gridRatio+1)
   fC_bufferSendRight_topXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_topXZ(:,3,:,nzSub_fine-gridRatio+1)
 
-  fC_bufferSendLeft_frontYZ(1:NumDistDirs,1,:) = fCtoF_frontYZ(:,3,:,1)
-  fC_bufferSendLeft_frontYZ(1:NumDistDirs,2,:) = fCtoF_frontYZ(:,3,:,1+gridRatio)
-  fC_bufferSendLeft_backYZ(1:NumDistDirs,1,:) = fCtoF_backYZ(:,3,:,1)
-  fC_bufferSendLeft_backYZ(1:NumDistDirs,2,:) = fCtoF_backYZ(:,3,:,1+gridRatio)
+  fC_bufferSendLeft_frontYZ(0:NumDistDirs,1,:) = fCtoF_frontYZ(:,3,:,1)
+  fC_bufferSendLeft_frontYZ(0:NumDistDirs,2,:) = fCtoF_frontYZ(:,3,:,1+gridRatio)
+  fC_bufferSendLeft_backYZ(0:NumDistDirs,1,:) = fCtoF_backYZ(:,3,:,1)
+  fC_bufferSendLeft_backYZ(0:NumDistDirs,2,:) = fCtoF_backYZ(:,3,:,1+gridRatio)
 
   fC_bufferSendLeft_frontYZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_frontYZ(:,3,:,1)
   fC_bufferSendLeft_frontYZ(NumDistDirs+1:NumDistDirs+2,2,:) = dsCtoF_frontYZ(:,3,:,1+gridRatio)
   fC_bufferSendLeft_backYZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_backYZ(:,3,:,1)
   fC_bufferSendLeft_backYZ(NumDistDirs+1:NumDistDirs+2,2,:) = dsCtoF_backYZ(:,3,:,1+gridRatio)
 
-  fC_bufferSendRight_frontYZ(1:NumDistDirs,1,:) = fCtoF_frontYZ(:,3,:,nzSub_fine-gridRatio+1)
-  fC_bufferSendRight_backYZ(1:NumDistDirs,1,:) = fCtoF_backYZ(:,3,:,nzSub_fine-gridRatio+1)
+  fC_bufferSendRight_frontYZ(0:NumDistDirs,1,:) = fCtoF_frontYZ(:,3,:,nzSub_fine-gridRatio+1)
+  fC_bufferSendRight_backYZ(0:NumDistDirs,1,:) = fCtoF_backYZ(:,3,:,nzSub_fine-gridRatio+1)
 
   fC_bufferSendRight_frontYZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_frontYZ(:,3,:,nzSub_fine-gridRatio+1)
   fC_bufferSendRight_backYZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_backYZ(:,3,:,nzSub_fine-gridRatio+1)
@@ -1018,36 +1018,36 @@ SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
 
   CALL MPI_WAITALL(8,reqInterpolationBuffer,waitStatInterpolationBuffer,mpierr)  
 
-  fCtoF_bottomXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_bottomXZ(1:NumDistDirs,1,:)
+  fCtoF_bottomXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_bottomXZ(0:NumDistDirs,1,:)
   dsCtoF_bottomXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:)
 
-  fCtoF_topXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_topXZ(1:NumDistDirs,1,:)
+  fCtoF_topXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_topXZ(0:NumDistDirs,1,:)
   dsCtoF_topXZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_topXZ(NumDistDirs+1:NumDistDirs+2,1,:)
   
-  fCtoF_bottomXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_bottomXZ(1:NumDistDirs,1,:)
+  fCtoF_bottomXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_bottomXZ(0:NumDistDirs,1,:)
   dsCtoF_bottomXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:)
-  fCtoF_bottomXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_bottomXZ(1:NumDistDirs,2,:)
+  fCtoF_bottomXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_bottomXZ(0:NumDistDirs,2,:)
   dsCtoF_bottomXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_bottomXZ(NumDistDirs+1:NumDistDirs+2,2,:)
   
-  fCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(1:NumDistDirs,1,:)
+  fCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(0:NumDistDirs,1,:)
   dsCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(NumDistDirs+1:NumDistDirs+2,1,:)
-  fCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(1:NumDistDirs,2,:)
+  fCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(0:NumDistDirs,2,:)
   dsCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(NumDistDirs+1:NumDistDirs+2,2,:)
 
-  fCtoF_frontYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_frontYZ(1:NumDistDirs,1,:)
+  fCtoF_frontYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_frontYZ(0:NumDistDirs,1,:)
   dsCtoF_frontYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_frontYZ(NumDistDirs+1:NumDistDirs+2,1,:)
   
-  fCtoF_backYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_backYZ(1:NumDistDirs,1,:)
+  fCtoF_backYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_backYZ(0:NumDistDirs,1,:)
   dsCtoF_backYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_backYZ(NumDistDirs+1:NumDistDirs+2,1,:)
 
-  fCtoF_frontYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_frontYZ(1:NumDistDirs,1,:)
+  fCtoF_frontYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_frontYZ(0:NumDistDirs,1,:)
   dsCtoF_frontYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_frontYZ(NumDistDirs+1:NumDistDirs+2,1,:)
-  fCtoF_frontYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_frontYZ(1:NumDistDirs,2,:)
+  fCtoF_frontYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_frontYZ(0:NumDistDirs,2,:)
   dsCtoF_frontYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_frontYZ(NumDistDirs+1:NumDistDirs+2,2,:)
 
-  fCtoF_backYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_backYZ(1:NumDistDirs,1,:)
+  fCtoF_backYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_backYZ(0:NumDistDirs,1,:)
   dsCtoF_backYZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_backYZ(NumDistDirs+1:NumDistDirs+2,1,:)
-  fCtoF_backYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_backYZ(1:NumDistDirs,2,:)
+  fCtoF_backYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_backYZ(0:NumDistDirs,2,:)
   dsCtoF_backYZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_backYZ(NumDistDirs+1:NumDistDirs+2,2,:)
 
 END SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
