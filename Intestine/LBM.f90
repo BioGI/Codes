@@ -892,7 +892,7 @@ DO k=1,nzSub
 
         END IF
 
-      ELSE
+      ELSE IF ( node(i,j,k) .EQ. SOLID ) THEN
       
         rho(i,j,k)	= denL									! density (zero gauge pressure)
         u(i,j,k)		= 0.0_dbl								! x-velocity
