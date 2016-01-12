@@ -25,7 +25,6 @@ phiTemp_fine  = 0.0_dbl		! temporary scalar
 Dmcf_fine = (zcf_fine*zcf_fine)/tcf_fine		! conversion factor for diffusivity
 Delta_fine = 1.0_dbl - gridRatio*(1.0_dbl - Delta)	! scalar diffusion parameter
 
-write(31,*) 'Trying to call ScalarDistribution_fine to set initial conditions now'
 CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC_fine.f90]
 
 !------------------------------------------------
@@ -39,7 +38,7 @@ IMPLICIT NONE
 
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC				! scalar contribution from boundary
-
+REAL(dbl) :: tmp
 CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
 
 ! store the previous scalar values
@@ -63,8 +62,13 @@ DO k=1,nzSub_fine
           jm1 = j - ey(m)
           km1 = k - ez(m)
 
-          IF( (node_fine(im1,jm1,km1) .EQ. FLUID) .or. (node_fine(im1,jm1,km1) .EQ. COARSEMESH) ) THEN 
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+          IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
+             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+          ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
+             tmp = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+             ! write(31,*) 'i = ', i, ' j = ', j, ' k = ', k
+             ! write(31,*) 'old phi_fine(i,j,k) = ', phi_fine(i,j,k), ' new phi_fine(i,j,k) = ', tmp             
+             phi_fine(i,j,k) = tmp
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
