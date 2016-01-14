@@ -413,19 +413,21 @@ END SUBROUTINE Macro_Fine
 
 FUNCTION lowerCoarseXindex(xf)
   !Returns the lower coarse X index
-  REAL(dbl) :: xf
+  INTEGER :: xf
   INTEGER :: lowerCoarseXindex
 !  write(31,*) 'xf = ', xf, ' x(1) = ' , x(1), ' xcf = ', xcf
-  lowerCoarseXindex = FLOOR( ((xf-x(1))/xcf) ) + 1
+!  lowerCoarseXindex = FLOOR( ((xf-x(1))/xcf) ) + 1
+  lowerCoarseXindex = 45 + ANINT((xf - 1)/dble(gridRatio))
   RETURN 
 END FUNCTION lowerCoarseXindex
 
 FUNCTION lowerCoarseYindex(yf)
   !Returns the lower coarse Y index
-  REAL(dbl) :: yf
+  INTEGER :: yf
   INTEGER :: lowerCoarseYindex
 !  write(31,*) 'yf = ', yf, ' y(1) = ' , y(1), ' ycf = ', ycf
-  lowerCoarseYindex = FLOOR( ((yf-y(1))/ycf) ) + 1
+!  lowerCoarseYindex = FLOOR( ((yf-y(1))/ycf) ) + 1
+  lowerCoarseYindex = 45 + ANINT((yf - 1)/dble(gridRatio))
   RETURN 
 END FUNCTION lowerCoarseYindex
 
@@ -577,7 +579,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
   do k=1, gridRatio+1, gridRatio
      do i=1,nxSub_fine
 
-        lCxIndex = lowerCoarseXindex(x_fine(i))  ! Lower Coarse x Index
+        lCxIndex = lowerCoarseXindex(i)  ! Lower Coarse x Index
         
         xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)
         lCzIndex = closestCoarseZindex(z_fine(k))  ! Lower Coarse z Index
@@ -685,7 +687,7 @@ SUBROUTINE XYSpatialInterpolateBufferToFineGrid    ! Interpolate required variab
   do k=1, gridRatio+1, gridRatio
      do j=2,nySub_fine-1
 
-        lCyIndex = lowerCoarseYindex(y_fine(j))  ! Lower Coarse x Index
+        lCyIndex = lowerCoarseYindex(j)  ! Lower Coarse x Index
         
         yInterp = dble( MODULO(j-1, gridRatio) ) / dble(gridRatio)
         
@@ -807,7 +809,7 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
      write(31,*) 'k = ', k, ' z_fine = ', z_fine(k), ' lCzIndex = ', lCzIndex, ' z(lCzIndex) = ', z(lCzIndex)
      do i=1,nxSub_fine
 
-        lCxIndex = lowerCoarseXindex(x_fine(i))  ! Lower Coarse x Index
+        lCxIndex = lowerCoarseXindex(i)  ! Lower Coarse x Index
         xInterp = dble( MODULO(i-1, gridRatio) ) / dble(gridRatio)        
 
         do m=0,NumDistDirs	  
@@ -864,7 +866,7 @@ SUBROUTINE XYSpatialInterpolateInternalNodesToFineGrid    ! Interpolate required
   do k=2*gridRatio+1,nzSub_fine-3*gridRatio+1, gridRatio
      do j=2,nySub_fine-1
 
-        lCyIndex = lowerCoarseYindex(y_fine(j))  ! Lower Coarse x Index
+        lCyIndex = lowerCoarseYindex(j)  ! Lower Coarse x Index
         lCzIndex = closestCoarseZindex(z_fine(k))  ! Lower Coarse z Index - No interpolation in z
         
         yInterp = dble( MODULO(j-1, gridRatio) ) / dble(gridRatio)
