@@ -922,7 +922,8 @@ SUBROUTINE PackAndSendDataBufferInterpolation
   fC_bufferSendLeft_bottomXZ(0:NumDistDirs,2,:) = fCtoF_bottomXZ(:,3,:,1+gridRatio)
   fC_bufferSendLeft_topXZ(0:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,1)
   fC_bufferSendLeft_topXZ(0:NumDistDirs,2,:) = fCtoF_topXZ(:,3,:,1+gridRatio)
-
+  write(31,*) ' fC_bufferSendLeft_topXZ(0,1,:) = ', fC_bufferSendLeft_topXZ(0,1,:)
+  write(31,*) ' fC_bufferSendLeft_topXZ(0,2,:) = ', fC_bufferSendLeft_topXZ(0,2,:)
   fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,1)
   fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,1+gridRatio)  
   fC_bufferSendLeft_topXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_topXZ(:,3,:,1)
@@ -952,12 +953,12 @@ SUBROUTINE PackAndSendDataBufferInterpolation
 
   iComm = 6                      !Send to processor on the left in the z direction
   dest = SubID(iComm) - 1_lng    ! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
-  bufferSize = (NumDistDirs+2) * 2 * nxSub_fine
+  bufferSize = (1+NumDistDirs+2) * 2 * nxSub_fine
   tag = iComm*100_lng		  
   CALL MPI_ISEND(fC_bufferSendLeft_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(1),mpierr)
   tag = iComm*100_lng + 1	  
   CALL MPI_ISEND(fC_bufferSendLeft_topXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(2),mpierr)
-  bufferSize = (NumDistDirs+2) * 2 * (nySub_fine-2)
+  bufferSize = (1+NumDistDirs+2) * 2 * (nySub_fine-2)
   tag = iComm*100_lng + 2
   CALL MPI_ISEND(fC_bufferSendLeft_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(3),mpierr)
   tag = iComm*100_lng + 3
@@ -965,12 +966,12 @@ SUBROUTINE PackAndSendDataBufferInterpolation
   
   iComm = 5                      !Send to processor on the right in the z direction
   dest = SubID(iComm) - 1_lng    ! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
-  bufferSize = (NumDistDirs+2) * 1 * nxSub_fine
+  bufferSize = (1+NumDistDirs+2) * 1 * nxSub_fine
   tag = iComm*100_lng		  
   CALL MPI_ISEND(fC_bufferSendRight_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(5),mpierr)
   tag = iComm*100_lng + 1	  
   CALL MPI_ISEND(fC_bufferSendRight_topXZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(6),mpierr)
-  bufferSize = (NumDistDirs+2) * 1 * (nySub_fine-2)
+  bufferSize = (1+NumDistDirs+2) * 1 * (nySub_fine-2)
   tag = iComm*100_lng + 2
   CALL MPI_ISEND(fC_bufferSendRight_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,dest,tag,MPI_COMM_WORLD,reqInterpolationBuffer(7),mpierr)
   tag = iComm*100_lng + 3
@@ -992,12 +993,12 @@ SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
   
   iComm = 6                ! Send to processor on the left in the z direction
   src = SubID(OppCommDir(iComm)) - 1_lng  
-  bufferSize = (NumDistDirs+2) * 2 * nxSub_fine
+  bufferSize = (1+NumDistDirs+2) * 2 * nxSub_fine
   tag = iComm*100_lng		  
   CALL MPI_IRECV(fC_bufferRecvRight_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(1),mpierr)
   tag = iComm*100_lng + 1	  
   CALL MPI_IRECV(fC_bufferRecvRight_topXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(2),mpierr)
-  bufferSize = (NumDistDirs+2) * 2 * (nySub_fine - 2)
+  bufferSize = (1+NumDistDirs+2) * 2 * (nySub_fine - 2)
   tag = iComm*100_lng + 2
   CALL MPI_IRECV(fC_bufferRecvRight_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(3),mpierr)
   tag = iComm*100_lng + 3
@@ -1005,12 +1006,12 @@ SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
 
   iComm = 5                      !Send to processor on the right in the z direction
   src = SubID(OppCommDir(iComm)) - 1_lng    ! rank of processing unit receiving message from the current processing unit (-1 to correspond to rank (myid))
-  bufferSize = (NumDistDirs+2) * 1 * nxSub_fine
+  bufferSize = (1+NumDistDirs+2) * 1 * nxSub_fine
   tag = iComm*100_lng		  
   CALL MPI_IRECV(fC_bufferRecvLeft_bottomXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(5),mpierr)
   tag = iComm*100_lng + 1	  
   CALL MPI_IRECV(fC_bufferRecvLeft_topXZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(6),mpierr)
-  bufferSize = (NumDistDirs+2) * 1 * (nySub_fine - 2)
+  bufferSize = (1+NumDistDirs+2) * 1 * (nySub_fine - 2)
   tag = iComm*100_lng + 2
   CALL MPI_IRECV(fC_bufferRecvLeft_frontYZ,bufferSize,MPI_DOUBLE_PRECISION,src,tag,MPI_COMM_WORLD,reqInterpolationBuffer(7),mpierr)
   tag = iComm*100_lng + 3
@@ -1030,8 +1031,10 @@ SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
   dsCtoF_bottomXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_bottomXZ(NumDistDirs+1:NumDistDirs+2,2,:)
   
   fCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(0:NumDistDirs,1,:)
+  write(31,*) 'fCtoF_topXZ(:,3,:,nzSub_fine+1) = ', fCtoF_topXZ(0,3,:,nzSub_fine+1)
   dsCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(NumDistDirs+1:NumDistDirs+2,1,:)
   fCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(0:NumDistDirs,2,:)
+  write(31,*) 'fCtoF_topXZ(:,3,:,nzSub_fine+1) = ', fCtoF_topXZ(0,3,:,nzSub_fine+1+gridRatio)  
   dsCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(NumDistDirs+1:NumDistDirs+2,2,:)
 
   fCtoF_frontYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_frontYZ(0:NumDistDirs,1,:)

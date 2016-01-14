@@ -9,7 +9,7 @@
 0.012				! gut diameter [m]								(D)
 0.1                             ! Fraction of gut diameter to be resolved by fine mesh                          (fractionDfine)
 4				! Ratio of coarse to fine mesh resolution                                       (gridRatio)
-0.5				! peristaltic occlusion ratio - distance of occlusion/mean half-width		(epsOVERa1)
+1.0				! peristaltic occlusion ratio - distance of occlusion/mean half-width		(epsOVERa1)
 0.004				! peristaltic wave speed [m/s]							(s1) 
 1				! number of peristaltic waves 							(numw1)
 1.0				! peristaltic weighting coefficient 						(wc1)	

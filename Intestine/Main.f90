@@ -54,7 +54,14 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
-        !Setup interpolation 
+        do k = 1,nzSub
+           f(:,:,:,k) = 1000*z(k)
+           f_fine(:,:,:,k) = 0.0
+           u(:,:,k) = 1000*z(k)
+           write(31,*) 'k = ', k, ' u(51,45,k) = ', u(51,45,k), ' Delta = ', u(51,45,k)-u(51,45,k-1)
+        end do
+ 
+        ! Setup interpolation 
         CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
         CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
         CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
@@ -63,6 +70,13 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
         CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
 
+        subIter = 0
+        CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
+        do k=1,nzSub_fine
+           write(31,*) 'k = ', k, ' f_fine(0,25,1,k) = ', f_fine(0,25,1,k), ' Delta = ', f_fine(0,25,1,k)-f_fine(0,25,1,k-1)
+           u_fine(:,:,k) = f_fine(0,:,:,k)
+        end do
+        
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintParams_fine		! print simulation info [MODULE: Output]
@@ -76,94 +90,95 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)	! synchronize all processes before starting simulation [Intrinsic]
 
-!	CALL PrintTime 				! print time (scalability) information [MODULE: Output]
+
+  !	CALL PrintTime 				! print time (scalability) information [MODULE: Output]
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simulation Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	DO iter = iter0-0_lng,nt
+! 	DO iter = iter0-0_lng,nt
 
-        write(31,*) 'iter = ', iter
-	CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
-	CALL Collision			! collision step [MODULE: Algorithm]
-        CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+!         write(31,*) 'iter = ', iter
+! 	CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
+! 	CALL Collision			! collision step [MODULE: Algorithm]
+!         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-        CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
-        CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
-        CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
-        CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
-        CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
-        CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
+!         CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
+!         CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
+!         CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
+!         CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
+!         CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
+!         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
 
-        DO subIter=1,gridRatio
-            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
-            CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-            CALL Collision_Fine     ! Collision step on the fine grid
-            CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
-            CALL Stream_Fine            ! Stream fine grid
-            CALL Macro_Fine             ! Calculate Macro properties on fine grid
-            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
-         END DO
-        CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
-        CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
+!         DO subIter=1,gridRatio
+!             CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
+!             CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
+!             CALL Stream_Fine            ! Stream fine grid
+!             CALL Macro_Fine             ! Calculate Macro properties on fine grid
+!             CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+!             CALL Collision_Fine     ! Collision step on the fine grid
+!             CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
+!          END DO
+!         CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
+!         CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
 
-        CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+!         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
 
-	CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
+! 	CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 
-	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
+! 	CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
 
-	IF(iter .GE. phiStart) THEN
-		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
-	END IF
+! 	IF(iter .GE. phiStart) THEN
+! 		CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
+! 	END IF
 
-	! Balaji added to test value with time
-  	!h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
-	!write(*,*) 'physical',(0.5_dbl*D - amp1),amp1,lambda1,s1,iter*tcf,kw1,(zz(nz/2) - (s1*iter*tcf)),rDom(nz/2),rDom(Ck)
-	IF (myid .EQ. master) THEN
-        	!open(70,file='t-history.dat',position='append')
-             	!write(70,*) iter, w(Ci,Cj,Ck),w(Ci+1,Cj,Ck),w(Ci,Cj+1,Ck),w(Ci+1,Cj+1,Ck),w(Ci,Cj,Ck+1),w(Ci+1,Cj,Ck+1),w(Ci,Cj+1,Ck+1),w(Ci+1,Cj+1,Ck+1)
-	        !close(70)
-        	!open(70,file='t-history-1.dat',position='append')
-             	!write(70,*) iter, w(Ci,Cj,Ck),w(Ci-1,Cj,Ck),w(Ci,Cj-1,Ck),w(Ci-1,Cj-1,Ck),w(Ci,Cj,Ck-1),w(Ci-1,Cj,Ck-1),w(Ci,Cj-1,Ck-1),w(Ci-1,Cj-1,Ck-1)
-	        !close(70)
-        	!open(70,file='t-history.dat',position='append')
-             	!write(70,*) iter,w(Ci,Cj,Ck),w(Ci,Cj,Ck-1),w(Ci,Cj,Ck+1),(w(Ci,Cj,Ck)+w(Ci,Cj,Ck-1))*0.5
-	        !close(70)
-        	open(70,file='t-history.dat',position='append')
-             	write(70,*) iter
-	        close(70)
-        	! open(170,file='hh-history.dat',position='append')
-             	! write(170,*) iter,rDom(Ck),rDom(Ck+10),rDom(Ck+20)
-	        ! close(170)
-	       	! open(171,file='vel-history.dat',position='append')
-             	! write(171,*) iter,velDom(Ck),velDom(Ck+10),velDom(Ck+20)
-	        ! close(171)
-	       	! open(172,file='rho-history.dat',position='append')
-             	! write(172,*) iter,rho(Ci,Cj,Ck),rho(Ci,Cj,Ck+10),rho(Ci,Cj,Ck+20)
-	        ! close(172)
-	  	! open(173,file='phi-history.dat',position='append')
-             	! write(173,*) iter,phi(Ci,Cj,Ck),phi(Ci,Cj,Ck+10),phi(Ci,Cj,Ck+20)
-	        ! close(173)
+! 	! Balaji added to test value with time
+!   	!h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
+! 	!write(*,*) 'physical',(0.5_dbl*D - amp1),amp1,lambda1,s1,iter*tcf,kw1,(zz(nz/2) - (s1*iter*tcf)),rDom(nz/2),rDom(Ck)
+! 	IF (myid .EQ. master) THEN
+!         	!open(70,file='t-history.dat',position='append')
+!              	!write(70,*) iter, w(Ci,Cj,Ck),w(Ci+1,Cj,Ck),w(Ci,Cj+1,Ck),w(Ci+1,Cj+1,Ck),w(Ci,Cj,Ck+1),w(Ci+1,Cj,Ck+1),w(Ci,Cj+1,Ck+1),w(Ci+1,Cj+1,Ck+1)
+! 	        !close(70)
+!         	!open(70,file='t-history-1.dat',position='append')
+!              	!write(70,*) iter, w(Ci,Cj,Ck),w(Ci-1,Cj,Ck),w(Ci,Cj-1,Ck),w(Ci-1,Cj-1,Ck),w(Ci,Cj,Ck-1),w(Ci-1,Cj,Ck-1),w(Ci,Cj-1,Ck-1),w(Ci-1,Cj-1,Ck-1)
+! 	        !close(70)
+!         	!open(70,file='t-history.dat',position='append')
+!              	!write(70,*) iter,w(Ci,Cj,Ck),w(Ci,Cj,Ck-1),w(Ci,Cj,Ck+1),(w(Ci,Cj,Ck)+w(Ci,Cj,Ck-1))*0.5
+! 	        !close(70)
+!         	open(70,file='t-history.dat',position='append')
+!              	write(70,*) iter
+! 	        close(70)
+!         	! open(170,file='hh-history.dat',position='append')
+!              	! write(170,*) iter,rDom(Ck),rDom(Ck+10),rDom(Ck+20)
+! 	        ! close(170)
+! 	       	! open(171,file='vel-history.dat',position='append')
+!              	! write(171,*) iter,velDom(Ck),velDom(Ck+10),velDom(Ck+20)
+! 	        ! close(171)
+! 	       	! open(172,file='rho-history.dat',position='append')
+!              	! write(172,*) iter,rho(Ci,Cj,Ck),rho(Ci,Cj,Ck+10),rho(Ci,Cj,Ck+20)
+! 	        ! close(172)
+! 	  	! open(173,file='phi-history.dat',position='append')
+!              	! write(173,*) iter,phi(Ci,Cj,Ck),phi(Ci,Cj,Ck+10),phi(Ci,Cj,Ck+20)
+! 	        ! close(173)
 
-	ENDIF
+! 	ENDIF
 
-     CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
-     ! CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
-     ! CALL PrintMass			! print the total mass in the system (TEST)
-     ! CALL PrintVolume			! print the volume in the system (TEST)
+!      CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
+!      ! CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+!      ! CALL PrintMass			! print the total mass in the system (TEST)
+!      ! CALL PrintVolume			! print the volume in the system (TEST)
 
-     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
-!     CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
-!     CALL PrintMass_fine		! print the total mass in the system (TEST)
-!     CALL PrintVolume_fine		! print the volume in the system (TEST)
+!      CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
+! !     CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+! !     CALL PrintMass_fine		! print the total mass in the system (TEST)
+! !     CALL PrintVolume_fine		! print the volume in the system (TEST)
 
-!	  CALL PrintPeriodicRestart	! print periodic restart files (SAFE GUARD) [MODULE: Output]
+! !	  CALL PrintPeriodicRestart	! print periodic restart files (SAFE GUARD) [MODULE: Output]
 
-	  CALL PrintStatus 		! print current status [MODULE: Output]
+! 	  CALL PrintStatus 		! print current status [MODULE: Output]
 
-	  CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)	! synchronize all processing units before next loop [Intrinsic]
+! 	  CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)	! synchronize all processing units before next loop [Intrinsic]
 
-	END DO
+! 	END DO
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ End Simulation Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !	CALL PrintTime 			! print time (scalability) information [MODULE: Output]
