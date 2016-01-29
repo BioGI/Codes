@@ -281,7 +281,7 @@ READ(10,*) D					! diameter
 READ(10,*) fractionDfine			! fraction of the diameter used for the fine mesh
 READ(10,*) gridRatio			        ! Ratio of coarse/fine grid size
 
-IF (gridRatio .gt. 1) THEN
+IF (gridRatio .ge. 1) THEN
    nx_fine = ( fractionDfine * (nx - 1) + 2 ) * gridRatio + 1
    ny_fine = ( fractionDfine * (ny - 1) + 2 ) * gridRatio + 1
    nz_fine = nz * gridRatio
