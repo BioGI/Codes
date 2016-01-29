@@ -922,10 +922,8 @@ SUBROUTINE PackAndSendDataBufferInterpolation
   fC_bufferSendLeft_bottomXZ(0:NumDistDirs,2,:) = fCtoF_bottomXZ(:,3,:,1+gridRatio)
   fC_bufferSendLeft_topXZ(0:NumDistDirs,1,:) = fCtoF_topXZ(:,3,:,1)
   fC_bufferSendLeft_topXZ(0:NumDistDirs,2,:) = fCtoF_topXZ(:,3,:,1+gridRatio)
-  write(31,*) ' fC_bufferSendLeft_topXZ(0,1,:) = ', fC_bufferSendLeft_topXZ(0,1,:)
-  write(31,*) ' fC_bufferSendLeft_topXZ(0,2,:) = ', fC_bufferSendLeft_topXZ(0,2,:)
   fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,1)
-  fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_bottomXZ(:,3,:,1+gridRatio)  
+  fC_bufferSendLeft_bottomXZ(NumDistDirs+1:NumDistDirs+2,2,:) = dsCtoF_bottomXZ(:,3,:,1+gridRatio)  
   fC_bufferSendLeft_topXZ(NumDistDirs+1:NumDistDirs+2,1,:) = dsCtoF_topXZ(:,3,:,1)
   fC_bufferSendLeft_topXZ(NumDistDirs+1:NumDistDirs+2,2,:) = dsCtoF_topXZ(:,3,:,1+gridRatio)
   
@@ -1031,10 +1029,8 @@ SUBROUTINE ReceiveAndUnpackDataBufferInterpolation
   dsCtoF_bottomXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_bottomXZ(NumDistDirs+1:NumDistDirs+2,2,:)
   
   fCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(0:NumDistDirs,1,:)
-  write(31,*) 'fCtoF_topXZ(:,3,:,nzSub_fine+1) = ', fCtoF_topXZ(0,3,:,nzSub_fine+1)
   dsCtoF_topXZ(:,3,:,nzSub_fine+1) = fC_bufferRecvRight_topXZ(NumDistDirs+1:NumDistDirs+2,1,:)
   fCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(0:NumDistDirs,2,:)
-  write(31,*) 'fCtoF_topXZ(:,3,:,nzSub_fine+1) = ', fCtoF_topXZ(0,3,:,nzSub_fine+1+gridRatio)  
   dsCtoF_topXZ(:,3,:,nzSub_fine+1+gridRatio) = fC_bufferRecvRight_topXZ(NumDistDirs+1:NumDistDirs+2,2,:)
 
   fCtoF_frontYZ(:,3,:,-gridRatio+1) = fC_bufferRecvLeft_frontYZ(0:NumDistDirs,1,:)
