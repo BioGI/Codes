@@ -583,7 +583,7 @@ jp1 = j + ey(m)																		! j + 1
 kp1 = k + ez(m)																		! k + 1
 
 ! if (ip1,jp1,kp1) is not in the fluid domain, use values from the current node as an approximation
-IF(node(ip1,jp1,kp1) .NE. FLUID) THEN
+IF(node_fine(ip1,jp1,kp1) .NE. FLUID) THEN
   ip1 = i
   jp1 = j
   kp1 = k
