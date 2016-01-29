@@ -74,7 +74,7 @@ IF(domaintype .EQ. 0) THEN
       END DO
       
       DO k=0,nzSub_fine+1
-        z_fine(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf_fine
+        z_fine(k) = (((kMin - 1_lng) + k) )*zcf_fine
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
@@ -87,7 +87,7 @@ IF(domaintype .EQ. 0) THEN
       END DO
       
       DO k=0,nz_fine+1
-        zz_fine(k) = (k - 0.5_dbl)*zcf_fine
+        zz_fine(k) = (k)*zcf_fine
       END DO
       
       ! Center node locations
@@ -125,7 +125,7 @@ ELSE
       END DO
       
       DO k=0,nz_fine+1
-        zz_fine(k) = (k - 0.5_dbl)*zcf_fine
+        zz_fine(k) = (k-1)*zcf_fine
       END DO
       
       ! Center node locations
@@ -183,7 +183,7 @@ h2 	= 0.0_dbl						! mode 2 height
 rDom_fine	= 0.0_dbl						! summed height
 
 ! Current Physical Time
-time	= iter*tcf + subIter*tcf_fine
+time	= (iter-1)*tcf + subIter*tcf_fine
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz_fine-1
@@ -292,7 +292,7 @@ v1		= 0.0_dbl						! mode 1 velocity
 v2 		= 0.0_dbl						! mode 2 velocity				
 
 ! Current Physical Time
-time = iter*tcf
+time = (iter-1)*tcf + subIter*tcf_fine
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 !DO i=1,nz

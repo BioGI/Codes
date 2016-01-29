@@ -76,7 +76,8 @@ IF(domaintype .EQ. 0) THEN
       END DO
       
       DO k=0,nzSub+1
-        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf
+!         z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf
+         z(k) = (((kMin - 1_lng) + k - 1))*zcf
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
@@ -89,7 +90,7 @@ IF(domaintype .EQ. 0) THEN
       END DO
       
       DO k=0,nz+1
-        zz(k) = (k - 0.5_dbl)*zcf
+        zz(k) = (k-1)*zcf
       END DO
       
       ! Center node locations
@@ -113,7 +114,7 @@ ELSE
       END DO
       
       DO k=0,nzSub+1
-        z(k) = (((kMin - 1_lng) + k) - 0.5_dbl)*zcf
+        z(k) = (((kMin - 1_lng) + k - 1))*zcf
       END DO
       
       ! Fill out xx,yy,zz arrays (global)
@@ -126,7 +127,7 @@ ELSE
       END DO
       
       DO k=0,nz+1
-        zz(k) = (k - 0.5_dbl)*zcf
+        zz(k) = (k - 1)*zcf
       END DO
       
       ! Center node locations
