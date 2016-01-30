@@ -591,6 +591,187 @@ END DO
 END SUBROUTINE SetProperties_Fine
 !------------------------------------------------
 
+!--------------------------------------------------------------------------------------------------
+SUBROUTINE SetNodesInterface_nPlus1_fine		! Calculates the node_fine values on the fine mesh boundary at the time step 'n+1'
+!--------------------------------------------------------------------------------------------------
+IMPLICIT NONE
+
+REAL(dbl) :: h1(0:nz_fine+1)				! Mode 1 (peristalsis)
+REAL(dbl) :: h2(0:nz_fine+1)				! Mode 2	(segmental)
+REAL(dbl) :: Ac, lambdaC, shiftC	! temporary variables for the cos slopes
+REAL(dbl) :: time						! time
+INTEGER(lng) :: i,j,ii,k			! indices
+REAL(dbl)		:: rijk				! radius of the current node
+
+! Initialize Variables
+time 	= 0.0_dbl						! time					
+!rDom	= 0.5_dbl*D						! summed height
+!h1 	= 0.5_dbl*D						! mode 1 height
+!h2 	= 0.5_dbl*D						! mode 2 height
+h1 	= 0.0_dbl						! mode 1 height
+h2 	= 0.0_dbl						! mode 2 height
+rDom_fine	= 0.0_dbl						! summed height
+
+! Current Physical Time
+time	= iter*tcf
+
+!------------------------- Mode 1 - peristalsis -----------------------------
+DO i=0,nz_fine-1
+
+  h1(i) 	= amp1*(COS(kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
+
+END DO
+
+! since PI cannot be stored exactly, the wavelength(s) does/do not EXACTLY span the domain...
+! set h1(nz) to h1(0) and h1(nz+1) to h(1) to ensure periodicity
+h1(nz_fine) 	= h1(0)
+h1(nz_fine+1)= h1(1)
+
+!------------------- Mode 2 - segmental contractions ------------------------
+
+! Calculate the geometry for the first wave
+! First Straight Piece
+DO i=0,seg1L
+
+  h2(i) = amp2*(COS(((2.0_dbl*PI)/Ts)*time)) + shift2
+  
+END DO
+
+! Second Straight Piece
+DO i=seg1R,seg2L
+
+  h2(i) = amp2*(COS(((2.0_dbl*PI)/Ts)*(time-(Ts/2.0_dbl)))) + shift2
+  
+END DO
+
+! Third Straight Piece
+DO i=seg2R,nlambda2+1
+
+  h2(i) = amp2*(COS(((2.0_dbl*PI)/Ts)*time)) + shift2
+  
+END DO
+
+! First Cos Piece
+Ac	= 0.5_dbl*(h2(seg1L)-h2(seg1R))
+lambdaC	= 2.0_dbl*(zz(seg1L)-zz(seg1R))
+shiftC	= 0.5_dbl*(h2(seg1L)+h2(seg1R))
+DO i=seg1L+1,seg1R-1
+
+  h2(i) = Ac*COS((2.0_dbl*PI/lambdaC)*(zz_fine(i)-zz_fine(seg1L))) + shiftC
+  
+END DO
+
+! Second Cos Piece
+Ac			= 0.5_dbl*(h2(seg2L)-h2(seg2R))
+lambdaC	= 2.0_dbl*(zz_fine(seg2L)-zz_fine(seg2R))
+shiftC	= 0.5_dbl*(h2(seg2L)+h2(seg2R))
+DO i=seg2L+1,seg2R-1
+
+  h2(i) = Ac*COS((2.0_dbl*PI/lambdaC)*(zz_fine(i)-zz_fine(seg2L))) + shiftC
+  
+END DO
+
+! Repeat for the rest of the waves
+DO j=1,(numw2-1)
+  DO i=0,nlambda2+1
+
+    ii = i + j*nlambda2
+    h2(ii) = h2(i)
+
+  END DO
+END DO
+
+! "fudging" to make sure that the whole domain is filled (and periodic) - more logic (and computational expense would be
+! necessary to do this correctly: ideally, one would determine if an even or odd number of waves was specified
+! and then work from either end, and meet in the middle to ensure a symetric domain...
+!h2(nz-1:nz+1) = h2(1)
+
+!----------------------------------------------------------------------------
+
+!-------------------------------- Mode Sum  ---------------------------------
+
+! Sum the modes in a weighted linear combination
+DO i=0,nz_fine+1
+  rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
+END DO
+
+!----------------------------------------------------------------------------
+
+! Fill out the local radius array
+r_fine(0:nzSub_fine+1) = rDom_fine(kMin_fine-1:kMax_fine+1)
+
+! Do top and bottom XZ planes first
+do k=1,nzSub_fine
+   do i=1,nxSub_fine
+
+      node_fine_bottomXZ(1,i,k) = node_fine_bottomXZ(2,i,k)
+      node_fine_bottomXZ(2,i,k) = node_fine_bottomXZ(3,i,k)         
+      
+      rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(1)*y_fine(1))
+      
+      IF(rijk .LT. r_fine(k)) THEN
+         node_fine_bottomXZ(3,i,k) = COARSEMESH 
+         
+      ELSE
+         node_fine_bottomXZ(3,i,k) = SOLID
+         
+      END IF
+
+      node_fine_topXZ(1,i,k) = node_fine_topXZ(2,i,k)
+      node_fine_topXZ(2,i,k) = node_fine_topXZ(3,i,k)         
+      
+      rijk = SQRT(x_fine(i)*x_fine(i) + y_fine(ny_fine)*y_fine(ny_fine))
+      
+      IF(rijk .LT. r_fine(k)) THEN
+         node_fine_topXZ(3,i,k) = COARSEMESH 
+         
+      ELSE
+         node_fine_topXZ(3,i,k) = SOLID
+         
+      END IF
+      
+      
+      
+   end do
+end do
+
+! Do front and back YZ planes now
+do k=1,nzSub_fine
+   do j=1,nySub_fine
+      
+      node_fine_frontYZ(1,j,k) = node_fine_frontYZ(2,j,k)
+      node_fine_frontYZ(2,j,k) = node_fine_frontYZ(3,j,k)         
+      
+      rijk = SQRT(x_fine(1)*x_fine(1) + y_fine(j)*y_fine(j))
+      
+      IF(rijk .LT. r_fine(k)) THEN
+         node_fine_frontYZ(3,j,k) = COARSEMESH 
+         
+      ELSE
+         node_fine_frontYZ(3,j,k) = SOLID
+         
+      END IF
+
+      node_fine_backYZ(1,j,k) = node_fine_backYZ(2,j,k)
+      node_fine_backYZ(2,j,k) = node_fine_backYZ(3,j,k)         
+      
+      rijk = SQRT(x_fine(nx_fine)*x_fine(nx_fine) + y_fine(j)*y_fine(j))
+      
+      IF(rijk .LT. r_fine(k)) THEN
+         node_fine_backYZ(3,j,k) = COARSEMESH 
+         
+      ELSE
+         node_fine_backYZ(3,j,k) = SOLID
+         
+      END IF
+
+   end do
+end do
+
+!------------------------------------------------
+END SUBROUTINE SetNodesInterface_nPlus1_fine
+!------------------------------------------------
+
 !================================================
 END MODULE Geometry_Fine
 !================================================

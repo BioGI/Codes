@@ -1001,13 +1001,13 @@ SUBROUTINE TemporalInterpolateToFineGrid
   do k=1,nzSub_fine
      do i=1,nxSub_fine
         do m=0,NumDistDirs
-           f_fine(m,i,1,k) = temporalInterpolate(fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,2,i,k),fCtoF_bottomXZ(m,3,i,k),tInterp)
-           f_fine(m,i,ny_fine,k) = temporalInterpolate(fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,2,i,k),fCtoF_topXZ(m,3,i,k),tInterp)
+           f_fine(m,i,1,k) = temporalInterpolate(fCtoF_bottomXZ(m,1,i,k),fCtoF_bottomXZ(m,2,i,k),fCtoF_bottomXZ(m,3,i,k), node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
+           f_fine(m,i,ny_fine,k) = temporalInterpolate(fCtoF_topXZ(m,1,i,k),fCtoF_topXZ(m,2,i,k),fCtoF_topXZ(m,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
         end do
-        rho_fine(i,1,k) = temporalInterpolate(dsCtoF_bottomXZ(1,1,i,k),dsCtoF_bottomXZ(1,2,i,k),dsCtoF_bottomXZ(1,3,i,k),tInterp)
-        phi_fine(i,1,k) = temporalInterpolate(dsCtoF_bottomXZ(2,1,i,k),dsCtoF_bottomXZ(2,2,i,k),dsCtoF_bottomXZ(2,3,i,k),tInterp)
-        rho_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(1,1,i,k),dsCtoF_topXZ(1,2,i,k),dsCtoF_topXZ(1,3,i,k),tInterp)
-        phi_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k),tInterp)
+        rho_fine(i,1,k) = temporalInterpolate(dsCtoF_bottomXZ(1,1,i,k),dsCtoF_bottomXZ(1,2,i,k),dsCtoF_bottomXZ(1,3,i,k),node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
+        phi_fine(i,1,k) = temporalInterpolate(dsCtoF_bottomXZ(2,1,i,k),dsCtoF_bottomXZ(2,2,i,k),dsCtoF_bottomXZ(2,3,i,k), node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
+        rho_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(1,1,i,k),dsCtoF_topXZ(1,2,i,k),dsCtoF_topXZ(1,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
+        phi_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
 
      end do
   end do
@@ -1016,13 +1016,13 @@ SUBROUTINE TemporalInterpolateToFineGrid
   do k=1,nzSub_fine
      do j=2,nySub_fine-1
         do m=0,NumDistDirs
-           f_fine(m,1,j,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,2,j,k),fCtoF_frontYZ(m,3,j,k),tInterp)
-           f_fine(m,nx_fine,j,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,2,j,k),fCtoF_backYZ(m,3,j,k),tInterp)
+           f_fine(m,1,j,k) = temporalInterpolate(fCtoF_frontYZ(m,1,j,k),fCtoF_frontYZ(m,2,j,k),fCtoF_frontYZ(m,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
+           f_fine(m,nx_fine,j,k) = temporalInterpolate(fCtoF_backYZ(m,1,j,k),fCtoF_backYZ(m,2,j,k),fCtoF_backYZ(m,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
         end do
-        rho_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(1,1,j,k),dsCtoF_frontYZ(1,2,j,k),dsCtoF_frontYZ(1,3,j,k),tInterp)
-        phi_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k),tInterp)
-        rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k),tInterp)
-        phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k),tInterp)        
+        rho_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(1,1,j,k),dsCtoF_frontYZ(1,2,j,k),dsCtoF_frontYZ(1,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
+        phi_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
+        rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
+        phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)        
      end do
   end do
 
@@ -1169,17 +1169,64 @@ SUBROUTINE InterpolateToCoarseGrid      ! Interpolate required variables to coar
 END SUBROUTINE InterpolateToCoarseGrid
 
 
-FUNCTION temporalInterpolate(f1,f2,f3,t)
+FUNCTION temporalInterpolate(f1,f2,f3,n1,n2,n3,t)
 
   REAL(dbl) :: f1, f2, f3, t
+  REAL(dbl)   :: n1,n2,n3
   REAL(dbl) :: temporalInterpolate
-!  write(*,*) 'Dummy temporal interpolation returning middle value f2 for now'
-  
-  temporalInterpolate = f2 + ((f3-f1)*0.5 + ( (f1+f3)*0.5 - f2)*t) * t
 
+  if (n3 .eq. SOLID) then
+     if (n2 .ne. SOLID) then
+        temporalInterpolate = temporalExtrapolate_n1n2(f1,f2,t)
+     else
+        temporalInterpolate = 0.0
+     end if
+  else if (n1 .eq. SOLID) then
+     if (n2 .ne. SOLID) then
+        temporalInterpolate = temporalInterpolate_n2n3(f2,f3,t)
+     end if
+  else
+     temporalInterpolate = temporalInterpolateAllThree(f1,f2,f3,t)
+  end if
+  
   RETURN
 
 END FUNCTION temporalInterpolate
+
+FUNCTION temporalExtrapolate_n1n2(f1,f2,t)
+
+!!!Linear extrapolation 
+
+  REAL(dbl) :: f1, f2, t
+  REAL(dbl) :: temporalExtrapolate_n1n2
+
+  temporalExtrapolate_n1n2 = t * (f2 - f1) + f2  
+
+  RETURN
+  
+END FUNCTION temporalExtrapolate_n1n2
+
+FUNCTION temporalInterpolate_n2n3(f2,f3,t)
+
+  REAL(dbl) :: f2, f3, t
+  REAL(dbl) :: temporalInterpolate_n2n3
+  
+  temporalInterpolate_n2n3 = f2 + (f3-f2) * t
+
+  RETURN
+
+END FUNCTION temporalInterpolate_n2n3
+
+FUNCTION temporalInterpolateAllThree(f1,f2,f3,t)
+
+  REAL(dbl) :: f1, f2, f3, t
+  REAL(dbl) :: temporalInterpolateAllThree
+
+  temporalInterpolateAllThree = f2 + ((f3-f1)*0.5 + ( (f1+f3)*0.5 - f2)*t) * t
+
+  RETURN
+
+END FUNCTION temporalInterpolateAllThree
 
 FUNCTION spatialInterpolate(f1,f2,f3,f4,n1,n2,n3,n4,s)
 
@@ -1328,7 +1375,10 @@ SUBROUTINE InitializeAllTemporalInterpolation
         dsCtoF_bottomXZ(:,1,i,k) = dsCtoF_bottomXZ(:,3,i,k) !Cycle the last time step to the first time step
         dsCtoF_bottomXZ(:,2,i,k) = dsCtoF_bottomXZ(:,3,i,k) !Cycle the last time step to the second time step
         dsCtoF_topXZ(:,1,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the first time step
-        dsCtoF_topXZ(:,2,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the second time step        
+        dsCtoF_topXZ(:,2,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the second time step
+        node_fine_bottomXZ(:,i,k) = node_fine(i,1,k)
+        node_fine_topXZ(:,i,k) = node_fine(i,ny_fine,k)
+
      end do
   end do
 
@@ -1344,6 +1394,8 @@ SUBROUTINE InitializeAllTemporalInterpolation
         dsCtoF_frontYZ(:,2,j,k) = dsCtoF_frontYZ(:,3,j,k) !Cycle the last time step to the second time step
         dsCtoF_backYZ(:,1,j,k) = dsCtoF_backYZ(:,3,j,k) !Cycle the last time step to the first time step
         dsCtoF_backYZ(:,2,j,k) = dsCtoF_backYZ(:,3,j,k) !Cycle the last time step to the second time step        
+        node_fine_frontYZ(:,j,k) = node_fine(1,j,k)
+        node_fine_backYZ(:,j,k) = node_fine(nx_fine,j,k)
      end do
   end do
   

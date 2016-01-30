@@ -100,7 +100,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
         CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
-
+        CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
+        
         DO subiter=1,gridRatio
            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
            CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration           
