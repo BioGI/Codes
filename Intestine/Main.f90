@@ -61,6 +61,10 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
         CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
+        iter = 0  
+        write(*,*) 'Using iter=0 for initializing SetNodesInterface_nPlus1_fine. Has to be modified for restart'
+        CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
+        iter = iter0
         CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
 
 	CALL PrintParams		! print simulation info [MODULE: Output]
@@ -94,13 +98,13 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
         
+        CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
         CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
         CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
         CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
         CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
         CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
-        CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
         
         DO subiter=1,gridRatio
            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid

@@ -931,23 +931,23 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
            do m=0,NumDistDirs
               fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
               fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
-              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio), node_fine(i,1,lFzIndex-gridRatio), node_fine(i,1,lFzIndex), node_fine(i,1,lFzIndex+gridRatio), node_fine(i,1,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio), node_fine_bottomXZ(3,i,lFzIndex-gridRatio), node_fine(3,i,lFzIndex), node_fine(3,i,lFzIndex+gridRatio), node_fine(3,i,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
 
               fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
               fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step
-              fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fCtoF_topXZ(m,3,i,lFzIndex-gridRatio),fCtoF_topXZ(m,3,i,lFzIndex),fCtoF_topXZ(m,3,i,lFzIndex+gridRatio),fCtoF_topXZ(m,3,i,lFzIndex+2*gridRatio), node_fine(i,ny_fine,lFzIndex-gridRatio), node_fine(i,ny_fine,lFzIndex), node_fine(i,ny_fine,lFzIndex+gridRatio), node_fine(i,ny_fine,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+              fCtoF_topXZ(m,3,i,k) = spatialInterpolate(fCtoF_topXZ(m,3,i,lFzIndex-gridRatio),fCtoF_topXZ(m,3,i,lFzIndex),fCtoF_topXZ(m,3,i,lFzIndex+gridRatio),fCtoF_topXZ(m,3,i,lFzIndex+2*gridRatio), node_fine_topXZ(3,i,lFzIndex-gridRatio), node_fine_topXZ(3,i,lFzIndex), node_fine_topXZ(3,i,lFzIndex+gridRatio), node_fine_topXZ(3,i,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
               
            end do
 
            dsCtoF_bottomXZ(:,1,i,k) = dsCtoF_bottomXZ(:,2,i,k) !Cycle the second time step to the first time step
            dsCtoF_bottomXZ(:,2,i,k) = dsCtoF_bottomXZ(:,3,i,k) !Cycle the last time step to the second time step
-           dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(dsCtoF_bottomXZ(1,3,i,lFzIndex-gridRatio),dsCtoF_bottomXZ(1,3,i,lFzIndex),dsCtoF_bottomXZ(1,3,i,lFzIndex+gridRatio),dsCtoF_bottomXZ(1,3,i,lFzIndex+2*gridRatio),node_fine(i,1,lFzIndex-gridRatio), node_fine(i,1,lFzIndex), node_fine(i,1,lFzIndex+gridRatio), node_fine(i,1,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
-           dsCtoF_bottomXZ(2,3,i,k) = spatialInterpolate(dsCtoF_bottomXZ(2,3,i,lFzIndex-gridRatio),dsCtoF_bottomXZ(2,3,i,lFzIndex),dsCtoF_bottomXZ(2,3,i,lFzIndex+gridRatio),dsCtoF_bottomXZ(2,3,i,lFzIndex+2*gridRatio),node_fine(i,1,lFzIndex-gridRatio), node_fine(i,1,lFzIndex), node_fine(i,1,lFzIndex+gridRatio), node_fine(i,1,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
+           dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(dsCtoF_bottomXZ(1,3,i,lFzIndex-gridRatio),dsCtoF_bottomXZ(1,3,i,lFzIndex),dsCtoF_bottomXZ(1,3,i,lFzIndex+gridRatio),dsCtoF_bottomXZ(1,3,i,lFzIndex+2*gridRatio),node_fine_bottomXZ(3,i,lFzIndex-gridRatio), node_fine_bottomXZ(3,i,lFzIndex), node_fine_bottomXZ(3,i,lFzIndex+gridRatio), node_fine_bottomXZ(3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
+           dsCtoF_bottomXZ(2,3,i,k) = spatialInterpolate(dsCtoF_bottomXZ(2,3,i,lFzIndex-gridRatio),dsCtoF_bottomXZ(2,3,i,lFzIndex),dsCtoF_bottomXZ(2,3,i,lFzIndex+gridRatio),dsCtoF_bottomXZ(2,3,i,lFzIndex+2*gridRatio),node_fine_bottomXZ(3,i,lFzIndex-gridRatio), node_fine_bottomXZ(3,i,lFzIndex), node_fine_bottomXZ(3,i,lFzIndex+gridRatio), node_fine_bottomXZ(3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
            
            dsCtoF_topXZ(:,1,i,k) = dsCtoF_topXZ(:,2,i,k) !Cycle the second time step to the first time step
            dsCtoF_topXZ(:,2,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the second time step
-           dsCtoF_topXZ(1,3,i,k) = spatialInterpolate(dsCtoF_topXZ(1,3,i,lFzIndex-gridRatio),dsCtoF_topXZ(1,3,i,lFzIndex),dsCtoF_topXZ(1,3,i,lFzIndex+gridRatio),dsCtoF_topXZ(1,3,i,lFzIndex+2*gridRatio), node_fine(i,ny_fine,lFzIndex-gridRatio), node_fine(i,ny_fine,lFzIndex), node_fine(i,ny_fine,lFzIndex+gridRatio), node_fine(i,ny_fine,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
-           dsCtoF_topXZ(2,3,i,k) = spatialInterpolate(dsCtoF_topXZ(2,3,i,lFzIndex-gridRatio),dsCtoF_topXZ(2,3,i,lFzIndex),dsCtoF_topXZ(2,3,i,lFzIndex+gridRatio),dsCtoF_topXZ(2,3,i,lFzIndex+2*gridRatio), node_fine(i,ny_fine,lFzIndex-gridRatio), node_fine(i,ny_fine,lFzIndex), node_fine(i,ny_fine,lFzIndex+gridRatio), node_fine(i,ny_fine,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
+           dsCtoF_topXZ(1,3,i,k) = spatialInterpolate(dsCtoF_topXZ(1,3,i,lFzIndex-gridRatio),dsCtoF_topXZ(1,3,i,lFzIndex),dsCtoF_topXZ(1,3,i,lFzIndex+gridRatio),dsCtoF_topXZ(1,3,i,lFzIndex+2*gridRatio), node_fine_topXZ(3,i,lFzIndex-gridRatio), node_fine_topXZ(3,i,lFzIndex), node_fine_topXZ(3,i,lFzIndex+gridRatio), node_fine_topXZ(3,i,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+           dsCtoF_topXZ(2,3,i,k) = spatialInterpolate(dsCtoF_topXZ(2,3,i,lFzIndex-gridRatio),dsCtoF_topXZ(2,3,i,lFzIndex),dsCtoF_topXZ(2,3,i,lFzIndex+gridRatio),dsCtoF_topXZ(2,3,i,lFzIndex+2*gridRatio), node_fine_topXZ(3,i,lFzIndex-gridRatio), node_fine_topXZ(3,i,lFzIndex), node_fine_topXZ(3,i,lFzIndex+gridRatio), node_fine_topXZ(3,i,lFzIndex+2*gridRatio),zInterp) !Interpolate the latest value to the last(third) time step
            
         end do
      END IF
@@ -964,23 +964,23 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
            do m=0,NumDistDirs              
               fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,2,j,k) !Cycle the second time step to the first time step
               fCtoF_frontYZ(m,2,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the second time step
-              fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(fCtoF_frontYZ(m,3,j,lFzIndex-gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex),fCtoF_frontYZ(m,3,j,lFzIndex+gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex+2*gridRatio), node_fine(1,j,lFzIndex-gridRatio), node_fine(1,j,lFzIndex), node_fine(1,j,lFzIndex+gridRatio), node_fine(1,j,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+              fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(fCtoF_frontYZ(m,3,j,lFzIndex-gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex),fCtoF_frontYZ(m,3,j,lFzIndex+gridRatio),fCtoF_frontYZ(m,3,j,lFzIndex+2*gridRatio), node_fine_frontYZ(3,j,lFzIndex-gridRatio), node_fine_frontYZ(3,j,lFzIndex), node_fine_frontYZ(3,j,lFzIndex+gridRatio), node_fine_frontYZ(3,j,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
               
               fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
               fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
-              fCtoF_backYZ(m,3,j,k) = spatialInterpolate(fCtoF_backYZ(m,3,j,lFzIndex-gridRatio),fCtoF_backYZ(m,3,j,lFzIndex),fCtoF_backYZ(m,3,j,lFzIndex+gridRatio),fCtoF_backYZ(m,3,j,lFzIndex+2*gridRatio), node_fine(nx_fine,j,lFzIndex-gridRatio), node_fine(nx_fine,j,lFzIndex), node_fine(nx_fine,j,lFzIndex+gridRatio), node_fine(nx_fine,j,lFzIndex+2*gridRatio), zInterp)              
+              fCtoF_backYZ(m,3,j,k) = spatialInterpolate(fCtoF_backYZ(m,3,j,lFzIndex-gridRatio),fCtoF_backYZ(m,3,j,lFzIndex),fCtoF_backYZ(m,3,j,lFzIndex+gridRatio),fCtoF_backYZ(m,3,j,lFzIndex+2*gridRatio), node_fine_backYZ(3,j,lFzIndex-gridRatio), node_fine_backYZ(3,j,lFzIndex), node_fine_backYZ(3,j,lFzIndex+gridRatio), node_fine_backYZ(3,j,lFzIndex+2*gridRatio), zInterp)              
              
            end do
 
            dsCtoF_frontYZ(:,1,j,k) = dsCtoF_frontYZ(:,2,j,k) !Cycle the second time step to the first time step
            dsCtoF_frontYZ(:,2,j,k) = dsCtoF_frontYZ(:,3,j,k) !Cycle the last time step to the second time step
-           dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(dsCtoF_frontYZ(1,3,j,lFzIndex-gridRatio),dsCtoF_frontYZ(1,3,j,lFzIndex),dsCtoF_frontYZ(1,3,j,lFzIndex+gridRatio),dsCtoF_frontYZ(1,3,j,lFzIndex+2*gridRatio), node_fine(1,j,lFzIndex-gridRatio), node_fine(1,j,lFzIndex), node_fine(1,j,lFzIndex+gridRatio), node_fine(1,j,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
-           dsCtoF_frontYZ(2,3,j,k) = spatialInterpolate(dsCtoF_frontYZ(2,3,j,lFzIndex-gridRatio),dsCtoF_frontYZ(2,3,j,lFzIndex),dsCtoF_frontYZ(2,3,j,lFzIndex+gridRatio),dsCtoF_frontYZ(2,3,j,lFzIndex+2*gridRatio), node_fine(1,j,lFzIndex-gridRatio), node_fine(1,j,lFzIndex), node_fine(1,j,lFzIndex+gridRatio), node_fine(1,j,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+           dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(dsCtoF_frontYZ(1,3,j,lFzIndex-gridRatio),dsCtoF_frontYZ(1,3,j,lFzIndex),dsCtoF_frontYZ(1,3,j,lFzIndex+gridRatio),dsCtoF_frontYZ(1,3,j,lFzIndex+2*gridRatio), node_fine_frontYZ(3,j,lFzIndex-gridRatio), node_fine_frontYZ(3,j,lFzIndex), node_fine_frontYZ(3,j,lFzIndex+gridRatio), node_fine_frontYZ(3,j,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+           dsCtoF_frontYZ(2,3,j,k) = spatialInterpolate(dsCtoF_frontYZ(2,3,j,lFzIndex-gridRatio),dsCtoF_frontYZ(2,3,j,lFzIndex),dsCtoF_frontYZ(2,3,j,lFzIndex+gridRatio),dsCtoF_frontYZ(2,3,j,lFzIndex+2*gridRatio), node_fine_frontYZ(3,j,lFzIndex-gridRatio), node_fine_frontYZ(3,j,lFzIndex), node_fine_frontYZ(3,j,lFzIndex+gridRatio), node_fine_frontYZ(3,j,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
            
            dsCtoF_backYZ(:,1,j,k) = dsCtoF_backYZ(:,2,j,k) !Cycle the second time step to the first time step
            dsCtoF_backYZ(:,2,j,k) = dsCtoF_backYZ(:,3,j,k) !Cycle the last time step to the second time step
-           dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(dsCtoF_backYZ(1,3,j,lFzIndex-gridRatio),dsCtoF_backYZ(1,3,j,lFzIndex),dsCtoF_backYZ(1,3,j,lFzIndex+gridRatio),dsCtoF_backYZ(1,3,j,lFzIndex+2*gridRatio),  node_fine(nx_fine,j,lFzIndex-gridRatio), node_fine(nx_fine,j,lFzIndex), node_fine(nx_fine,j,lFzIndex+gridRatio), node_fine(nx_fine,j,lFzIndex+2*gridRatio), zInterp) 
-           dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(dsCtoF_backYZ(2,3,j,lFzIndex-gridRatio),dsCtoF_backYZ(2,3,j,lFzIndex),dsCtoF_backYZ(2,3,j,lFzIndex+gridRatio),dsCtoF_backYZ(2,3,j,lFzIndex+2*gridRatio),  node_fine(nx_fine,j,lFzIndex-gridRatio), node_fine(nx_fine,j,lFzIndex), node_fine(nx_fine,j,lFzIndex+gridRatio), node_fine(nx_fine,j,lFzIndex+2*gridRatio), zInterp) 
+           dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(dsCtoF_backYZ(1,3,j,lFzIndex-gridRatio),dsCtoF_backYZ(1,3,j,lFzIndex),dsCtoF_backYZ(1,3,j,lFzIndex+gridRatio),dsCtoF_backYZ(1,3,j,lFzIndex+2*gridRatio),  node_fine_backYZ(3,j,lFzIndex-gridRatio), node_fine_backYZ(3,j,lFzIndex), node_fine_backYZ(3,j,lFzIndex+gridRatio), node_fine_backYZ(3,j,lFzIndex+2*gridRatio), zInterp) 
+           dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(dsCtoF_backYZ(2,3,j,lFzIndex-gridRatio),dsCtoF_backYZ(2,3,j,lFzIndex),dsCtoF_backYZ(2,3,j,lFzIndex+gridRatio),dsCtoF_backYZ(2,3,j,lFzIndex+2*gridRatio),  node_fine_backYZ(3,j,lFzIndex-gridRatio), node_fine_backYZ(3,j,lFzIndex), node_fine_backYZ(3,j,lFzIndex+gridRatio), node_fine_backYZ(3,j,lFzIndex+2*gridRatio), zInterp) 
            
         end do
      END IF
@@ -1376,9 +1376,10 @@ SUBROUTINE InitializeAllTemporalInterpolation
         dsCtoF_bottomXZ(:,2,i,k) = dsCtoF_bottomXZ(:,3,i,k) !Cycle the last time step to the second time step
         dsCtoF_topXZ(:,1,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the first time step
         dsCtoF_topXZ(:,2,i,k) = dsCtoF_topXZ(:,3,i,k) !Cycle the last time step to the second time step
-        node_fine_bottomXZ(:,i,k) = node_fine(i,1,k)
-        node_fine_topXZ(:,i,k) = node_fine(i,ny_fine,k)
-
+        node_fine_bottomXZ(1,i,k) = node_fine_bottomXZ(3,i,k)
+        node_fine_bottomXZ(2,i,k) = node_fine_bottomXZ(3,i,k)
+        node_fine_topXZ(1,i,k) = node_fine_topXZ(3,i,k)
+        node_fine_topXZ(2,i,k) = node_fine_topXZ(3,i,k)
      end do
   end do
 
@@ -1394,8 +1395,10 @@ SUBROUTINE InitializeAllTemporalInterpolation
         dsCtoF_frontYZ(:,2,j,k) = dsCtoF_frontYZ(:,3,j,k) !Cycle the last time step to the second time step
         dsCtoF_backYZ(:,1,j,k) = dsCtoF_backYZ(:,3,j,k) !Cycle the last time step to the first time step
         dsCtoF_backYZ(:,2,j,k) = dsCtoF_backYZ(:,3,j,k) !Cycle the last time step to the second time step        
-        node_fine_frontYZ(:,j,k) = node_fine(1,j,k)
-        node_fine_backYZ(:,j,k) = node_fine(nx_fine,j,k)
+        node_fine_frontYZ(1,j,k) = node_fine_frontYZ(3,j,k)
+        node_fine_frontYZ(2,j,k) = node_fine_frontYZ(3,j,k)
+        node_fine_backYZ(1,j,k) = node_fine_backYZ(3,j,k)
+        node_fine_backYZ(2,j,k) = node_fine_backYZ(3,j,k)
      end do
   end do
   
