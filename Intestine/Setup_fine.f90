@@ -224,10 +224,10 @@ real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_bottomXZ
 real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_frontYZ
 real(dbl), allocatable, dimension(:,:,:,:) :: dsCtoF_backYZ                                
 
-real(dbl), allocatable, dimension(:,:,:) :: node_fine_topXZ
-real(dbl), allocatable, dimension(:,:,:) :: node_fine_bottomXZ
-real(dbl), allocatable, dimension(:,:,:) :: node_fine_frontYZ
-real(dbl), allocatable, dimension(:,:,:) :: node_fine_backYZ
+INTEGER, allocatable, dimension(:,:,:) :: node_fine_topXZ
+INTEGER, allocatable, dimension(:,:,:) :: node_fine_bottomXZ
+INTEGER, allocatable, dimension(:,:,:) :: node_fine_frontYZ
+INTEGER, allocatable, dimension(:,:,:) :: node_fine_backYZ
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

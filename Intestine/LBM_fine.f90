@@ -1172,7 +1172,7 @@ END SUBROUTINE InterpolateToCoarseGrid
 FUNCTION temporalInterpolate(f1,f2,f3,n1,n2,n3,t)
 
   REAL(dbl) :: f1, f2, f3, t
-  REAL(dbl)   :: n1,n2,n3
+  INTEGER   :: n1,n2,n3
   REAL(dbl) :: temporalInterpolate
 
   if (n3 .eq. SOLID) then
