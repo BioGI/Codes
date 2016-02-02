@@ -657,7 +657,7 @@ ALLOCATE(msgSize_fine(NumCommDirs))								! array of the number of elements sen
 ALLOCATE(req_fine(2*NumCommDirs))									! allocate the MPI send request array
 
 ! Geometry Arrays
-ALLOCATE(rDom0_fine(-gridRatio+1:nz_fine+gridRatio),rDom_fine(-gridRatio+1:nz_fine+gridRatio),r_fine(-gridRatio+1:nzSub_fine+gridRatio))		! intial and current radius (global), current radius (local)
+ALLOCATE(rDom0_fine(-gridRatio+1:nz_fine+gridRatio+1),rDom_fine(-gridRatio+1:nz_fine+gridRatio+1),r_fine(-gridRatio+1:nzSub_fine+gridRatio+1))		! intial and current radius (global), current radius (local)
 ALLOCATE(velDom_fine(0:nz_fine+1),vel_fine(0:nzSub_fine+1))					! global and local wall velocities
 ALLOCATE(x_fine(0:nxSub_fine+1),y_fine(0:nySub_fine+1),z_fine(-gridRatio+1:nzSub_fine+gridRatio))		! x, y, z, physical coordinate arrays (local)
 ALLOCATE(xx_fine(0:nx_fine+1),yy_fine(0:ny_fine+1),zz_fine(0:nz_fine+1))				! x, y, z, physical coordinate arrays (global)

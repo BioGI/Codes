@@ -167,8 +167,8 @@ SUBROUTINE BoundaryPosition_fine		! Calculates the position of the wall at the c
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-REAL(dbl) :: h1(-gridRatio+1:nz_fine+gridRatio)				! Mode 1 (peristalsis)
-REAL(dbl) :: h2(-gridRatio+1:nz_fine+gridRatio)				! Mode 2	(segmental)
+REAL(dbl) :: h1(-gridRatio+1:nz_fine+gridRatio+1)				! Mode 1 (peristalsis)
+REAL(dbl) :: h2(-gridRatio+1:nz_fine+gridRatio+1)				! Mode 2	(segmental)
 REAL(dbl) :: Ac, lambdaC, shiftC	! temporary variables for the cos slopes
 REAL(dbl) :: time						! time
 INTEGER(lng) :: i,j,ii,k			! indices
@@ -199,7 +199,7 @@ h1(nz_fine+1)= h1(1)
 do k=-gridRatio+1,-1,1
    h1(k) = h1(nz_fine+k)
 end do
-do k = nz_fine+1,nz_fine+gridRatio,1
+do k = nz_fine+1,nz_fine+gridRatio+1,1
    h1(k) = h1(k-nz_fine)
 end do
 !------------------- Mode 2 - segmental contractions ------------------------
@@ -263,7 +263,7 @@ END DO
 do k=-gridRatio+1,-1,1
    h2(k) = h2(nz_fine+k)
 end do
-do k = nz_fine+1,nz_fine+gridRatio,1
+do k = nz_fine+1,nz_fine+gridRatio+1,1
    h2(k) = h2(k-nz_fine)
 end do
 
@@ -272,14 +272,14 @@ end do
 !-------------------------------- Mode Sum  ---------------------------------
 
 ! Sum the modes in a weighted linear combination
-DO i=-gridRatio+1,nz_fine+gridRatio
+DO i=-gridRatio+1,nz_fine+gridRatio+1
   rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
 END DO
 
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r_fine(-gridRatio+1:nzSub_fine+gridRatio) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio)
+r_fine(-gridRatio+1:nzSub_fine+gridRatio+1) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio+1)
 
 !------------------------------------------------
 END SUBROUTINE BoundaryPosition_fine
@@ -606,8 +606,8 @@ SUBROUTINE SetNodesInterface_nPlus1_fine		! Calculates the node_fine values on t
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-REAL(dbl) :: h1(-gridRatio+1:nz_fine+gridRatio)		! Mode 1 (peristalsis)
-REAL(dbl) :: h2(-gridRatio+1:nz_fine+gridRatio)		! Mode 2	(segmental)
+REAL(dbl) :: h1(-gridRatio+1:nz_fine+gridRatio+1)		! Mode 1 (peristalsis)
+REAL(dbl) :: h2(-gridRatio+1:nz_fine+gridRatio+1)		! Mode 2	(segmental)
 REAL(dbl) :: Ac, lambdaC, shiftC	! temporary variables for the cos slopes
 REAL(dbl) :: time						! time
 INTEGER(lng) :: i,j,ii,k			! indices
@@ -639,7 +639,7 @@ h1(nz_fine+1)= h1(1)
 do k=-gridRatio,-1,1
    h1(k) = h1(nz_fine+k)
 end do
-do k = nz_fine+1,nz_fine+gridRatio,1
+do k = nz_fine+1,nz_fine+gridRatio+1,1
    h1(k) = h1(k-nz_fine)
 end do
 
@@ -704,7 +704,7 @@ END DO
 do k=-gridRatio,-1,1
    h2(k) = h2(nz_fine+k)
 end do
-do k = nz_fine+1,nz_fine+gridRatio,1
+do k = nz_fine+1,nz_fine+gridRatio+1,1
    h2(k) = h2(k-nz_fine)
 end do
 
@@ -713,14 +713,14 @@ end do
 !-------------------------------- Mode Sum  ---------------------------------
 
 ! Sum the modes in a weighted linear combination
-DO i=-gridRatio+1,nz_fine+gridRatio
+DO i=-gridRatio+1,nz_fine+gridRatio+1
   rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
 END DO
 
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r_fine(-gridRatio+1:nzSub_fine+gridRatio) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio)
+r_fine(-gridRatio+1:nzSub_fine+gridRatio+1) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio+1)
 
 ! Do top and bottom XZ planes first
 do k=-gridRatio+1,nzSub_fine+gridRatio
