@@ -678,10 +678,10 @@ allocate(dsCtoF_frontYZ(2,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))
 allocate(dsCtoF_backYZ(2,3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
 
 !Node values at the 3 different time levels
-allocate(node_fine_topXZ(3,nxSub_fine,1:nzSub_fine))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(node_fine_bottomXZ(3,nxSub_fine,1:nzSub_fine))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
-allocate(node_fine_frontYZ(3,2:nySub_fine-1,1:nzSub_fine))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
-allocate(node_fine_backYZ(3,2:nySub_fine-1,1:nzSub_fine))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(node_fine_topXZ(3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))     !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(node_fine_bottomXZ(3,nxSub_fine,-gridRatio+1:nzSub_fine+gridRatio+1))  !Includes the ends - Indices are directionalDensity, timeLevel, x Index, z Index
+allocate(node_fine_frontYZ(3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))   !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
+allocate(node_fine_backYZ(3,2:nySub_fine-1,-gridRatio+1:nzSub_fine+gridRatio+1))    !Does not include the ends - Indices are directionalDensity, timeLevel, y Index, z Index
 
 !When sending and receiving buffers, the first NumDistDirs components are the density distributions. The last two are the density and scalar concentration.
 allocate(fC_bufferSendLeft_topXZ(0:NumDistDirs+2,2,1:nx_fine))

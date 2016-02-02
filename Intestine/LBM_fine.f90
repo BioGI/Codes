@@ -931,7 +931,7 @@ SUBROUTINE ZSpatialInterpolateToFineGrid    ! Interpolate required variable to f
            do m=0,NumDistDirs
               fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,2,i,k) !Cycle the second time step to the first time step
               fCtoF_bottomXZ(m,2,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the second time step
-              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio), node_fine_bottomXZ(3,i,lFzIndex-gridRatio), node_fine(3,i,lFzIndex), node_fine(3,i,lFzIndex+gridRatio), node_fine(3,i,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
+              fCtoF_bottomXZ(m,3,i,k) = spatialInterpolate(fCtoF_bottomXZ(m,3,i,lFzIndex-gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex),fCtoF_bottomXZ(m,3,i,lFzIndex+gridRatio),fCtoF_bottomXZ(m,3,i,lFzIndex+2*gridRatio), node_fine_bottomXZ(3,i,lFzIndex-gridRatio), node_fine_bottomXZ(3,i,lFzIndex), node_fine_bottomXZ(3,i,lFzIndex+gridRatio), node_fine_bottomXZ(3,i,lFzIndex+2*gridRatio), zInterp) !Interpolate the latest value to the last(third) time step
 
               fCtoF_topXZ(m,1,i,k) = fCtoF_topXZ(m,2,i,k) !Cycle the second time step to the first time step
               fCtoF_topXZ(m,2,i,k) = fCtoF_topXZ(m,3,i,k) !Cycle the last time step to the second time step

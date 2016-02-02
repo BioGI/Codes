@@ -636,7 +636,7 @@ END DO
 ! set h1(nz) to h1(0) and h1(nz+1) to h(1) to ensure periodicity
 h1(nz_fine) 	= h1(0)
 h1(nz_fine+1)= h1(1)
-do k=-gridRatio,-1,1
+do k=-gridRatio+1,-1,1
    h1(k) = h1(nz_fine+k)
 end do
 do k = nz_fine+1,nz_fine+gridRatio+1,1
@@ -701,7 +701,7 @@ END DO
 ! necessary to do this correctly: ideally, one would determine if an even or odd number of waves was specified
 ! and then work from either end, and meet in the middle to ensure a symetric domain...
 !h2(nz-1:nz+1) = h2(1)
-do k=-gridRatio,-1,1
+do k=-gridRatio+1,-1,1
    h2(k) = h2(nz_fine+k)
 end do
 do k = nz_fine+1,nz_fine+gridRatio+1,1
@@ -723,7 +723,7 @@ END DO
 r_fine(-gridRatio+1:nzSub_fine+gridRatio+1) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio+1)
 
 ! Do top and bottom XZ planes first
-do k=-gridRatio+1,nzSub_fine+gridRatio
+do k=-gridRatio+1,nzSub_fine+gridRatio+1
    do i=1,nxSub_fine
 
       node_fine_bottomXZ(1,i,k) = node_fine_bottomXZ(2,i,k)
@@ -758,8 +758,8 @@ do k=-gridRatio+1,nzSub_fine+gridRatio
 end do
 
 ! Do front and back YZ planes now
-do k=-gridRatio+1,nzSub_fine+gridRatio
-   do j=1,nySub_fine
+do k=-gridRatio+1,nzSub_fine+gridRatio+1
+   do j=2,nySub_fine-1
       
       node_fine_frontYZ(1,j,k) = node_fine_frontYZ(2,j,k)
       node_fine_frontYZ(2,j,k) = node_fine_frontYZ(3,j,k)         
