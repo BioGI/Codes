@@ -1364,7 +1364,7 @@ SUBROUTINE InitializeAllTemporalInterpolation
 
   INTEGER :: i,j,k,m !Counter variables
   
-  do k=1,nzSub_fine
+  do k=-gridRatio+1,nzSub_fine+gridRatio+1
      do i=1,nxSub_fine
         do m=0,NumDistDirs
            fCtoF_bottomXZ(m,1,i,k) = fCtoF_bottomXZ(m,3,i,k) !Cycle the last time step to the first time step
@@ -1383,7 +1383,7 @@ SUBROUTINE InitializeAllTemporalInterpolation
      end do
   end do
 
-  do k=1,nzSub_fine
+  do k=-gridRatio+1,nzSub_fine+gridRatio+1
      do j=2,nySub_fine-1
         do m=0,NumDistDirs
            fCtoF_frontYZ(m,1,j,k) = fCtoF_frontYZ(m,3,j,k) !Cycle the last time step to the first time step
