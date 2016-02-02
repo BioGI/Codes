@@ -167,8 +167,8 @@ SUBROUTINE BoundaryPosition_fine		! Calculates the position of the wall at the c
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-REAL(dbl) :: h1(0:nz_fine+1)				! Mode 1 (peristalsis)
-REAL(dbl) :: h2(0:nz_fine+1)				! Mode 2	(segmental)
+REAL(dbl) :: h1(-gridRatio+1:nz_fine+gridRatio)				! Mode 1 (peristalsis)
+REAL(dbl) :: h2(-gridRatio+1:nz_fine+gridRatio)				! Mode 2	(segmental)
 REAL(dbl) :: Ac, lambdaC, shiftC	! temporary variables for the cos slopes
 REAL(dbl) :: time						! time
 INTEGER(lng) :: i,j,ii,k			! indices
@@ -196,7 +196,12 @@ END DO
 ! set h1(nz) to h1(0) and h1(nz+1) to h(1) to ensure periodicity
 h1(nz_fine) 	= h1(0)
 h1(nz_fine+1)= h1(1)
-
+do k=-gridRatio+1,-1,1
+   h1(k) = h1(nz_fine+k)
+end do
+do k = nz_fine+1,nz_fine+gridRatio,1
+   h1(k) = h1(k-nz_fine)
+end do
 !------------------- Mode 2 - segmental contractions ------------------------
 
 ! Calculate the geometry for the first wave
@@ -255,21 +260,26 @@ END DO
 ! necessary to do this correctly: ideally, one would determine if an even or odd number of waves was specified
 ! and then work from either end, and meet in the middle to ensure a symetric domain...
 !h2(nz-1:nz+1) = h2(1)
+do k=-gridRatio+1,-1,1
+   h2(k) = h2(nz_fine+k)
+end do
+do k = nz_fine+1,nz_fine+gridRatio,1
+   h2(k) = h2(k-nz_fine)
+end do
 
 !----------------------------------------------------------------------------
 
 !-------------------------------- Mode Sum  ---------------------------------
 
 ! Sum the modes in a weighted linear combination
-DO i=0,nz_fine+1
+DO i=-gridRatio+1,nz_fine+gridRatio
   rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
 END DO
 
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r_fine(0:nzSub_fine+1) = rDom_fine(kMin_fine-1:kMax_fine+1)
-
+r_fine(-gridRatio+1:nzSub_fine+gridRatio) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio)
 
 !------------------------------------------------
 END SUBROUTINE BoundaryPosition_fine
@@ -596,8 +606,8 @@ SUBROUTINE SetNodesInterface_nPlus1_fine		! Calculates the node_fine values on t
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-REAL(dbl) :: h1(0:nz_fine+1)				! Mode 1 (peristalsis)
-REAL(dbl) :: h2(0:nz_fine+1)				! Mode 2	(segmental)
+REAL(dbl) :: h1(-gridRatio+1:nz_fine+gridRatio)		! Mode 1 (peristalsis)
+REAL(dbl) :: h2(-gridRatio+1:nz_fine+gridRatio)		! Mode 2	(segmental)
 REAL(dbl) :: Ac, lambdaC, shiftC	! temporary variables for the cos slopes
 REAL(dbl) :: time						! time
 INTEGER(lng) :: i,j,ii,k			! indices
@@ -626,6 +636,12 @@ END DO
 ! set h1(nz) to h1(0) and h1(nz+1) to h(1) to ensure periodicity
 h1(nz_fine) 	= h1(0)
 h1(nz_fine+1)= h1(1)
+do k=-gridRatio,-1,1
+   h1(k) = h1(nz_fine+k)
+end do
+do k = nz_fine+1,nz_fine+gridRatio,1
+   h1(k) = h1(k-nz_fine)
+end do
 
 !------------------- Mode 2 - segmental contractions ------------------------
 
@@ -685,23 +701,29 @@ END DO
 ! necessary to do this correctly: ideally, one would determine if an even or odd number of waves was specified
 ! and then work from either end, and meet in the middle to ensure a symetric domain...
 !h2(nz-1:nz+1) = h2(1)
+do k=-gridRatio,-1,1
+   h2(k) = h2(nz_fine+k)
+end do
+do k = nz_fine+1,nz_fine+gridRatio,1
+   h2(k) = h2(k-nz_fine)
+end do
 
 !----------------------------------------------------------------------------
 
 !-------------------------------- Mode Sum  ---------------------------------
 
 ! Sum the modes in a weighted linear combination
-DO i=0,nz_fine+1
+DO i=-gridRatio+1,nz_fine+gridRatio
   rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
 END DO
 
 !----------------------------------------------------------------------------
 
 ! Fill out the local radius array
-r_fine(0:nzSub_fine+1) = rDom_fine(kMin_fine-1:kMax_fine+1)
+r_fine(-gridRatio+1:nzSub_fine+gridRatio) = rDom_fine(kMin_fine-gridRatio:kMax_fine+gridRatio)
 
 ! Do top and bottom XZ planes first
-do k=1,nzSub_fine
+do k=-gridRatio+1,nzSub_fine+gridRatio
    do i=1,nxSub_fine
 
       node_fine_bottomXZ(1,i,k) = node_fine_bottomXZ(2,i,k)
@@ -736,7 +758,7 @@ do k=1,nzSub_fine
 end do
 
 ! Do front and back YZ planes now
-do k=1,nzSub_fine
+do k=-gridRatio+1,nzSub_fine+gridRatio
    do j=1,nySub_fine
       
       node_fine_frontYZ(1,j,k) = node_fine_frontYZ(2,j,k)
