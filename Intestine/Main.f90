@@ -55,18 +55,21 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
 
         ! Setup interpolation 
+        iter = 0  
+        write(*,*) 'Using iter=0 for initializing SetNodesInterface_nPlus1_fine. Has to be modified for restart'
+        CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
         CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
         CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
         CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
         CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
         CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
-        iter = 0  
-        write(*,*) 'Using iter=0 for initializing SetNodesInterface_nPlus1_fine. Has to be modified for restart'
-        CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
-        iter = iter0
         CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
 
+        iter=0
+        subIter=0
+        CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration                   
+        
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintParams_fine		! print simulation info [MODULE: Output]
@@ -114,8 +117,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
            CALL Collision_Fine     ! Collision step on the fine grid
            CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
-            
-         END DO
+
+        END DO
 
          CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]                       
          CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
