@@ -136,8 +136,10 @@ ELSE
 ENDIF
 
 IF(restart .EQV. .FALSE.) THEN
-  ! Initialize the Geometry
-  CALL AdvanceGeometry_fine
+   ! Initialize the Geometry
+   subIter=gridRatio
+   CALL AdvanceGeometry_fine
+   subIter=0
 END IF
 
 !------------------------------------------------
@@ -767,11 +769,9 @@ do k=-gridRatio+1,nzSub_fine+gridRatio+1
       rijk = SQRT(x_fine(1)*x_fine(1) + y_fine(j)*y_fine(j))
       
       IF(rijk .LT. r_fine(k)) THEN
-         node_fine_frontYZ(3,j,k) = COARSEMESH 
-         
+         node_fine_frontYZ(3,j,k) = COARSEMESH          
       ELSE
-         node_fine_frontYZ(3,j,k) = SOLID
-         
+         node_fine_frontYZ(3,j,k) = SOLID         
       END IF
 
       node_fine_backYZ(1,j,k) = node_fine_backYZ(2,j,k)
@@ -780,11 +780,9 @@ do k=-gridRatio+1,nzSub_fine+gridRatio+1
       rijk = SQRT(x_fine(nx_fine)*x_fine(nx_fine) + y_fine(j)*y_fine(j))
       
       IF(rijk .LT. r_fine(k)) THEN
-         node_fine_backYZ(3,j,k) = COARSEMESH 
-         
+         node_fine_backYZ(3,j,k) = COARSEMESH                  
       ELSE
          node_fine_backYZ(3,j,k) = SOLID
-         
       END IF
 
    end do
