@@ -539,6 +539,54 @@ END DO
 END SUBROUTINE SetNodes_fine
 !------------------------------------------------
 
+SUBROUTINE FlagFineMeshNodesIntersectingWithCoarseMeshNodes
+
+INTEGER(lng)	:: i,j,k,m	! index variables
+INTEGER :: ii, jj, kk, iFine, jFine, kFine
+REAL(dbl) :: xcfBy2, xcfBy2_fine ! Half of LBM resolution
+
+
+xcfBy2 = 0.5*xcf
+xcfBy2_fine = 0.5 * xcf_fine
+
+!Do the bottom and top x-z planes first
+do k=1,nzSub
+   kFine = 1 + (k-1)*gridRatio
+   do j=47,55
+      jFine = 1 + (j-45)*gridRatio
+
+      iFine = 1 !Front XZ plane
+      do ii=0,gridRatio/2 !Complete overlap with coarse mesh node
+         if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then
+            
+            do jj=-gridRatio/2,gridRatio/2
+               if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then                      
+                  do kk=-gridRatio/2,gridRatio/2
+                     flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = degreeOverlapCube(x(46)-xcfBy2, x(46)+xcfBy2, y(j)-xcfBy2, y(j)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
+                  end do
+               end if
+            end do
+         end if
+      end do
+      
+      iFine = nx_fine !Back YZ plane
+      do ii=0,gridRatio/2 !Complete overlap with coarse mesh node
+         if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then         
+            do jj=-gridRatio/2,gridRatio/2
+               if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then
+                  do kk=-gridRatio/2,gridRatio/2
+                     flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = degreeOverlapCube(x(56)-xcfBy2, x(56)+xcfBy2, y(j)-xcfBy2, y(j)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
+                  end do
+               end if
+            end do
+         end if
+      end do
+      
+   end do
+enddo
+  
+END SUBROUTINE FlagFineMeshNodesIntersectingWithCoarseMeshNodes
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE SetProperties_fine(i,j,k,ubx,uby,ubz)	! give properties to nodes that just came into the fluid domain (uncovered)
 !--------------------------------------------------------------------------------------------------
@@ -791,6 +839,19 @@ end do
 !------------------------------------------------
 END SUBROUTINE SetNodesInterface_nPlus1_fine
 !------------------------------------------------
+
+FUNCTION degreeOverlapCube(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
+
+  !! Find the degree of overlap between two cubes
+  ! First cube (assumed to be larger - coarse mesh) has corners (x,y,z) and (xp,yp,zp)
+  ! Second cube (assumed to be smaller - fine mesh) has corners (a,b,c) and (ap,bp,cp)
+  
+  REAL(dbl) :: x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp
+  REAL(dbl) :: degreeOverlapCube
+
+  degreeOverlapCube = max(min(ap,xp)-max(a,x1),0.0_dbl) * max(min(bp,yp)-max(b,y1),0.0_dbl) * max(min(cp,zp)-max(c,z1),0.0_dbl) / (xcf*ycf*zcf)
+
+END FUNCTION degreeOverlapCube
 
 !================================================
 END MODULE Geometry_Fine

@@ -229,6 +229,8 @@ INTEGER, allocatable, dimension(:,:,:) :: node_fine_bottomXZ
 INTEGER, allocatable, dimension(:,:,:) :: node_fine_frontYZ
 INTEGER, allocatable, dimension(:,:,:) :: node_fine_backYZ
 
+INTEGER, allocatable, dimension(:,:,:) :: flagNodeIntersectCoarse !Flag nodes that intersect with the volume around coarse mesh nodes
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -703,6 +705,8 @@ allocate(fC_bufferSendRight_backYZ(0:NumDistDirs+2,1,2:ny_fine-1))
 allocate(fC_bufferRecvRight_backYZ(0:NumDistDirs+2,2,2:ny_fine-1))
 
 ALLOCATE(reqInterpolationBuffer(8))
+
+ALLOCATE(flagNodeIntersectCoarse(nx_fine, ny_fine, nz_fine))
 !------------------------------------------------
 END SUBROUTINE AllocateArrays_Fine
 !------------------------------------------------
