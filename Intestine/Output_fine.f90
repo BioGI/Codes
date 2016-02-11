@@ -201,10 +201,10 @@ DO k=0,nzSub+1
   END DO
 END DO
 
-WRITE(500,*) phiAbsorbed
-WRITE(500,*) phiAbsorbedS
-WRITE(500,*) phiAbsorbedV
-WRITE(500,*) phiInOut
+WRITE(500,*) phiAbsorbed_fine
+WRITE(500,*) phiAbsorbedS_fine
+WRITE(500,*) phiAbsorbedV_fine
+WRITE(500,*) phiInOut_fine
 
 CLOSE(500)
 

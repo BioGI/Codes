@@ -69,7 +69,7 @@ DO k=1,nzSub_fine
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
-!            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
+            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error_fine.txt")
             WRITE(1000,'(A75)') "error in PassiveScalar_fine.f90 at Line 66: node(im1,jm1,km1) is out of range"
@@ -116,9 +116,9 @@ REAL(dbl), INTENT(IN) :: phiBC     				! scalar contribution from the boundary c
 REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
 
 phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
-phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
+phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp(i,j,k)	! contribution to the wall from the current node (out)
 
-phiAbsorbedS = phiAbsorbedS + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
+phiAbsorbedS_fine = phiAbsorbedS_fine + (phiOUT - phiIN)	! add the amount of scalar that has been absorbed at the current location in the current direction
 
 !------------------------------------------------
 END SUBROUTINE AbsorbedScalarS_fine
