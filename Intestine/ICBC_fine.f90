@@ -179,26 +179,26 @@ ELSE
   
     CASE(LINE) 						! line of scalar along axis
 
-      IF((SubID(2) .EQ. 0) .AND. (SubID(4) .EQ. 0)) THEN			! if no neighboring subdomains exist in the 2nd and 4th directions, then they lie at the centerline
+!       IF((SubID(2) .EQ. 0) .AND. (SubID(4) .EQ. 0)) THEN			! if no neighboring subdomains exist in the 2nd and 4th directions, then they lie at the centerline
 
-!        ! maintain scalar at centerline
-!        DO k=0,nzSub+1
-!          phi(1,1,k) = phiIC*ee**(-((x(1)**2 + y(1)**2)/(2.0_dbl*sigma**2)))
-!        END DO
+! !        ! maintain scalar at centerline
+! !        DO k=0,nzSub+1
+! !          phi(1,1,k) = phiIC*ee**(-((x(1)**2 + y(1)**2)/(2.0_dbl*sigma**2)))
+! !        END DO
 
-        DO k=0,nzSub+1
-          DO j=0,nySub+1
-            DO i=0,nxSub+1
+!         DO k=0,nzSub+1
+!           DO j=0,nySub+1
+!             DO i=0,nxSub+1
 
-              IF((ABS(x(i)) .LE. 2.51_dbl*xcf) .AND. (ABS(y(j)) .LE. 2.51_dbl*ycf)) THEN				! (5.01 in case it is slightly higher than 5 due to round-off)
-                phi(i,j,k) = phiIC																						! 2D Gaussian Distribution in x and y (maintain phi=1 at r=2.5*zcf)
-              END IF
+!               IF((ABS(x(i)) .LE. 2.51_dbl*xcf) .AND. (ABS(y(j)) .LE. 2.51_dbl*ycf)) THEN				! (5.01 in case it is slightly higher than 5 due to round-off)
+!                 phi(i,j,k) = phiIC																						! 2D Gaussian Distribution in x and y (maintain phi=1 at r=2.5*zcf)
+!               END IF
 
-            END DO
-          END DO
-        END DO  
+!             END DO
+!           END DO
+!         END DO  
 
-      END IF
+!       END IF
 
     CASE(INLET) 						! constant scalar at the inlet
  
