@@ -127,6 +127,8 @@ phiIN 	= phiBC																						! contribution from the wall to the crrent n
 phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
 
 phiAbsorbedS = phiAbsorbedS + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
+!write(31,*) 'phiAbsorbedS = ', phiAbsorbedS, 'i,j,k,m,phiBC = ', i,j,k,m,phiBC
+
 
 !------------------------------------------------
 END SUBROUTINE AbsorbedScalarS

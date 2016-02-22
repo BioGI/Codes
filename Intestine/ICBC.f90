@@ -1187,11 +1187,14 @@ phiijk_m	= (fplus(m,i,j,k)/rho(i,j,k) - wt(m)*Delta)*phiTemp(i,j,k)	! contributi
 
 ! if q is too small, the extrapolation to phiBC can create a large error...
 IF(q .LT. 0.25) THEN
+!   write(31,*) 'Real q = ', q   
   q = 0.25_dbl  																		! approximate the distance ratio as 0.25
 END IF
 
 ! extrapolate using phiB and phijk_m to obtain contribution from the solid node to the current node
 phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at the solid node, using q
+!write(31,*) 'm,i,j,k,q =', m,i,j,k,q, 'phiB = ', phiB, ' phiijk_m = ', phiijk_m
+!write(31,*) 'fplus(m,i,j,k) = ', fplus(m,i,j,k), ' rho(i,j,k) = ', rho(i,j,k), ' phiTemp(i,j,k) = ', phiTemp(i,j,k)
 
 !------------------------------------------------
 END SUBROUTINE ScalarBC
