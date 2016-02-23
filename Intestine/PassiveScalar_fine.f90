@@ -118,7 +118,7 @@ REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
 phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
 phiOUT	= (fplus_fine(bb(m),i,j,k)/rho_fine(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp_fine(i,j,k)	! contribution to the wall from the current node (out)
 
-phiAbsorbedS_fine = phiAbsorbedS_fine + (phiOUT - phiIN)	! add the amount of scalar that has been absorbed at the current location in the current direction
+phiAbsorbedS_fine = phiAbsorbedS_fine + (1.0 - flagNodeIntersectCoarse(i,j,k) ) * (phiOUT - phiIN)	! add the amount of scalar that has been absorbed at the current location in the current direction
 !write(31,*) 'phiAbsorbedS_fine = ', phiAbsorbedS_fine, 'i,j,k,m,phiBC = ', i,j,k,m,phiBC
 
 !------------------------------------------------
