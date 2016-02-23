@@ -52,7 +52,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
   	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
 	CALL ICs			! set initial conditions [MODULE: ICBC]
-	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]
+	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]       
 
         ! Setup interpolation 
         iter = 0  
@@ -69,6 +69,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         iter=0
         subIter=0
         CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration                   
+        CALL FlagFineMeshNodesIntersectingWithCoarseMeshNodes
         
 	CALL PrintParams		! print simulation info [MODULE: Output]
 	CALL PrintFields		! output the velocity, density, and scalar fields [MODULE: Output]
