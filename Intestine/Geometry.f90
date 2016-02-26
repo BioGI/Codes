@@ -44,7 +44,7 @@ pcf 		= cs*cs*vcf*vcf					! pressure conversion factor
 
 ! Determine the number of time steps to run
 nt = ANINT((nPers*Tmix)/tcf)
-
+nt = 1
 ! Initialize arrays
 node		= -99_lng							! node flag array
 rDom		= 0.0_dbl							! radius at each z-location
@@ -421,6 +421,7 @@ END DO
 DO i=0,nz+1
   rDom(i) = wc1*h1(i) + wc2*h2(i)
 END DO
+rDom = 0.000671
 
 !IF((rDom(0) .NE. rDom(nz)) .OR. (rDom(nz+1) .NE. rDom(1))) THEN
 !  WRITE(6678,*) 'rDom(0)', rDom(0)
@@ -810,7 +811,7 @@ v2(nz-1:nz+1) = v2(1)
 DO i=0,nz+1
   velDom(i) = wc1*v1(i) + wc2*v2(i)
 END DO
-
+velDom = 0.0
 !----------------------------------------------------------------------------
 
 ! Fill out the local velocity array
