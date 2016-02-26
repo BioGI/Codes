@@ -63,6 +63,7 @@ INTEGER(lng), PARAMETER :: LINE=2				! scalar initial condition: gaussian distri
 INTEGER(lng), PARAMETER :: INLET=3				! scalar initial condition: gaussian distribution of scalar in the z-direction along the inlet
 INTEGER(lng), PARAMETER :: UNIFORM=4			! scalar initial condition: uniform scalar in the entire domain (phi=phiIC)
 
+INTEGER(lng), PARAMETER :: LINEAR=5				! scalar initial condition: circular linear distribution of scalar at the center of the domain such that phi = 0 at the boundary
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Parallel (MPI) Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

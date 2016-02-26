@@ -200,7 +200,19 @@ IF(iter .EQ. phiStart) THEN
 	    !pause
       phi(:,:,:) = phiIC			! set the full scalar field to phiIC
 
-    CASE DEFAULT
+    CASE(LINEAR) 						! linear profile such that phi = 0 at the boundary
+  
+      DO k=0,nzSub+1
+        DO j=0,nySub+1
+          DO i=0,nxSub+1
+
+             phi(i,j,k) = 1.0 - sqrt(x(i)**2 + y(j)**2)/r(k)
+             
+          END DO
+        END DO
+      END DO
+
+   CASE DEFAULT
    
       OPEN(1000,FILE="error.txt")
       WRITE(1000,*) "Error in ScalarIC in Setup.f90: sclrIC is not BLOB(1), LINE(2) or INLET(3)..."
@@ -285,7 +297,11 @@ ELSE
             END DO
           END DO
         END DO   
-      END IF
+     END IF
+
+    CASE(LINEAR)
+
+     
  
     CASE(UNIFORM)						! uniform initial distribution 
 
