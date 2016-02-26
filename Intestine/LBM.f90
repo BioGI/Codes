@@ -162,150 +162,128 @@ CALL Equilibrium
 END SUBROUTINE LBM_Setup
 !------------------------------------------------
 
-!------------------------------------------------
+!===================================================================================================
 SUBROUTINE Particle_Setup
-!------------------------------------------------
+!===================================================================================================
+
 IMPLICIT NONE
+
 IF (restart) THEN
 ELSE
 	CALL Interp_Parvel
 ENDIF
-!------------------------------------------------
-END SUBROUTINE Particle_Setup
-!------------------------------------------------
-!------------------------------------------------
-SUBROUTINE Interp_Parvel_1 ! Using a crude interpolation approach
-!------------------------------------------------
-IMPLICIT NONE
-INTEGER(lng)  :: i
-REAL(dbl)     :: s1,s2,s3,s4,x1,y1,a,b,c,d
 
-DO i=1,np
-	up(i)=0.5*(u(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+u(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	vp(i)=0.5*(v(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+v(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	wp(i)=0.5*(w(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+w(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	!up(i)=u(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-	!vp(i)=v(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-	!wp(i)=w(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-ENDDO
-!------------------------------------------------
-END SUBROUTINE Interp_Parvel_1 ! Using a crude interpolation approach
-!------------------------------------------------
-!------------------------------------------------
+!===================================================================================================
+END SUBROUTINE Particle_Setup
+!===================================================================================================
+
+
+
+
+
+
+
+!===================================================================================================
 SUBROUTINE Interp_Parvel ! Using Trilinear interpolation
-!------------------------------------------------
+!===================================================================================================
+
 IMPLICIT NONE
 INTEGER(lng)  :: i,ix0,ix1,iy0,iy1,iz0,iz1
-REAL(dbl)     :: c00,c01,c10,c11,c0,c1,c,xd,yd,zd
+REAL(dbl)     :: xp,yp,zp,c00,c01,c10,c11,c0,c1,c,xd,yd,zd
+TYPE(ParRecord), POINTER :: current
+TYPE(ParRecord), POINTER :: next
 
-DO i=1,np
-	!ix0=FLOOR(xp(i))
-	!ix1=CEILING(xp(i))
-	!iy0=FLOOR(yp(i))
-	!iy1=CEILING(yp(i))
-	!iz0=FLOOR(zp(i))
-	!iz1=CEILING(zp(i))
+current => ParListHead%next
+DO WHILE (ASSOCIATED(current))
+	next => current%next ! copy pointer of next node
 
-	!yp(i)=Cj ! test
+	xp = current%pardata%xp - REAL(iMin-1_lng,dbl)
+	yp = current%pardata%yp - REAL(jMin-1_lng,dbl)
+	zp = current%pardata%zp - REAL(kMin-1_lng,dbl)
 
-	ix0=FLOOR(xp(i))
-	ix1=FLOOR(xp(i))+1_lng
-	iy0=FLOOR(yp(i))
-	iy1=FLOOR(yp(i))+1_lng
-	iz0=FLOOR(zp(i))
-	iz1=FLOOR(zp(i))+1_lng
-	xd=(xp(i)-REAL(ix0,dbl))/(REAL(ix1,dbl)-REAL(ix0,dbl))	
-	yd=(yp(i)-REAL(iy0,dbl))/(REAL(iy1,dbl)-REAL(iy0,dbl))	
-	zd=(zp(i)-REAL(iz0,dbl))/(REAL(iz1,dbl)-REAL(iz0,dbl))
-	!yd=0.0_dbl ! TEST: used to keep particle motion plainly 2-D ! Balaji added
+	ix0=FLOOR(xp)
+	ix1=CEILING(xp)
+	iy0=FLOOR(yp)
+	iy1=CEILING(yp)
+	iz0=FLOOR(zp)
+	iz1=CEILING(zp)
+!!!!!! MAKE SURE THE ABOVE NODES ARE FLUID NODES
 
-!	! New interpolation to ensure symmetry
-!	ix0=FLOOR(xp(i))
-!	IF (xp(i).GT.Ci) THEN
-!		ix1=FLOOR(xp(i))+1_lng
-!	ELSE
-!		ix1=FLOOR(xp(i))-1_lng
-!	ENDIF
-!	iy0=FLOOR(yp(i))
-!	IF (yp(i).GT.Cj) THEN ! It is important to interpolate on the radial direction to ensure symmetry. 
-!		iy1=FLOOR(yp(i))+1_lng
-!	ELSE
-!		iy1=FLOOR(yp(i))-1_lng
-!	ENDIF
-!	iz0=FLOOR(zp(i))
-!	iz1=FLOOR(zp(i))+1_lng
-!	xd=(xp(i)-REAL(ix0,dbl))/ABS(REAL(ix1,dbl)-REAL(ix0,dbl))	
-!	yd=(yp(i)-REAL(iy0,dbl))/ABS(REAL(iy1,dbl)-REAL(iy0,dbl))	
-!	zd=(zp(i)-REAL(iz0,dbl))/ABS(REAL(iz1,dbl)-REAL(iz0,dbl))
+	IF (ix1 /= ix0) THEN 
+           xd=(xp-REAL(ix0,dbl))/(REAL(ix1,dbl)-REAL(ix0,dbl))	
+	ELSE
+           xd = 0.0_dbl
+	END IF
+
+	IF (iy1 /= iy0) THEN 
+           yd=(yp-REAL(iy0,dbl))/(REAL(iy1,dbl)-REAL(iy0,dbl))	
+	ELSE
+           yd = 0.0_dbl
+	END IF
 
 
-	! u-interpolation
-	! Do first level linear interpolation in x-direction
+	IF (iz1 /= iz0) THEN 
+           zd=(zp-REAL(iz0,dbl))/(REAL(iz1,dbl)-REAL(iz0,dbl))
+	ELSE
+           zd = 0.0_dbl
+	END IF
+
+
+! u-interpolation
+! Do first level linear interpolation in x-direction
 	c00 = u(ix0,iy0,iz0)*(1.0_dbl-xd)+u(ix1,iy0,iz0)*xd	
 	c01 = u(ix0,iy0,iz1)*(1.0_dbl-xd)+u(ix1,iy0,iz1)*xd	
 	c10 = u(ix0,iy1,iz0)*(1.0_dbl-xd)+u(ix1,iy1,iz0)*xd	
 	c11 = u(ix0,iy1,iz1)*(1.0_dbl-xd)+u(ix1,iy1,iz1)*xd	
-	! Do second level linear interpolation in y-direction
+	
+! Do second level linear interpolation in y-direction
 	c0  = c00*(1.0_dbl-yd)+c10*yd
 	c1  = c01*(1.0_dbl-yd)+c11*yd
-	! Do third level linear interpolation in z-direction
-	c   = c0*(1.0_dbl-zd)+c1*zd
-        up(i)=c
 
-	! v-interpolation
-	! Do first level linear interpolation in x-direction
-	c00 = v(ix0,iy0,iz0)*(1.0_dbl-xd)+v(ix1,iy0,iz0)*xd	
-	c01 = v(ix0,iy0,iz1)*(1.0_dbl-xd)+v(ix1,iy0,iz1)*xd	
-	c10 = v(ix0,iy1,iz0)*(1.0_dbl-xd)+v(ix1,iy1,iz0)*xd	
+! Do third level linear interpolation in z-direction
+	c   = c0*(1.0_dbl-zd)+c1*zd
+        current%pardata%up=c
+
+
+! v-interpolation
+! Do first level linear interpolation in x-direction
+	c00 = v(ix0,iy0,iz0)*(1.0_dbl-xd)+v(ix1,iy0,iz0)*xd
+	c01 = v(ix0,iy0,iz1)*(1.0_dbl-xd)+v(ix1,iy0,iz1)*xd
+	c10 = v(ix0,iy1,iz0)*(1.0_dbl-xd)+v(ix1,iy1,iz0)*xd
 	c11 = v(ix0,iy1,iz1)*(1.0_dbl-xd)+v(ix1,iy1,iz1)*xd	
-	! Do second level linear interpolation in y-direction
+
+! Do second level linear interpolation in y-direction
 	c0  = c00*(1.0_dbl-yd)+c10*yd
 	c1  = c01*(1.0_dbl-yd)+c11*yd
-	! Do third level linear interpolation in z-direction
-	c   = c0*(1.0_dbl-zd)+c1*zd
-        vp(i)=c
 
-	! w-interpolation
-	! Do first level linear interpolation in x-direction
+! Do third level linear interpolation in z-direction
+	c   = c0*(1.0_dbl-zd)+c1*zd
+        current%pardata%vp=c
+
+! w-interpolation
+! Do first level linear interpolation in x-direction
 	c00 = w(ix0,iy0,iz0)*(1.0_dbl-xd)+w(ix1,iy0,iz0)*xd	
 	c01 = w(ix0,iy0,iz1)*(1.0_dbl-xd)+w(ix1,iy0,iz1)*xd	
 	c10 = w(ix0,iy1,iz0)*(1.0_dbl-xd)+w(ix1,iy1,iz0)*xd	
 	c11 = w(ix0,iy1,iz1)*(1.0_dbl-xd)+w(ix1,iy1,iz1)*xd	
-	! Do second level linear interpolation in y-direction
+
+! Do second level linear interpolation in y-direction
 	c0  = c00*(1.0_dbl-yd)+c10*yd
 	c1  = c01*(1.0_dbl-yd)+c11*yd
-	! Do third level linear interpolation in z-direction
+
+! Do third level linear interpolation in z-direction
 	c   = c0*(1.0_dbl-zd)+c1*zd
-        wp(i)=c
+        current%pardata%wp=c
 
-	!up(i)=0.5*(u(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+u(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	!vp(i)=0.5*(v(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+v(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	!wp(i)=0.5*(w(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+w(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	!up(i)=u(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-	!vp(i)=v(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-	!wp(i)=w(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
+! point to next node in the list
+	current => next
+
 ENDDO
-!------------------------------------------------
+
+!===================================================================================================
 END SUBROUTINE Interp_Parvel ! Using Trilinear interpolation
-!------------------------------------------------
-!------------------------------------------------
-SUBROUTINE Interp_Parvel_Crude ! Using a crde interpolation approach
-!------------------------------------------------
-IMPLICIT NONE
-INTEGER(lng)  :: i
-REAL(dbl)     :: s1,s2,s3,s4,x1,y1,a,b,c,d
+!===================================================================================================
 
-DO i=1,np
-	up(i)=0.5*(u(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+u(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	vp(i)=0.5*(v(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+v(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	wp(i)=0.5*(w(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))+w(CEILING(xp(i)),CEILING(yp(i)),CEILING(zp(i))))
-	!up(i)=u(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-	!vp(i)=v(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-	!wp(i)=w(FLOOR(xp(i)),FLOOR(yp(i)),FLOOR(zp(i)))
-ENDDO
-!------------------------------------------------
-END SUBROUTINE Interp_Parvel_Crude ! Using a crde interpolation approach
-!------------------------------------------------
 !------------------------------------------------
 SUBROUTINE Interp_bulkconc ! Using Trilinear interpolation
 !------------------------------------------------
@@ -420,106 +398,178 @@ END SUBROUTINE Interp_ParToNodes_Conc ! Interpolate Particle concentration relea
 SUBROUTINE Particle_Track
 !------------------------------------------------
 IMPLICIT NONE
-INTEGER(lng)   :: i
-REAL(dbl)      :: xpold(1:np),ypold(1:np),zpold(1:np) ! old particle coordinates (working coordinates are stored in xp,yp,zp)
-REAL(dbl)      :: xpnew(1:np),ypnew(1:np),zpnew(1:np) ! new particle coordinates (working coordinates are stored in xp,yp,zp)
-REAL(dbl)      :: upold(1:np),vpold(1:np),wpold(1:np) ! old particle velocity components (new vales are stored in up, vp, wp)
+INTEGER(lng)   		 :: i,ipartition,ii,jj,kk, CaseNo
+REAL(dbl)      		 :: xpold(1:np),ypold(1:np),zpold(1:np) 	! old particle coordinates (working coordinates are stored in xp,yp,zp)
+REAL(dbl)      		 :: upold(1:np),vpold(1:np),wpold(1:np) 	! old particle velocity components (new vales are stored in up, vp, wp)
+REAL(dbl)                :: Cb_Domain, Cb_Local, Cb_Hybrid, V_eff_Ratio
+TYPE(ParRecord), POINTER :: current
+TYPE(ParRecord), POINTER :: next
 
-! Second order interpolation in time
+ParticleTransfer = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
+delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
 
-!Backup particle data from previous time step
-xpold(1:np) = xp(1:np)
-ypold(1:np) = yp(1:np)
-zpold(1:np) = zp(1:np)
-upold(1:np) = up(1:np)
-vpold(1:np) = vp(1:np)
-wpold(1:np) = wp(1:np)
+tausgs_particle_x = 0.0_dbl
+tausgs_particle_y = 0.0_dbl
+tausgs_particle_z = 0.0_dbl
+	
+IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first step, the only part of this subroutine that operates is computing the partitions the particles belong to without releasing any drug.  
 
-DO i=1,np
-	xp(i)=xpold(i)+up(i)
-	yp(i)=ypold(i)+vp(i)
-	zp(i)=zpold(i)+wp(i)
-	IF(zp(i).GE.REAL(nz,dbl)) THEN
-		zp(i) = MOD(zp(i),REAL(nz,dbl))
-	ENDIF
-	!yp(i)=Cj ! test
-ENDDO
-CALL Interp_Parvel
-!CALL Interp_bulkconc
-DO i=1,np
-	xp(i)=xpold(i)+0.5*(up(i)+upold(i))
-	yp(i)=ypold(i)+0.5*(vp(i)+vpold(i))
-	zp(i)=zpold(i)+0.5*(wp(i)+wpold(i))
-	xpnew(i)=xp(i)
-	ypnew(i)=yp(i)
-	zpnew(i)=zp(i)
-	IF(zp(i).GE.REAL(nz,dbl)) THEN
-		zp(i) = MOD(zp(i),REAL(nz,dbl))
-	ENDIF
-	!yp(i)=Cj ! test
+!--Second order interpolation in time
+!--Backup particle data from previous time step using a linked list of particle records
 
-	!xp(i)=xpold(i)
-	!yp(i)=ypold(i)
-	!zp(i)=zpold(i)
-ENDDO
+   current => ParListHead%next
+   DO WHILE (ASSOCIATED(current))
+      next => current%next 						! copy pointer of next node
 
+      current%pardata%xpold = current%pardata%xp
+      current%pardata%ypold = current%pardata%yp
+      current%pardata%zpold = current%pardata%zp
+	
+      current%pardata%upold = current%pardata%up
+      current%pardata%vpold = current%pardata%vp
+      current%pardata%wpold = current%pardata%wp
+	
+      current%pardata%xp=current%pardata%xpold+current%pardata%up
+      current%pardata%yp=current%pardata%ypold+current%pardata%vp
+      current%pardata%zp=current%pardata%zpold+current%pardata%wp
+	
+      current => next
+   ENDDO
 
-CALL Interp_Parvel ! interpolate final particle velocities after the final position is ascertained. 
-CALL Interp_bulkconc ! interpolate final bulk_concentration after the final position is ascertained.
-CALL Calc_Scalar_Release ! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
-CALL Interp_ParToNodes_Conc ! At this position, also calculate the number of
-!drug molecules released by the particle at this new position 
-DO i=1,np
-	xp(i)=xpnew(i)
-	yp(i)=ypnew(i)
-	zp(i)=zpnew(i)
+   CALL Interp_Parvel
 
-	!yp(i)=Cj ! test
-ENDDO
+!--Using a linked list of particle records
+   current => ParListHead%next
+   DO WHILE (ASSOCIATED(current))
+      next => current%next 						! copy pointer of next node
+      current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold)
+      current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold)
+      current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold)
+      current => next
+   ENDDO
 
-! First Order Interpolation in time
-!DO i=1,np
-!	xp(i)=xp(i)+up(i)
-!	yp(i)=yp(i)+vp(i)
-!	zp(i)=zp(i)+wp(i)
-!	!CALL INTERP_PARVEL
-!	!WRITE(*,*) "Particle tracking ",i,xp(i),yp(i),zp(i)
-!ENDDO
-!CALL Interp_Parvel
+   CALL Interp_Parvel 							! interpolate final particle velocities after the final position is ascertained. 
+   
+   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
+   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
+   CALL Compute_Cb(V_eff_Ratio,CaseNo,Cb_Hybrid)  
+   
+   open(172,file='Cb-history.dat',position='append')
+   write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
 
-
-IF (myid .EQ. master) THEN
-      open(72,file='particle1-history.dat',position='append')
-      write(72,*) iter,xp(1),yp(1),zp(1),up(1),vp(1),wp(1),sh(1),rp(1),bulk_conc(1),delNBbyCV(1)
-      close(72)
-      open(73,file='particle3-history.dat',position='append')
-      write(73,*) iter, xp(3),yp(3),zp(3),up(3),vp(3),wp(3),sh(3),rp(3),bulk_conc(3),delNBbyCV(3)
-      close(73) 
-      open(74,file='particle5-history.dat',position='append')
-      write(74,*) iter, xp(5),yp(5),zp(5),up(5),vp(5),wp(5),sh(5),rp(5),bulk_conc(5),delNBbyCV(5)
-      close(74)
-      open(75,file='particle7-history.dat',position='append')
-      write(75,*) iter, xp(7),yp(7),zp(7),up(7),vp(7),wp(7),sh(7),rp(7),bulk_conc(7),delNBbyCV(7)
-      close(75)
-      open(76,file='particle9-history.dat',position='append')
-      write(76,*) iter, xp(9),yp(9),zp(9),up(9),vp(9),wp(9),sh(9),rp(9),bulk_conc(9),delNBbyCV(9)
-      close(76) 
-      open(77,file='particle10-history.dat',position='append')
-      write(77,*) iter, xp(10),yp(10),zp(10),up(10),vp(10),wp(10),sh(10),rp(10),bulk_conc(10),delNBbyCV(10)
-      close(77)
-      open(78,file='particle8-history.dat',position='append')
-      write(78,*) iter, xp(8),yp(8),zp(8),up(8),vp(8),wp(8),sh(8),rp(8),bulk_conc(8),delNBbyCV(8)
-      close(78)
-      open(79,file='particle6-history.dat',position='append')
-      write(79,*) iter, xp(6),yp(6),zp(6),up(6),vp(6),wp(6),sh(6),rp(6),bulk_conc(6),delNBbyCV(6)
-      close(79)
-      open(80,file='particle4-history.dat',position='append')
-      write(80,*) iter, xp(4),yp(4),zp(4),up(4),vp(4),wp(4),sh(4),rp(4),bulk_conc(4),delNBbyCV(4)
-      close(80)
-      open(81,file='particle2-history.dat',position='append')
-      write(81,*) iter, xp(2),yp(2),zp(2),up(2),vp(2),wp(2),sh(2),rp(2),bulk_conc(2),delNBbyCV(2)
-      close(81)
+   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
+   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
+   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
+									!drug molecules released by the particle at this new position
 ENDIF
+
+
+!---- Now update tausgs only for those cells that have non-zero values of tausgs
+DO kk=0,nzSub+1
+   DO jj=0,nySub+1
+      DO ii=0,nxSub+1
+         if (tausgs_particle_x(ii,jj,kk).ne.0.0_dbl) then
+            tausgs_particle_x(ii,jj,kk) = u(ii,jj,kk)*phi(ii,jj,kk)
+	 endif
+	 if (tausgs_particle_y(ii,jj,kk).ne.0.0_dbl) then
+            tausgs_particle_y(ii,jj,kk) = v(ii,jj,kk)*phi(ii,jj,kk)
+	 endif
+	 if (tausgs_particle_z(ii,jj,kk).ne.0.0_dbl) then
+            tausgs_particle_z(ii,jj,kk) = w(ii,jj,kk)*phi(ii,jj,kk)
+	 endif
+      ENDDO
+   ENDDO
+ENDDO
+
+
+
+current => ParListHead%next
+DO WHILE (ASSOCIATED(current))
+	next => current%next ! copy pointer of next node
+	
+	!------- Wrappign around in z-direction for periodic BC in z
+	IF (current%pardata%zp.GE.REAL(nz,dbl)) THEN
+	   current%pardata%zp = MOD(current%pardata%zp,REAL(nz,dbl))
+	ENDIF
+	IF (current%pardata%zp.LE.0.0_dbl) THEN
+	   current%pardata%zp = current%pardata%zp+REAL(nz,dbl)
+	ENDIF
+
+	!------- Wrappign around in y-direction for periodic BC in y
+	IF (current%pardata%yp.GE.REAL(ny,dbl)) THEN
+	   current%pardata%yp = MOD(current%pardata%yp,REAL(ny,dbl))
+	ENDIF
+	IF (current%pardata%yp.LT.1.0_dbl) THEN
+	   current%pardata%yp = current%pardata%yp+REAL(ny,dbl)
+	ENDIF
+
+
+	!------- Estimate to which partition the updated position belongs to.
+	DO ipartition = 1_lng,NumSubsTotal 
+           IF ((current%pardata%xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+	      (current%pardata%xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+	      (current%pardata%yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+	      (current%pardata%yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+	      (current%pardata%zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+	      (current%pardata%zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+              
+              current%pardata%new_part = ipartition
+	    END IF
+            !write(*,*) ipartition,kMinDomain(ipartition),kMaxDomain(ipartition)
+	END DO
+	
+
+	IF ((.NOT.ParticleTransfer).AND.(current%pardata%new_part .NE. current%pardata%cur_part)) THEN
+	   ParticleTransfer = .TRUE.
+	END IF
+	
+	
+	SELECT CASE(current%pardata%parid)
+	CASE(1_lng)
+      open(72,file='particle1-history.dat',position='append')
+      write(72,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(72)
+	CASE(3_lng)
+      open(73,file='particle3-history.dat',position='append')
+      write(73,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(73) 
+	CASE(5_lng)
+      open(74,file='particle5-history.dat',position='append')
+      write(74,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(74)
+	CASE(7_lng)
+      open(75,file='particle7-history.dat',position='append')
+      write(75,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(75)
+	CASE(9_lng)
+      open(76,file='particle9-history.dat',position='append')
+      write(76,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(76) 
+	CASE(10_lng)
+      open(77,file='particle10-history.dat',position='append')
+      write(77,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(77)
+	CASE(8_lng)
+      open(78,file='particle8-history.dat',position='append')
+      write(78,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(78)
+	CASE(6_lng)
+      open(79,file='particle6-history.dat',position='append')
+      write(79,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(79)
+	CASE(4_lng)
+      open(80,file='particle4-history.dat',position='append')
+      write(80,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(80)
+	CASE(2_lng)
+      open(81,file='particle2-history.dat',position='append')
+      write(81,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      close(81)
+     
+      END SELECT
+	
+      current => next   				! point to next node in the list
+ENDDO
 
 !------------------------------------------------
 END SUBROUTINE Particle_Track

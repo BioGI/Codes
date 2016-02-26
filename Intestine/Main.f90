@@ -76,6 +76,11 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
 	CALL PrintStatus		! Start simulation timer, print status [MODULE: Output]
 
+	IF(ParticleTrack.EQ.ParticleOn) THEN 				! If particle tracking is 'on' then do the following
+           CALL IniParticles
+           CALL Particle_Setup
+	ENDIF
+
         IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
                 write(*,*) "Cannot restart yet. Implementation not complete"
 		!CALL AdvanceGeometry
@@ -92,6 +97,13 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
         CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
+	IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
+!	   CALL Calc_Global_Bulk_Scalar_Conc				! Estimate bluk	scalar concentration in each partition
+!	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.  
+	   CALL Particle_Track
+	   CALL Particle_MPI_Transfer
+	ENDIF
+        
         IF(iter .GE. phiStart) THEN
            CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
         END IF
