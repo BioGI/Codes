@@ -228,8 +228,8 @@ IMPLICIT NONE
 INTEGER(lng)	:: i,j,k,ii,jj,kk,n		! index variables (local and global)
 CHARACTER(7)	:: iter_char				! iteration stored as a character
 
-IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
-                                                   .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
+!IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
+!                                                   .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
 
   ! scale the iteration by 1/10 such that the numbers used in the output file aren't too large
   WRITE(iter_char(1:7),'(I7.7)') iter
@@ -306,7 +306,7 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
 
   END IF
 
-END IF
+!END IF
 
 !------------------------------------------------
 END SUBROUTINE PrintFields_fine
@@ -445,7 +445,7 @@ DO k=1,nzSub_fine
     DO i=1,nxSub_fine
 
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + phi_fine(i,j,k)
+        phiDomain = phiDomain + phi_fine(i,j,k) * (1.0 - flagNodeIntersectCoarse(i,j,k))
         numFluids = numFluids + 1_lng
       END IF
 
