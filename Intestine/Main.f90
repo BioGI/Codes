@@ -89,7 +89,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simulation Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	DO iter=iter0,nt
-!        CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
+        CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
+        fPlus = f
 !        CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
 !        CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
@@ -111,8 +112,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
         
         DO subiter=1,gridRatio
-!           CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
-           CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration           
+           CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
+           CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
+           fPlus_fine = f_fine
 !           CALL Stream_Fine            ! Stream fine grid
 !           CALL Macro_Fine             ! Calculate Macro properties on fine grid
            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
