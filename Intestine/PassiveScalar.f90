@@ -3,7 +3,9 @@ MODULE PassiveScalar		! LBM Subroutines (Equilibrium, Collision, Stream, Macro, 
 !==================================================================================================
 USE SetPrecision
 USE Setup
+USE Setup_fine
 USE ICBC
+USE Geometry_fine
 
 IMPLICIT NONE 
 
