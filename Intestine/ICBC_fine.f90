@@ -611,8 +611,8 @@ CALL Equilibrium_LOCAL_fine(m,rhoB,ub,vb,wb,feq_m)			        ! calculate the equ
 !phiWall = (phi(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) - (phi(ip1,jp1,kp1)*q*q/(1.0+2.0*q)) 	! calculate phiWall for flux BC (eq. 28 in paper)
 
 ! find the contribution of scalar streamed from the wall to the current node (i,j,k), and from the current node to the next neighboring node (ip1,jp1,kp1)
-phiB		= (feq_m/rhoB - wt(m)*Delta)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
-phiijk_m	= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta)*phiTemp_fine(i,j,k)	! contribution from the current node to the next node in the mth direction
+phiB		= (feq_m/rhoB - wt(m)*Delta_fine)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
+phiijk_m	= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta_fine)*phiTemp_fine(i,j,k)	! contribution from the current node to the next node in the mth direction
 
 ! if q is too small, the extrapolation to phiBC can create a large error...
 IF(q .LT. 0.25) THEN
