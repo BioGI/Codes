@@ -541,90 +541,31 @@ END DO
 END SUBROUTINE SetNodes_fine
 !------------------------------------------------
 
-SUBROUTINE FlagFineMeshNodesIntersectingWithCoarseMeshNodes
+SUBROUTINE FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
 
-INTEGER(lng)	:: i,j,k,m	! index variables
+INTEGER(lng), intent(in) :: i,j,k	! index variables
 INTEGER :: ii, jj, kk, iFine, jFine, kFine
 REAL(dbl) :: xcfBy2, xcfBy2_fine ! Half of LBM resolution
 REAL(dbl) :: tmp
 
-flagNodeIntersectCoarse = 0_dbl
 xcfBy2 = 0.5*xcf
 xcfBy2_fine = 0.5 * xcf_fine
 
-!Do the top and bottom XZ planes first
-do k=1,nzSub+1
-   kFine = 1 + (k-1)*gridRatio
-   do i=45,57
-      iFine = 1 + (i-45)*gridRatio
-
-      jFine = 1 !Bottom XZ plane
-      do ii=-gridRatio/2,gridRatio/2 !Complete overlap with coarse mesh node
-         if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then
-            
-            do jj=0,gridRatio/2
-               if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then                      
-                  do kk=-gridRatio/2,gridRatio/2
-                     tmp = degreeOverlapCube(x(i)-xcfBy2, x(i)+xcfBy2, y(45)-xcfBy2, y(45)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
-                     flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) + tmp
-                  end do
-               end if
+kFine = 1 + (k-1)*gridRatio
+jFine = 1 + (j-45)*gridRatio
+iFine = 1 + (i-45)*gridRatio 
+do ii=-gridRatio/2,gridRatio/2 !Complete overlap with coarse mesh node
+   if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then
+      do jj=-gridRatio/2,gridRatio/2
+         if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then                      
+            do kk=-gridRatio/2,gridRatio/2
+               tmp = degreeOverlapCube(x(i)-xcfBy2, x(i)+xcfBy2, y(j)-xcfBy2, y(j)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
+               flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) + tmp
             end do
          end if
       end do
-      
-      jFine = nySub_fine !Top XZ plane
-      do ii=-gridRatio/2,gridRatio/2 !Complete overlap with coarse mesh node
-         if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then         
-            do jj=-gridRatio/2,0
-               if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then
-                  do kk=-gridRatio/2,gridRatio/2
-                     flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) + degreeOverlapCube(x(i)-xcfBy2, x(i)+xcfBy2, y(57)-xcfBy2, y(57)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
-                  end do
-               end if
-            end do
-         end if
-      end do
-      
-   end do
-enddo
-
-!Do the front and back YZ planes
-do k=1,nzSub+1
-   kFine = 1 + (k-1)*gridRatio
-   do j=46,56
-      jFine = 1 + (j-45)*gridRatio
-
-      iFine = 1 !Front YZ plane
-      do ii=0,gridRatio/2 !Complete overlap with coarse mesh node
-         if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then
-            
-            do jj=-gridRatio/2,gridRatio/2
-               if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then                      
-                  do kk=-gridRatio/2,gridRatio/2
-                     tmp = degreeOverlapCube(x(45)-xcfBy2, x(45)+xcfBy2, y(j)-xcfBy2, y(j)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
-                     flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) + tmp
-                  end do
-               end if
-            end do
-         end if
-      end do
-      
-      iFine = nx_fine !Back YZ plane
-      do ii=-gridRatio/2,0 !Complete overlap with coarse mesh node
-         if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then         
-            do jj=-gridRatio/2,gridRatio/2
-               if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then
-                  do kk=-gridRatio/2,gridRatio/2
-                     flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) + degreeOverlapCube(x(57)-xcfBy2, x(57)+xcfBy2, y(j)-xcfBy2, y(j)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
-                  end do
-               end if
-            end do
-         end if
-      end do
-      
-   end do
-enddo
+   end if
+end do
 
 ! write(*,*) 'Temporarily putting flagNodeIntersectCoarse into phi_fine for visualization'
 ! do i = 1,nxSub_fine

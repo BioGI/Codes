@@ -49,6 +49,7 @@ IMPLICIT NONE
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC							! scalar contribution from boundary
 
+flagNodeIntersectCoarse = 0_dbl
 CALL ScalarDistribution						! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
 
 ! store the previous scalar values
@@ -77,6 +78,7 @@ DO k=1,nzSub
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN															! macro- boundary
             CALL ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)															! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
 !            phi(i,j,k) = phi(i,j,k) + phiBC     
+            CALL FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
             CALL AbsorbedScalarS(i,j,k,m,phiBC)	     ! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error.txt")
