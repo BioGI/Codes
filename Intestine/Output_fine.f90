@@ -445,7 +445,8 @@ DO k=1,nzSub_fine
     DO i=1,nxSub_fine
 
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + phi_fine(i,j,k) * (1.0 - flagNodeIntersectCoarse(i,j,k))
+!        phiDomain = phiDomain + phi_fine(i,j,k) * (1.0 - flagNodeIntersectCoarse(i,j,k))
+        phiDomain = phiDomain + (1.0 - flagNodeIntersectCoarse(i,j,k))         
         numFluids = numFluids + 1_lng
       END IF
 
