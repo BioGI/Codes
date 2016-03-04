@@ -19,6 +19,7 @@ SUBROUTINE MPI_Setup	! setup the MPI (parallel) component
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
+INTEGER(lng) :: mpierr! MPI standard error object
 ! Initialize variables and arrays
 f_Comps				= 0_lng		! specifies the components of the distribution functions to transfer in each MPI communication direction
 Corner_SendIndex	= 0_lng		! i, j, and k indices for each corner
@@ -42,9 +43,73 @@ CommDataStart_phi	= 0_lng		! array of starting indices in the send arrays for th
 CommDataStart_u	= 0_lng		! array of starting indices in the send arrays for the scalar from each communication direction
 CommDataStart_v	= 0_lng		! array of starting indices in the send arrays for the scalar from each communication direction
 CommDataStart_w	= 0_lng		! array of starting indices in the send arrays for the scalar from each communication direction
+CommDataStart_node	= 0_lng		! array of starting indices in the send arrays for the scalar from each communication direction
 fSize				= 0_lng		! array of the number of elements sent for each communication direction (distribution functions)
 dsSize				= 0_lng		! array of the number of elements sent for each communication direction (density and scalar)
 uvwSize				= 0_lng		! array of the number of elements sent for each communication direction (density and scalar)
+nodeSize			= 0_lng		! array of the number of elements sent for each communication direction (density and scalar)
+
+
+der_block_len = (/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1/)
+der_block_types=	(/ MPI_INTEGER, &
+			MPI_INTEGER, &
+			MPI_INTEGER, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION, &
+			MPI_DOUBLE_PRECISION/)
+CALL MPI_TYPE_EXTENT(MPI_DOUBLE_PRECISION,mpidblextent,mpierr)
+CALL MPI_TYPE_EXTENT(MPI_INTEGER,mpiintextent,mpierr)
+der_block_offsets=	(/ 0, &
+			mpiintextent, &
+			2*mpiintextent, &
+			3*mpiintextent+0*mpidblextent, &
+			3*mpiintextent+1*mpidblextent, &
+			3*mpiintextent+2*mpidblextent, &
+			3*mpiintextent+3*mpidblextent, &
+			3*mpiintextent+4*mpidblextent, &
+			3*mpiintextent+5*mpidblextent, &
+			3*mpiintextent+6*mpidblextent, &
+			3*mpiintextent+7*mpidblextent, &
+			3*mpiintextent+8*mpidblextent, &
+			3*mpiintextent+9*mpidblextent, &
+			3*mpiintextent+10*mpidblextent, &
+			3*mpiintextent+11*mpidblextent, &
+			3*mpiintextent+12*mpidblextent, &
+			3*mpiintextent+13*mpidblextent, &
+			3*mpiintextent+14*mpidblextent, &
+			3*mpiintextent+15*mpidblextent, &
+			3*mpiintextent+16*mpidblextent, &
+			3*mpiintextent+17*mpidblextent, &
+			3*mpiintextent+18*mpidblextent, &
+			3*mpiintextent+19*mpidblextent, &
+			3*mpiintextent+20*mpidblextent, &
+			3*mpiintextent+21*mpidblextent, &
+			3*mpiintextent+22*mpidblextent/)
+
+CALL MPI_TYPE_STRUCT(der_type_count, der_block_len, der_block_offsets, der_block_types,mpipartransfertype, mpierr)
+!CALL MPI_TYPE_CREATE_STRUCT(der_type_count, der_block_len, der_block_offsets, der_block_types,mpipartransfertype,mpierr)
+CALL MPI_TYPE_COMMIT(mpipartransfertype, mpierr)
+
 
 ! Fill out the MPI arrays
 CALL MPI_Initialize
@@ -59,9 +124,10 @@ SUBROUTINE MPI_Initialize	! initialize the MPI arrays and variables
 IMPLICIT NONE
 
 ! Define local variables
+INTEGER(lng) :: mpierr! MPI standard error object
 INTEGER(lng) :: iComm												! index variable
 INTEGER(lng) :: YZ_FaceSize, ZX_FaceSize, XY_FaceSize		! number of nodes on a subdomain face oriented on the respective faces
-INTEGER(lng) :: f_SendSize, ds_SendSize, uvw_SendSize, total_SendSize	! sizes of the distribution function, density, velocity, and scalar data transfer arrays respectively
+INTEGER(lng) :: f_SendSize, ds_SendSize, node_Sendsize, uvw_SendSize, total_SendSize	! sizes of the distribution function, density, velocity, and scalar data transfer arrays respectively
 !INTEGER(lng) :: msgSze												! size of the message send/recv arrays (maximum size)
 
 ! Opposite directions for communication - same concept as bounceback directions, but there are 26 communication directions whereas there are only 14 non-stationary distribution function directions
@@ -201,6 +267,7 @@ XY_FaceSize		= nxSub*nySub							! number of nodes on a subdomain face oriented 
 fSize 			= 0_lng									! initialize array
 dsSize 			= 0_lng									! initialize array
 uvwSize			= 0_lng									! initialize array
+nodeSize		= 0_lng									! initialize array
 
 fSize(1:2)		= YZ_FaceSize*NumFs_face			! YZ faces
 fSize(3:4)		= ZX_FaceSize*NumFs_face			! ZX faces
@@ -227,11 +294,20 @@ uvwSize(11:14)	= nxSub									! X sides
 uvwSize(15:18)	= nySub									! Y sides
 uvwSize(19:26)	= 1_lng									! corners
 
-msgSize(:)		= fSize(:) + 2_lng*(dsSize(:))+3_lng*(uvwSize(:))	! total message sizes
+nodeSize(1:2)		= YZ_FaceSize							! YZ faces
+nodeSize(3:4)		= ZX_FaceSize							! ZX faces
+nodeSize(5:6)		= XY_FaceSize							! XY faces
+nodeSize(7:10)	= nzSub									! Z sides
+nodeSize(11:14)	= nxSub									! X sides
+nodeSize(15:18)	= nySub									! Y sides
+nodeSize(19:26)	= 1_lng									! corners
+
+msgSize(:)		= fSize(:) + 2_lng*(dsSize(:))+3_lng*(uvwSize(:))+1_lng*(nodeSize(:))	! total message sizes
 
 f_SendSize	= SUM(fSize)
 ds_SendSize	= SUM(dsSize)
-uvw_SendSize	= SUM(dsSize)
+uvw_SendSize	= SUM(uvwSize)
+node_SendSize	= SUM(nodeSize)
 total_SendSize  = SUM(msgSize)
 
 ALLOCATE(msgSend(total_SendSize))						
@@ -421,12 +497,13 @@ Corner_RecvIndex(26,3) = 0_lng
 
 ! Fill out the 'CommDataStart' arrays
 ! Initialize arrays
-CommDataStart_f  		= 0_lng					! distribution functions
+CommDataStart_f  	= 0_lng					! distribution functions
 CommDataStart_rho  	= 0_lng					! density
 CommDataStart_phi  	= 0_lng					! scalar
 CommDataStart_u  	= 0_lng					! velocity
 CommDataStart_v  	= 0_lng					! velocity
 CommDataStart_w  	= 0_lng					! velocity
+CommDataStart_node  	= 0_lng					! node
 
 CommDataStart_f(1)	= 1_lng	
 CommDataStart_rho(1) = CommDataStart_f(1)	+ fSize(1)
@@ -434,14 +511,17 @@ CommDataStart_phi(1) = CommDataStart_rho(1)	+ dsSize(1)
 CommDataStart_u(1) = CommDataStart_phi(1)	+ dsSize(1)
 CommDataStart_v(1) = CommDataStart_u(1)		+ uvwSize(1)
 CommDataStart_w(1) = CommDataStart_v(1)		+ uvwSize(1)
+CommDataStart_node(1) = CommDataStart_w(1)	+ uvwSize(1)
 
 DO iComm=2,NumCommDirs							! fill out for communication directions 2-NumCommDirs
-  CommDataStart_f(iComm)	= CommDataStart_w(iComm-1) 	+ uvwSize(iComm-1)
+  CommDataStart_f(iComm)	= CommDataStart_node(iComm-1) 	+ nodeSize(iComm-1)
+  !CommDataStart_f(iComm)	= CommDataStart_w(iComm-1) 	+ uvwSize(iComm-1)
   CommDataStart_rho(iComm)	= CommDataStart_f(iComm)	+ fSize(iComm)
   CommDataStart_phi(iComm)	= CommDataStart_rho(iComm) 	+ dsSize(iComm)
   CommDataStart_u(iComm)	= CommDataStart_phi(iComm) 	+ dsSize(iComm)
   CommDataStart_v(iComm)	= CommDataStart_u(iComm) 	+ uvwSize(iComm)
   CommDataStart_w(iComm)	= CommDataStart_v(iComm) 	+ uvwSize(iComm)
+  CommDataStart_node(iComm)	= CommDataStart_w(iComm) 	+ uvwSize(iComm)
 END DO
 
 !WRITE(6678,*) 'f_SendSize', total_SendSize
@@ -523,11 +603,12 @@ DO iComm=1,2
            + (j - 1_lng)							&		! convert 3D-coordinate into proper 1D-array coordinate
            + (k - 1_lng)*nySub							! convert 3D-coordinate into proper 1D-array coordinate
 
-        msgSend(ii) 						= rho(i,j,k)	! store the proper density in the send array
+        msgSend(ii) 			= rho(i,j,k)	! store the proper density in the send array
         msgSend(ii+dsSize(iComm))	= phi(i,j,k)	! store the proper scalar quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
 
         ! distribution functions
         DO m=1,NumFs_face
@@ -547,6 +628,7 @@ DO iComm=1,2
   END IF
 
 END DO
+
 
 ! ZX Faces
 DO iComm=3,4
@@ -568,6 +650,7 @@ DO iComm=3,4
         msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
 
         ! distribution functions
         DO m=1,NumFs_face
@@ -608,6 +691,7 @@ DO iComm=5,6
         msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
       
         DO m=1,NumFs_face
       
@@ -648,6 +732,7 @@ DO iComm=7,10
         msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
     
       DO m=1,NumFs_side
   
@@ -685,6 +770,7 @@ DO iComm=11,14
       msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
       msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
       msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+      msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
     
       DO m=1,NumFs_side
 
@@ -722,6 +808,7 @@ DO iComm=15,18
         msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
         msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+        msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
     
       DO m=1,NumFs_side
 
@@ -751,11 +838,12 @@ DO iComm=19,26
     k = Corner_SendIndex(iComm,3)						! k index for assigning the proper component of the distribution function to the 1D send array
 
     ii = CommDataStart_rho(iComm)						! start location
-    msgSend(ii) 					= rho(i,j,k)			! store the proper density in the send array
+    msgSend(ii) 		= rho(i,j,k)			! store the proper density in the send array
     msgSend(ii+dsSize(iComm))	= phi(i,j,k)			! store the proper scalar quantity in the send array
     msgSend(ii+2_lng*dsSize(iComm))	= u(i,j,k)	! store the proper velocity quantity in the send array
     msgSend(ii+2_lng*dsSize(iComm)+uvwSize(icomm))= v(i,j,k)	! store the proper velocity quantity in the send array
     msgSend(ii+2_lng*dsSize(iComm)+2_lng*uvwSize(icomm))= w(i,j,k)	! store the proper velocity quantity in the send array
+    msgSend(ii+2_lng*dsSize(iComm)+3_lng*uvwSize(icomm))= REAL(node(i,j,k),dbl)	! store the proper node flag quantity in the send array
   
     ii = CommDataStart_f(iComm)							! start location
     msgSend(ii) = f(f_Comps(iComm,1),i,j,k)			! store the proper component of the distribution function in the send array
@@ -767,6 +855,33 @@ END DO
 !------------------------------------------------
 END SUBROUTINE PackData
 !------------------------------------------------
+
+
+
+!--------------------------------------------------------------------------------------------------
+SUBROUTINE  Collect_Distribute_Global_Bulk_Scalar_Conc
+! This subroutine does the
+!parallel communication needed to collect all the bulk concentration in each of
+!the processes and computeѕ an average, which is the distributed to the various
+!process for computing the drug concentration. 
+!--------------------------------------------------------------------------------------------------
+IMPLICIT NONE
+REAL(dbl) :: Cb_global_temp
+INTEGER(lng):: Cb_numFluids_temp,mpierr
+Cb_global_temp = 0.0_dbl
+Cb_numFluids_temp = 0_lng
+CALL MPI_REDUCE(Cb_global,Cb_global_temp,1,MPI_DOUBLE_PRECISION,MPI_SUM,master,MPI_COMM_WORLD,mpierr)
+CALL MPI_REDUCE(Cb_numFluids,Cb_numFluids_temp,1,MPI_INTEGER,MPI_SUM,master,MPI_COMM_WORLD,mpierr)
+Cb_global = Cb_global_temp/Cb_numFluids_temp
+Cb_numFLuids = Cb_numFluids_temp
+CALL MPI_BCast(Cb_global,1,MPI_DOUBLE_PRECISION,master,MPI_COMM_WORLD,mpierr)
+CALL MPI_BCast(Cb_numFluids,1,MPI_INTEGER,master,MPI_COMM_WORLD,mpierr)
+
+!--------------------------------------------------------------------------------------------------
+END SUBROUTINE  Collect_Distribute_Global_Bulk_Scalar_Conc
+!--------------------------------------------------------------------------------------------------
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE Particle_MPI_Transfer		! transfer the particles to neighbouring partitions
@@ -936,6 +1051,8 @@ DEALLOCATE(ParRecvArray)
 END SUBROUTINE Particle_MPI_Transfer
 !------------------------------------------------
 
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE MPI_Transfer	! transfer the distribution functions between neighboring initialize the MPI arrays and variables
 !--------------------------------------------------------------------------------------------------
@@ -985,6 +1102,9 @@ END DO
 END SUBROUTINE MPI_Transfer
 !------------------------------------------------
 
+
+
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PostRecv(iComm,numReqs)	! receives information from a neighboring subdomain
 !--------------------------------------------------------------------------------------------------
@@ -1009,6 +1129,10 @@ CALL MPI_IRECV(msgRecv(msgStart:msgEnd),msgSize(OppCommDir(iComm)),MPI_DOUBLE_PR
 !------------------------------------------------
 END SUBROUTINE PostRecv
 !------------------------------------------------
+
+
+
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE SendData(iComm,numReqs)											! sends information to a neighboring subdomain
@@ -1061,6 +1185,7 @@ SELECT CASE(OppCommDir(iComm))
           u(i,j,k) = msgRecv((CommDataStart_u(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
           v(i,j,k) = msgRecv((CommDataStart_v(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
           w(i,j,k) = msgRecv((CommDataStart_w(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          node(i,j,k) = INT(msgRecv((CommDataStart_node(OppCommDir(iComm))-1) + ii),lng)					! store recieved node flag quantity in proper place          
         
         DO m=1,NumFs_Face
           
@@ -1089,6 +1214,7 @@ SELECT CASE(OppCommDir(iComm))
           u(i,j,k) = msgRecv((CommDataStart_u(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
           v(i,j,k) = msgRecv((CommDataStart_v(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
           w(i,j,k) = msgRecv((CommDataStart_w(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          node(i,j,k) = INT(msgRecv((CommDataStart_node(OppCommDir(iComm))-1) + ii),lng)					! store recieved node flag quantity in proper place          
         
         DO m=1,NumFs_Face
           
@@ -1117,6 +1243,7 @@ SELECT CASE(OppCommDir(iComm))
           u(i,j,k) = msgRecv((CommDataStart_u(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
           v(i,j,k) = msgRecv((CommDataStart_v(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
           w(i,j,k) = msgRecv((CommDataStart_w(OppCommDir(iComm))-1) + ii)						! store recieved velocity quantity in proper place          
+          node(i,j,k) = INT(msgRecv((CommDataStart_node(OppCommDir(iComm))-1) + ii),lng)					! store recieved node flag quantity in proper place          
         
         DO m=1,NumFs_Face
           
@@ -1143,6 +1270,7 @@ SELECT CASE(OppCommDir(iComm))
       u(i,j,k) = msgRecv((CommDataStart_u(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
       v(i,j,k) = msgRecv((CommDataStart_v(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
       w(i,j,k) = msgRecv((CommDataStart_w(OppCommDir(iComm))-1) + k)						! store recieved velocity quantity in proper place          
+      node(i,j,k) = INT(msgRecv((CommDataStart_node(OppCommDir(iComm))-1) + k),lng)					! store recieved node flag quantity in proper place          
         
       DO m=1,NumFs_Side
           
@@ -1166,6 +1294,7 @@ SELECT CASE(OppCommDir(iComm))
       u(i,j,k) = msgRecv((CommDataStart_u(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
       v(i,j,k) = msgRecv((CommDataStart_v(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
       w(i,j,k) = msgRecv((CommDataStart_w(OppCommDir(iComm))-1) + i)						! store recieved velocity quantity in proper place          
+      node(i,j,k) = INT(msgRecv((CommDataStart_node(OppCommDir(iComm))-1) + i),lng)					! store recieved node flag quantity in proper place          
         
       DO m=1,NumFs_Side
           
@@ -1189,6 +1318,7 @@ SELECT CASE(OppCommDir(iComm))
       u(i,j,k) = msgRecv((CommDataStart_u(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
       v(i,j,k) = msgRecv((CommDataStart_v(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
       w(i,j,k) = msgRecv((CommDataStart_w(OppCommDir(iComm))-1) + j)						! store recieved velocity quantity in proper place          
+      node(i,j,k) = INT(msgRecv((CommDataStart_node(OppCommDir(iComm))-1) + j),lng)					! store recieved node flag quantity in proper place          
         
       DO m=1,NumFs_Side
           
@@ -1211,6 +1341,7 @@ SELECT CASE(OppCommDir(iComm))
     u(i,j,k) = msgRecv(CommDataStart_u(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
     v(i,j,k) = msgRecv(CommDataStart_v(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
     w(i,j,k) = msgRecv(CommDataStart_w(OppCommDir(iComm)))						! store recieved velocity quantity in proper place          
+    node(i,j,k) = INT(msgRecv(CommDataStart_node(OppCommDir(iComm))),lng)					! store recieved node flag quantity in proper place          
     f(f_Comps(iComm,1),i,j,k) = msgRecv(CommDataStart_f(OppCommDir(iComm)))						! store the recieved distribution function component in the proper place in the f array
 
   CASE DEFAULT

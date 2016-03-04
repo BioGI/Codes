@@ -9,10 +9,9 @@ IMPLICIT NONE
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LBM Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-INTEGER(lng), PARAMETER :: NumDistDirs	= 14_lng					! number of distribution function directions minus one (ex. D3Q15 -> 14)
-
-REAL(dbl),		ALLOCATABLE :: f(:,:,:,:)							! distribution function
-REAL(dbl), 		ALLOCATABLE :: fplus(:,:,:,:)						! post-collision distribution function
+INTEGER(lng), PARAMETER :: NumDistDirs	= 14_lng				! number of distribution function directions minus one (ex. D3Q15 -> 14)
+REAL(dbl),		ALLOCATABLE :: f(:,:,:,:)				! distribution function
+REAL(dbl), 		ALLOCATABLE :: fplus(:,:,:,:)				! post-collision distribution function
 REAL(dbl), 		ALLOCATABLE :: u(:,:,:),v(:,:,:),w(:,:,:)		! x,y, and z components of the fluid velocity vector
 REAL(dbl), 		ALLOCATABLE :: rho(:,:,:)							! density
 INTEGER(lng), 	ALLOCATABLE :: node(:,:,:)    					! node flags (FLUID/SOLID)
@@ -74,11 +73,11 @@ INTEGER(lng), PARAMETER :: UNIFORM=4			! scalar initial condition: uniform scala
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Parallel (MPI) Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ! Number of communication directions (3D LBM)
-INTEGER(lng), PARAMETER :: NumCommDirs		= 26_lng								! number of communication directions (6 faces + 12 sides + 8 corners = 26)
-INTEGER(lng), PARAMETER :: MaxDistFns		= 5_lng								! maximum number of transfered distribution functions (actual number: 5 for faces, 2 for sides, 1 for corners)
-INTEGER(lng), PARAMETER :: NumFs_face		= 5_lng								! number of distribution functions transferred between neighboring faces
-INTEGER(lng), PARAMETER :: NumFs_side		= 2_lng								! number of distribution functions transferred between neighboring side
-INTEGER(lng), PARAMETER :: NumFs_corner	= 1_lng								! number of distribution functions transferred between neighboring corner
+INTEGER(lng), PARAMETER :: NumCommDirs		= 26_lng			! number of communication directions (6 faces + 12 sides + 8 corners = 26)
+INTEGER(lng), PARAMETER :: MaxDistFns		= 5_lng				! maximum number of transfered distribution functions (actual number: 5 for faces, 2 for sides, 1 for corners)
+INTEGER(lng), PARAMETER :: NumFs_face		= 5_lng				! number of distribution functions transferred between neighboring faces
+INTEGER(lng), PARAMETER :: NumFs_side		= 2_lng				! number of distribution functions transferred between neighboring side
+INTEGER(lng), PARAMETER :: NumFs_corner	= 1_lng					! number of distribution functions transferred between neighboring corner
 
 ! MPI Arrays (arranged by descending size for storage efficiency)
 INTEGER(lng), ALLOCATABLE :: f_Comps(:,:)											! specifies the components of the distribution functions to transfer in each MPI communication direction
@@ -104,9 +103,11 @@ INTEGER(lng), ALLOCATABLE :: CommDataStart_phi(:)								! array of starting ind
 INTEGER(lng), ALLOCATABLE :: CommDataStart_u(:)								! array of starting indices in the send arrays for the scalar from each communication direction
 INTEGER(lng), ALLOCATABLE :: CommDataStart_v(:)								! array of starting indices in the send arrays for the scalar from each communication direction
 INTEGER(lng), ALLOCATABLE :: CommDataStart_w(:)								! array of starting indices in the send arrays for the scalar from each communication direction
+INTEGER(lng), ALLOCATABLE :: CommDataStart_node(:)				! array of starting indices in the send arrays for the node index from each communication direction
 INTEGER(lng), ALLOCATABLE :: fSize(:)												! array of the number of elements sent for each communication direction (distribution functions)
 INTEGER(lng), ALLOCATABLE :: dsSize(:)												! array of the number of elements sent for each communication direction (density and scalar)
 INTEGER(lng), ALLOCATABLE :: uvwSize(:)												! array of the number of elements sent for each communication direction (density and scalar)
+INTEGER(lng), ALLOCATABLE :: nodeSize(:)					! array of the number of elements sent for each communication direction (density and scalar)
 INTEGER(lng), ALLOCATABLE :: msgSize(:)											! array of the number of elements sent for each communication direction (density and scalar)
 INTEGER(lng), ALLOCATABLE :: req(:)													! array of MPI send/receive requests 
 INTEGER(lng), ALLOCATABLE :: waitStat(:,:)										! array of MPI_WAITALL status objects
@@ -624,9 +625,6 @@ DO kSub=1,NumSubsZ
     END DO
   END DO
 END DO
-
-write(31,*) 'iMinDomain = ', iMinDomain
-write(31,*) 'iMaxDomain = ', iMaxDomain
 
 ! Commented out by Balaji 02/25/2015
 !! Define the local computational domain bounds (iMin:iMax,jMin:jMax,kMin:kMax)
@@ -1166,9 +1164,11 @@ ALLOCATE(CommDataStart_phi(NumCommDirs))					! array of starting indices in the 
 ALLOCATE(CommDataStart_u(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
 ALLOCATE(CommDataStart_v(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
 ALLOCATE(CommDataStart_w(NumCommDirs))					! array of starting indices in the send arrays for the scalar from each communication direction
+ALLOCATE(CommDataStart_node(NumCommDirs))					! array of starting indices in the send arrays for the node index from each communication direction
 ALLOCATE(fSize(NumCommDirs))									! array of the number of elements sent for each communication direction (distribution functions)
 ALLOCATE(dsSize(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
 ALLOCATE(uvwSize(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
+ALLOCATE(nodeSize(NumCommDirs))									! array of the number of elements sent for each communication direction (density and scalar)
 ALLOCATE(msgSize(NumCommDirs))								! array of the number of elements sent for each communication direction (total)
 ALLOCATE(req(2*NumCommDirs))									! allocate the MPI send request array
 
@@ -1213,7 +1213,7 @@ DEALLOCATE(f,fplus)
 DEALLOCATE(u,v,w,rho)
 
 ! Scalar
-DEALLOCATE(phi,phiTemp,delphi_particle)
+DEALLOCATE(phi,phiTemp,overlap,delphi_particle,tausgs_particle_x,tausgs_particle_y,tausgs_particle_z)
 
 ! Node Flags
 DEALLOCATE(node)
@@ -1246,12 +1246,15 @@ DEALLOCATE(CommDataStart_phi)		! array of starting indices in the send arrays fo
 DEALLOCATE(CommDataStart_u)		! array of starting indices in the send arrays for the scalar from each communication direction
 DEALLOCATE(CommDataStart_v)		! array of starting indices in the send arrays for the scalar from each communication direction
 DEALLOCATE(CommDataStart_w)		! array of starting indices in the send arrays for the scalar from each communication direction
+DEALLOCATE(CommDataStart_node)		! array of starting indices in the send arrays for the scalar from each communication direction
 DEALLOCATE(fSize)						! array of the number of elements sent for each communication direction (distribution functions)
 DEALLOCATE(dsSize)					! array of the number of elements sent for each communication direction (density and scalar)
 DEALLOCATE(uvwSize)					! array of the number of elements sent for each communication direction (density and scalar)
+DEALLOCATE(nodeSize)					! array of the number of elements sent for each communication direction (density and scalar)
 DEALLOCATE(msgSize)					! array of the number of elements sent for each communication direction (density and scalar)
 DEALLOCATE(req)						! array of MPI send/receive requests
 DEALLOCATE(waitStat)					! array of MPI_WAITALL requests
+DEALLOCATE(SubID)
 
 ! Geometry Arrays
 DEALLOCATE(rDom0,rDom,r)			! intial and current radius (global), current radius (local)
@@ -1262,8 +1265,27 @@ IF(randORord .EQ. RANDOM) THEN
   DEALLOCATE(rnd)						! array of random numbers for random villi phase angles
 END IF
 !Particle arrays
-!DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNBbyCV)
-!DEALLOCATE(par_conc,bulk_conc,sh,gamma_cont,rpold)
+IF(ParticleTrack.EQ.ParticleOn) THEN
+	!DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNBbyCV)
+	!DEALLOCATE(par_conc,bulk_conc,sh,gamma_cont,rpold)
+	!DEALLOCATE(ParList)
+	CALL list_free(ParListHead)
+END IF
+! Particle MPI arrays
+DEALLOCATE(iMinDomain)
+DEALLOCATE(iMaxDomain)
+DEALLOCATE(jMinDomain)
+DEALLOCATE(jMaxDomain)
+DEALLOCATE(kMinDomain)
+DEALLOCATE(kMaxDomain)
+DEALLOCATE(partransfersend)
+DEALLOCATE(partransferrecv)
+DEALLOCATE(numpartransfer)
+DEALLOCATE(parreqid)
+DEALLOCATE(parwtstat)
+DEALLOCATE(probestat)
+!DEALLOCATE(ParSendArray)
+!DEALLOCATE(ParRecvArray)
 !------------------------------------------------
 END SUBROUTINE DEAllocateArrays
 !------------------------------------------------
