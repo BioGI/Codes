@@ -38,4 +38,7 @@
 5.0				! number of time periods							(nPers)
 1500				! approximate number of output files						(numOuts)
 .FALSE.				! restart flag, .TRUE. or .FALSE						(restart)
-0				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
+1				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
+1                               ! A flag to indicate if we're doing a straight tube test
+0.005                           ! Radius of the straight tube if we're doing a straight tube test
+ 
