@@ -40,7 +40,11 @@ LOGICAL :: restart														! Restart Flag
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Scalar Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 REAL(dbl), ALLOCATABLE :: phi(:,:,:)			! passive scalar
+REAL(dbl), ALLOCATABLE :: overlap(:,:,:)                                        ! Partitioning for drug dissolution model
 REAL(dbl), ALLOCATABLE :: delphi_particle(:,:,:)	! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: tausgs_particle_x(:,:,:)				! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: tausgs_particle_y(:,:,:)				! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: tausgs_particle_z(:,:,:)				! passive scalar contribution from particles
 REAL(dbl), ALLOCATABLE :: phiTemp(:,:,:)		! temporary storage of passive scalar
 REAL(dbl) :: Sc 										! Schmidt number
 REAL(dbl) :: Dm,Dmcf									! binary molecular diffusivity (passive scalar in fluid), diffusivity conversion factor
@@ -225,22 +229,82 @@ INTEGER(lng)    :: radcount					! counts the number of output iterations for sto
 INTEGER(lng)	:: start, current, final, rate				! timing varibles for SYSTEM_CLOCK()
 REAL(dbl)	:: tStart,tEnd,tTotal,tRecv,tSum,tAvg		! timing variables for parallel scalability [MPI_WTIME()]
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Particle Tracking Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-INTEGER(lng)	:: ParticleTrack			! a flag to denote if particle track is on (1) or off (0) 
-INTEGER(lng), PARAMETER :: ParticleOn=1			! flag to signify Particle Tracking is on
-INTEGER(lng), PARAMETER :: ParticleOff=0		! flag for signify if particle tracking is off
-INTEGER(lng)    :: np					! number of particles
-REAL(dbl), ALLOCATABLE		:: xp(:),yp(:),zp(:)				! particle physical location coordinates
-INTEGER(lng), ALLOCATABLE 	:: ipar(:),jpar(:),kpar(:)			! particle computational nodal coordinates
-REAL(dbl), ALLOCATABLE		:: up(:),vp(:),wp(:)				! particle velocities
-REAL(dbl), ALLOCATABLE		:: rp(:),delNBbyCV(:),par_conc(:),bulk_conc(:),rpold(:)		! particle radius and drug release rate
-REAL(dbl), ALLOCATABLE		:: sh(:),gamma_cont(:)					! particle sherwood number
-!REAL(dbl), PARAMETER :: molarvol=2.65e-10,diffm=6.7e-10		! drug properties
-REAL(dbl), PARAMETER :: molarvol=2.65e-4_dbl,diffm=2.4e-7_dbl!1.2e-6		! drug properties
+INTEGER(lng) :: ParticleTrack							! a flag to denote if particle track is on (1) or off (0) 
+INTEGER(lng), PARAMETER :: ParticleOn= 1					! flag to signify Particle Tracking is on
+INTEGER(lng), PARAMETER :: ParticleOff= 0					! flag for signify if particle tracking is off
+INTEGER(lng) :: np								! number of particles
 
-!************************************************
+REAL(dbl), PARAMETER :: molarvol = 268.000_dbl					! (cm^3/mole) drug's molar volume
+REAL(dbl), PARAMETER :: diffm = 7.5000000e-6					! (cm2/s) drug's diffusivity	
+REAL(dbl), PARAMETER :: R0 = 0.0026_dbl		
+REAL(dbl), PARAMETER :: Cs_mol = 3.30000e-7 					! (mole/cm^3) or (micro M) or (micro g/ml)  drug properties
+REAL(dbl):: Cb_global								! (mole/cm^3) or (micro M) or (micro g/ml)  Global bulk scalar Concentration
+
+INTEGER(dbl):: Cb_numFluids							! Number of fluid nodes in the process for Global bulk scalar Concentration
+INTEGER(dbl):: num_particles							! Total number of particles in domain
+
+
+INTEGER(lng), ALLOCATABLE :: iMaxDomain(:),iMinDomain(:) 			! List of starting/enning i indices for each subdomain
+INTEGER(lng), ALLOCATABLE :: jMaxDomain(:),jMinDomain(:) 			! List of starting/enning j indices for each subdomain
+INTEGER(lng), ALLOCATABLE :: kMaxDomain(:),kMinDomain(:) 			! List of starting/enning k indices for each subdomain
+REAL(dbl), ALLOCATABLE  :: partransfersend(:,:),partransferrecv(:,:)
+INTEGER(lng),ALLOCATABLE :: parreqid(:),parwtstat(:,:)				! number of send/recv requests
+INTEGER(lng),ALLOCATABLE :: probestat(:)					! MPI status object
+INTEGER(lng),ALLOCATABLE :: numpartransfer(:)					! Particles to be transferred in each direction
+INTEGER(lng) :: NumCommDirsPar = 26_lng
+INTEGER(lng) :: NumParVar = 16_lng
+
+TYPE ParRecordTransfer
+	SEQUENCE
+	INTEGER(lng)	:: parid ! particle id in the overall list - a tag that can be used to track the particle
+	INTEGER(lng)	:: cur_part	! current sub-domain id / partition number
+	INTEGER(lng)	:: new_part	! current sub-domain id / partition number
+	REAL(dbl)	:: xp	! particle x-position
+	REAL(dbl)	:: yp ! particle y-position
+	REAL(dbl)	:: zp	! particle z-position
+	REAL(dbl)	:: up	! particle u-velocity
+	REAL(dbl)	:: vp   ! particle v-velocity
+	REAL(dbl)	:: wp	! particle w-velocity
+	REAL(dbl)	:: rp	! particle radius
+	REAL(dbl)	:: delNBbyCV ! particle drug release concentration 
+	REAL(dbl)	:: par_conc ! particle concentration
+	REAL(dbl)	:: bulk_conc ! bulk concentration at particle location
+	REAL(dbl)	:: xpold	! particle x-position
+	REAL(dbl)	:: ypold 	! particle y-position
+	REAL(dbl)	:: zpold	! particle z-position
+	REAL(dbl)	:: upold	! particle u-velocity
+	REAL(dbl)	:: vpold   	! particle v-velocity
+	REAL(dbl)	:: wpold	! particle w-velocity
+	REAL(dbl)	:: rpold	! old particle radius
+	REAL(dbl)	:: sh 	! Sherwood number
+	REAL(dbl)	:: gamma_cont	! gamma - container effect
+	REAL(dbl)	:: S 	! Shear rate at particle location
+	REAL(dbl)	:: Sst 	! Shear peclet number
+	REAL(dbl)	:: Veff ! effective particle container volume
+	REAL(dbl)	:: Nbj  ! number of moles associated with the particlnumber of moles associated with the particle
+END TYPE ParRecordTransfer
+
+TYPE ParRecord
+	TYPE(ParRecord), POINTER :: prev => NULL()! pointer to prev record
+	TYPE(ParRecord), POINTER :: next => NULL()	! pointer to next record
+	INTEGER(lng)	:: parid ! particle id in the overall list - a tag that can be used to track the particle
+	TYPE(ParRecordTransfer) :: pardata
+END TYPE ParRecord
+
+TYPE(ParRecordTransfer),ALLOCATABLE	:: ParSendArray(:,:),ParRecvArray(:,:)
+TYPE(ParRecord), POINTER	:: ParListHead,ParListEnd
+TYPE(ParRecordTransfer) :: ParInit
+LOGICAL :: ParticleTransfer
+INTEGER :: mpipartransfertype
+INTEGER :: numparticlesSub
+INTEGER(lng), PARAMETER :: der_type_count = 26_lng,numparticlesDomain = 1000_lng
+INTEGER :: mpidblextent,mpiintextent
+INTEGER(lng), DIMENSION(der_type_count) :: der_block_len,der_block_types,der_block_offsets
+REAL(dbl) :: fmovingsum,fmovingrhosum
+INTEGER(lng), ALLOCATABLE 	:: parfilenum(:),numparticleSubfile(:) ! array of particle output file numbers and number of particles in each of these files
+INTEGER(lng)	:: parfileCount				! current output file number (out of total number of output files)
 
 CONTAINS
 
@@ -593,6 +657,113 @@ END IF
 END SUBROUTINE SetSubID
 !------------------------------------------------
 
+!-------------------------------------------------------------------------------------------------
+!!!!!!! SUBROUTINES TO HANDLE POINTERS AND LINKED LISTS FOR PARTICLES
+!-------------------------------------------------------------------------------------------------
+
+
+! Initialize a head node SELF and optionally store the provided DATA.
+!------------------------------------------------
+SUBROUTINE list_init(self)
+!------------------------------------------------
+  TYPE(ParRecord), POINTER :: self
+
+  ALLOCATE(self) ! Note: When self is allocated, all the 
+  
+!  ALLOCATE(self%next)
+!  ALLOCATE(self%prev)
+!  ALLOCATE(self%xp)
+!  ALLOCATE(self%yp)
+!  ALLOCATE(self%zp)
+!  ALLOCATE(self%up)
+!  ALLOCATE(self%vp)
+!  ALLOCATE(self%wp)
+!  ALLOCATE(self%rp)
+!  ALLOCATE(self%delNBbyCV)
+!  ALLOCATE(self%par_conc)
+!  ALLOCATE(self%bulk_conc)
+!  ALLOCATE(self%rpold)
+!  ALLOCATE(self%sh)
+!  ALLOCATE(self%gamma_cont)
+!  ALLOCATE(self%cur_part)
+
+  NULLIFY(self%next)
+  NULLIFY(self%prev)
+
+!------------------------------------------------
+END SUBROUTINE list_init
+!------------------------------------------------
+
+! Insert a list node after SELF (an arbitrary node)
+! NOTE: Remember to assign data to these new nodes
+!------------------------------------------------
+SUBROUTINE list_insert(self)
+!------------------------------------------------
+  TYPE(ParRecord), POINTER :: self
+  TYPE(ParRecord), POINTER :: new
+
+! Allocate and initialize the new pointer
+  ALLOCATE(new)
+  NULLIFY(new%next)
+  NULLIFY(new%prev)
+
+  IF (ASSOCIATED(self%next)) THEN
+	new%next => self%next
+	self%next%prev => new
+  ELSE 
+	NULLIFY(new%next)
+  END IF
+  new%prev => self
+  self%next => new
+
+!------------------------------------------------
+END SUBROUTINE list_insert
+!------------------------------------------------
+
+! Delete a list node pointed by SELF (an arbitrary node)
+!------------------------------------------------
+SUBROUTINE list_delete(self)
+!------------------------------------------------
+  TYPE(ParRecord), POINTER :: self
+  TYPE(ParRecord), POINTER :: next
+
+  !ALLOCATE(next)
+  self%prev%next => self%next
+  IF (ASSOCIATED(self%next)) THEN
+	self%next%prev => self%prev
+  ENDIF
+
+  !self%prev => NULL()
+  !self%next => NULL()
+  NULLIFY(self%prev)
+  NULLIFY(self%next)
+  DEALLOCATE(self)
+
+!------------------------------------------------
+END SUBROUTINE list_delete
+!------------------------------------------------
+
+
+! Free the entire list and all data, beginning at SELF
+!------------------------------------------------
+SUBROUTINE list_free(self)
+!------------------------------------------------
+  TYPE(ParRecord), POINTER :: self
+  TYPE(ParRecord), POINTER :: current
+  TYPE(ParRecord), POINTER :: next
+  current => self
+  DO WHILE (ASSOCIATED(current))
+     next => current%next ! copy pointer of next node
+     DEALLOCATE(current)
+     NULLIFY(current)
+     ! point to next node in the list
+     current => next
+     !write(*,*) i
+  END DO
+!------------------------------------------------
+end subroutine list_free
+!------------------------------------------------
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE AllocateArrays	! allocates array space
 !--------------------------------------------------------------------------------------------------
@@ -610,7 +781,11 @@ ALLOCATE(rho(0:nxSub+1,0:nySub+1,0:nzSub+1))
 ! Scalar
 ALLOCATE(phi(0:nxSub+1,0:nySub+1,0:nzSub+1), 						&
          phiTemp(0:nxSub+1,0:nySub+1,0:nzSub+1))
+ALLOCATE(overlap(0:nxSub+1,0:nySub+1,0:nzSub+1))
 ALLOCATE(delphi_particle(0:nxSub+1,0:nySub+1,0:nzSub+1))
+ALLOCATE(tausgs_particle_x(0:nxSub+1,0:nySub+1,0:nzSub+1))
+ALLOCATE(tausgs_particle_y(0:nxSub+1,0:nySub+1,0:nzSub+1))
+ALLOCATE(tausgs_particle_z(0:nxSub+1,0:nySub+1,0:nzSub+1))
 
 ! Node Flags
 ALLOCATE(node(0:nxSub+1,0:nySub+1,0:nzSub+1))

@@ -19,6 +19,12 @@ IMPLICIT NONE
 
 integer :: i !Counter
 
+ALLOCATE(parfilenum(0:nt))					! maximum number of output files (should only output ~numOuts times)
+ALLOCATE(numparticleSubfile(0:nt))					! maximum number of output files (should only output ~numOuts times)
+parfilenum = 0_lng							! initialize to 0
+parfileCount = 0_lng							! initialize to 0
+numparticleSubfile = 0_lng
+
 ! allocate and intialize the filenum array and counter variable
 ALLOCATE(filenum(0:nt))					! maximum number of output files (should only output ~numOuts times)
 filenum = 0_lng							! initialize to 0
@@ -359,39 +365,70 @@ END IF
 END SUBROUTINE PrintFields
 !------------------------------------------------
 
+
+
 !------------------------------------------------------------------------------------------------------------
 SUBROUTINE PrintParticles	! print particle position, velocity, radius, and concentrationto output files
 !------------------------------------------------------------------------------------------------------------
 IMPLICIT NONE
-
-INTEGER(lng)	:: i,j,k,ii,jj,kk,n		! index variables (local and global)
+INTEGER(lng) 	:: numParticlesSub
+INTEGER(lng)	:: i,j,k,ii,jj,kk,n,xaxis,yaxis		! index variables (local and global)
 CHARACTER(7)	:: iter_char				! iteration stored as a character
+TYPE(ParRecord), POINTER :: current
+TYPE(ParRecord), POINTER :: next
 
-IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
-                                                   .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
+xaxis=ANINT(0.5_dbl*(nx+1))
+yaxis=ANINT(0.5_dbl*(ny+1))
 
-  ! scale the iteration by 1/10 such that the numbers used in the output file aren't too large
-  WRITE(iter_char(1:7),'(I7.7)') iter
+IF ((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) &
+   .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0) &
+   .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
 
-  !! store the current iteration in "filenum"
-  !filenum(fileCount) = iter
-  !fileCount = fileCount + 1_lng
+   !------ scale the iteration by 1/10 such that the numbers used in the output file aren't too large
+   WRITE(iter_char(1:7),'(I7.7)') iter
 
-  ! open the proper output file
-  OPEN(160,FILE='pardat-'//iter_char//'-'//sub//'.dat')
-  WRITE(160,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "i" "Sh" "rp" "bulk_conc" "delNBbyCV"'
-  WRITE(160,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',np,' J=',1,' K=',1,'F=POINT'
-  !WRITE(160,'(A10,E15.5,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',np,'F=POINT'
+   !------ store the current iteration in "parfilenum"
+   parfilenum(parfileCount) = iter
+   numParticlesSub  = 0_lng
 
-      DO i=1,np
+   !------ open the proper output file
+   OPEN(160,FILE='pardat-'//iter_char//'-'//sub//'.csv')
+   WRITE(160,*) '"x","y","z","u","v","w","ParID","Sh","rp","bulk_conc","delNBbyCV","Sst","S","Veff","Nbj"'
 
-         !WRITE(160,'(6E15.5,1I4,2E15.5)') xp(i)*xcf,yp(i)*ycf,MOD(zp(i),REAL(nz,dbl))*zcf, up(i)*vcf, vp(i)*vcf, wp(i)*vcf,i,rp(i),par_conc(i)
-         WRITE(160,'(6E15.5,1I4,4E15.5)') ((iMin - Ci) + (xp(i)-1_lng))*xcf,((jMin - Cj) + (yp(i)-1_lng))*ycf,(((kMin - 1_lng) + &
-	 				  MOD(zp(i),REAL(nz,dbl))) - 0.5_dbl)*zcf, up(i)*vcf, vp(i)*vcf, wp(i)*vcf,i,sh(i),rp(i),bulk_conc(i),delNBbyCV(i)
+   !------ Using linked lists
+   current => ParListHead%next
 
-      END DO
+   DO WHILE (ASSOCIATED(current))
+      numParticlesSub = numParticlesSub + 1_lng
+      next => current%next 					! copy pointer of next node
+
+
+
+
+      WRITE(160,1001) 	current%pardata%xp 	  ,',',	&
+			current%pardata%yp  	  ,',',	&
+			current%pardata%zp 	  ,',',	&
+                        current%pardata%up*vcf 	  ,',',	&
+		       	current%pardata%vp*vcf 	  ,',',	&
+			current%pardata%wp*vcf 	  ,',',	&
+                        current%pardata%parid 	  ,',',	&
+			current%pardata%sh 	  ,',',	&
+			current%pardata%rp/xcf 	  ,',',	&
+			current%pardata%bulk_conc ,',', &
+			current%pardata%delNBbyCV ,',', &
+			current%pardata%Sst 	  ,',',	&
+			current%pardata%S 	  ,',',	&
+			current%pardata%Veff 	  ,',',	&
+			current%pardata%Nbj
+
+1001 format (F12.5,a2,F12.5,a2,F12.5,a2,F12.5,a2,F12.5,a2,F15.5,a2,1I5,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2)
+
+     current => next   						! point to next node in the list
+  ENDDO
 
   CLOSE(160)
+  numparticleSubfile(parfileCount) = numParticlesSub	
+  parfileCount = parfileCount + 1_lng
 ENDIF
 
 ! NEED TO MERGE THIS OUTPUT IN THE CASE OF PARALLEL
@@ -400,7 +437,6 @@ ENDIF
 !------------------------------------------------------------------------------------------------------------
 END SUBROUTINE PrintParticles	! print particle position, velocity, radius, and concentrationto output files
 !------------------------------------------------------------------------------------------------------------
-
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintTime	! print time information for scalability information
@@ -727,6 +763,10 @@ IMPLICIT NONE
 CALL MergeScalar
 CALL MergeFields
 !CALL MergeMass
+IF (ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
+   CALL MergeParticleOutput					! Merge particle output
+ENDIF
+
 
 !------------------------------------------------
 END SUBROUTINE MergeOutput
@@ -906,6 +946,162 @@ CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)																				! synchronize all pro
 
 !------------------------------------------------
 END SUBROUTINE MergeFields
+!------------------------------------------------
+
+!--------------------------------------------------------------------------------------------------
+SUBROUTINE MergeParticleOutput				! combines the subdomain particle output into an output file for the entire computational domain 
+!--------------------------------------------------------------------------------------------------
+IMPLICIT NONE
+
+REAL(dbl), ALLOCATABLE	:: ParticleData(:,:)		! data for each particle in the computational domain
+INTEGER(lng) :: ParticleDistribution(0:nt,NumSubsTotal) ! array containing numparticlesSub for each sub domain
+INTEGER(lng) :: nxSend(3),nxRecv(3),npRecv,npSend	! nx-,ny-,nzSub from each subdomain
+INTEGER(lng) :: ii,jj,kk				! neighboring indices for writing
+INTEGER(lng) :: i,j,k,n,nn,nnn				! loop variables
+INTEGER(lng) :: dest, src, tag				! send/recv variables: destination, source, message tag
+INTEGER(lng) :: stat(MPI_STATUS_SIZE)			! status object: rank and tag of the sending processing unit/message
+INTEGER(lng) :: mpierr					! MPI standard error variable
+INTEGER(lng) :: numLines,numLineStart,numLineEnd	! number of lines to read
+INTEGER(lng) :: combine1,combine2			! clock variables
+CHARACTER(7) :: iter_char				! iteration stored as a character 
+CHARACTER(5) :: nthSub					! current subdomain stored as a character
+CHARACTER(2) :: tmpchar
+! send subdomain information to the master
+tag = 63_lng																						! starting message tag (arbitrary)
+
+IF(myid .NE. master) THEN
+	dest	= master	! send to master
+	CALL MPI_SEND(numparticleSubfile(0:nt),nt+1,MPI_INTEGER,dest,tag,MPI_COMM_WORLD,mpierr)		! send num particles in each subdomain
+ELSE
+	ALLOCATE(ParticleData(numparticlesDomain,15))
+	! initialize FieldData to 0
+	ParticleData = 0.0_dbl
+
+	! print combining status...
+	CALL SYSTEM_CLOCK(combine1,rate)	! Restart the Timer
+	OPEN(5,FILE='status.dat',POSITION='APPEND')										
+	WRITE(5,*)
+	WRITE(5,*)
+	WRITE(5,*) 'Combining particle output files and deleting originials...'
+	WRITE(5,*)     
+	CALL FLUSH(5)
+
+ 	ParticleDistribution(0:nt,1) = numparticleSubfile(0:nt)
+
+	DO src = 1,(numprocs-1)
+		CALL MPI_RECV(ParticleDistribution(0:nt,src+1),nt+1,MPI_INTEGER,src,tag,MPI_COMM_WORLD,stat,mpierr) ! receive np from each subdomain for each output
+	END DO
+
+	! combine the output files from each subdomain
+	DO n = 0,(parfileCount-1)
+
+		! print combining status...
+		WRITE(5,*)
+		WRITE(5,*) 'combining particle output file',n+1,'of',parfileCount
+		WRITE(5,*) 'reading/deleting...'
+		CALL FLUSH(5)
+		numLineStart	=  0_lng
+		numLineEnd	=  0_lng
+
+		DO nn = 1,NumSubsTotal
+			WRITE(nthSub(1:5),'(I5.5)') nn	! write subdomain number to 'nthSub' for output file exentsions
+			! open the nnth output file for the nth subdomain 
+			WRITE(iter_char(1:7),'(I7.7)') parfilenum(n)	! write the file number (iteration) to a charater
+			!      OPEN(60,FILE='out-'//iter_char//'-'//nthSub//'.dat')	! open file
+!			OPEN(60,FILE='pardat-'//iter_char//'-'//nthSub//'.dat')	! open file
+			OPEN(60,FILE='pardat-'//iter_char//'-'//nthSub//'.csv')	! open file
+
+			! read the output file
+			numLines = ParticleDistribution(n,nn)				! determine number of lines to read
+			!write(*,*) numLines,nn,n
+			READ(60,*)							! first line is variable info
+!			READ(60,*)							! second line is zone info
+			
+			numLineStart	=  numLineEnd 
+			numLineEnd	=  numLineStart + numLines
+			!write(*,*) numLineStart,numLineEnd
+			DO nnn = numLineStart+1_lng,numLineEnd
+       			   READ(60,*) 	ParticleData(nnn,1),	& 
+					ParticleData(nnn,2),	&	
+					ParticleData(nnn,3),	&
+					ParticleData(nnn,4),	&
+					ParticleData(nnn,5),	&
+					ParticleData(nnn,6),	&
+					ParticleData(nnn,7),	&
+					ParticleData(nnn,8),	&
+					ParticleData(nnn,9),	&
+					ParticleData(nnn,10),	&
+					ParticleData(nnn,11),	&
+					ParticleData(nnn,12),	&	
+					ParticleData(nnn,13),	&
+					ParticleData(nnn,14),	&
+					ParticleData(nnn,15)
+!                          WRITE(*,*)   ParticleData(nnn,1),    tmpchar,&
+!                                       ParticleData(nnn,2),    tmpchar,&
+!                                       ParticleData(nnn,3),    tmpchar,&
+!                                       ParticleData(nnn,4),    tmpchar,&
+!                                       ParticleData(nnn,5),    tmpchar,&
+!                                       ParticleData(nnn,6),    tmpchar,&
+!                                       ParticleData(nnn,7),    tmpchar,&
+!                                       ParticleData(nnn,8),    tmpchar,&
+!                                       ParticleData(nnn,9),    tmpchar,&
+!                                       ParticleData(nnn,10),   tmpchar,&
+!                                       ParticleData(nnn,11),   tmpchar,&
+!                                       ParticleData(nnn,12),   tmpchar,&
+!                                       ParticleData(nnn,13),   tmpchar,&
+!                                       ParticleData(nnn,14),   tmpchar,&
+!                                       ParticleData(nnn,15)
+
+			END DO
+			CLOSE(60,STATUS='DELETE') ! close and delete current output file (subdomain)
+		END DO
+
+		! print combining status...
+		WRITE(5,*) 'writing...'
+		CALL FLUSH(5)
+		! Write to combined output file	
+		OPEN(685,FILE='pardat-all-'//iter_char//'.csv')
+                WRITE(685,*) '"x","y","z","u","v","w","ParID","Sh","rp","bulk_conc","delNBbyCV","Sst","S","Veff","Nbj"'
+
+		DO nnn=1,numLineEnd
+        		WRITE(685,1001) ParticleData(nnn,1)  		,',', &
+					ParticleData(nnn,2)		,',', &
+					ParticleData(nnn,3) 		,',', &
+					ParticleData(nnn,4)		,',', &
+					ParticleData(nnn,5)		,',', &
+					ParticleData(nnn,6) 		,',', &
+					INT(ParticleData(nnn,7),lng)	,',', &
+					ParticleData(nnn,8)		,',', &
+					ParticleData(nnn,9) 		,',', &
+					ParticleData(nnn,10)		,',', &
+					ParticleData(nnn,11)		,',', &
+					ParticleData(nnn,12) 		,',', &
+					ParticleData(nnn,13)		,',', &
+					ParticleData(nnn,14)		,',', &
+					ParticleData(nnn,15)
+
+1001 format (F12.5,a2,F12.5,a2,F12.5,a2,F12.5,a2,F12.5,a2,F15.5,a2,1I5,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2,F15.10,a2)
+	
+	        END DO
+		CLOSE(685)	! close current output file (combined)
+
+	END DO
+	! End timer and print the amount of time it took for the combining
+	CALL SYSTEM_CLOCK(combine2,rate)	! End the Timer
+	WRITE(5,*)
+	WRITE(5,*)
+	WRITE(5,*) 'Total Time to Combine Particle Files (min.):', ((combine2-combine1)/REAL(rate))/60.0_dbl
+	WRITE(5,*)
+	WRITE(5,*)
+	CLOSE(5)
+
+	DEALLOCATE(ParticleData)
+END IF
+
+CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)																				! synchronize all processing units before next loop [Intrinsic]
+
+!------------------------------------------------
+END SUBROUTINE MergeParticleOutput
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
