@@ -625,6 +625,9 @@ DO kSub=1,NumSubsZ
   END DO
 END DO
 
+write(31,*) 'iMinDomain = ', iMinDomain
+write(31,*) 'iMaxDomain = ', iMaxDomain
+
 ! Commented out by Balaji 02/25/2015
 !! Define the local computational domain bounds (iMin:iMax,jMin:jMax,kMin:kMax)
 !quotientX	= CEILING(REAL(nx)/NumSubsX)						! divide the number of nodes by the number of subdomains (round up)
@@ -890,6 +893,78 @@ nzSub = (kMax - kMin) + 1_lng
 
 !------------------------------------------------
 END SUBROUTINE SubDomainSetup
+!------------------------------------------------
+
+!--------------------------------------------------------------------------------------------------
+SUBROUTINE SetSubIDNew(iComm,iiSub,jjSub,kkSub)									! sets SubID based on neighboring subdomains
+!--------------------------------------------------------------------------------------------------
+IMPLICIT NONE
+
+! Define local variables
+INTEGER(lng), INTENT(IN) :: iComm, iiSub, jjSub, kkSub 					! index variables
+INTEGER(lng) :: nSub, kkSub2,jjSub2														! neighboring subdomain ID, kkSub (reset for periodicity)
+
+IF(((iiSub .LT. 1) .OR. (iiSub .GT. NumSubsX))		&
+!   .OR. ((kkSub .LT. 1) .OR. (kkSub .GT. NumSubsZ))	& 					! comment out for periodic BCs in the k-direction
+!   .OR. ((jjSub .LT. 1) .OR. (jjSub .GT. NumSubsY))	&
+	)	THEN 
+
+  SubID(iComm) = 0_lng	! no neighbor
+
+ELSE IF((kkSub .LT. 1)) THEN
+	kkSub2 = NumSubsZ	! reset kkSub for periodicity in the z-direction
+	IF((jjSub .LT. 1)) THEN
+		  jjSub2 = NumSubsY																	! reset kkSub for periodicity in the z-direction
+		  nSub = iiSub + (jjSub2-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		  SubID(iComm) = nSub			! set SubID(iComm) to neighboring sudomain ID
+	
+	ELSE IF((jjSub .GT. NumSubsY)) THEN
+		jjSub2 = 1_lng																		! reset kkSub for periodicity in the z-direction
+		nSub = iiSub + (jjSub2-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		SubID(iComm) = nSub			! set SubID(iComm) to neighboring sudomain ID
+	ELSE
+		nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		SubID(iComm) = nSub		! set SubID(iComm) to neighboring sudomain ID
+	END IF
+ELSE IF((kkSub .GT. NumSubsZ)) THEN
+
+	kkSub2 = 1_lng	! reset kkSub for periodicity in the z-direction
+	IF((jjSub .LT. 1)) THEN
+		  jjSub2 = NumSubsY																	! reset kkSub for periodicity in the z-direction
+		  nSub = iiSub + (jjSub2-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		  SubID(iComm) = nSub			! set SubID(iComm) to neighboring sudomain ID
+	
+	ELSE IF((jjSub .GT. NumSubsY)) THEN
+		jjSub2 = 1_lng																		! reset kkSub for periodicity in the z-direction
+		nSub = iiSub + (jjSub2-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		SubID(iComm) = nSub			! set SubID(iComm) to neighboring sudomain ID
+	ELSE
+		nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		SubID(iComm) = nSub		! set SubID(iComm) to neighboring sudomain ID
+	END IF
+ELSE
+  
+	IF((jjSub .LT. 1)) THEN
+		  jjSub2 = NumSubsY																	! reset kkSub for periodicity in the z-direction
+		  nSub = iiSub + (jjSub2-1)*NumSubsX + (kkSub-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		  SubID(iComm) = nSub			! set SubID(iComm) to neighboring sudomain ID
+	
+	ELSE IF((jjSub .GT. NumSubsY)) THEN
+		jjSub2 = 1_lng																		! reset kkSub for periodicity in the z-direction
+		nSub = iiSub + (jjSub2-1)*NumSubsX + (kkSub-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		SubID(iComm) = nSub			! set SubID(iComm) to neighboring sudomain ID
+	ELSE
+		nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
+		SubID(iComm) = nSub		! set SubID(iComm) to neighboring sudomain ID
+	END IF
+
+
+END IF
+
+!write(*,*) SubID(iComm),NumSubsX,NumSubsY,NumSubsZ,iiSub,jjSub,kkSub,SubID(icomm)
+
+!------------------------------------------------
+END SUBROUTINE SetSubIDNew
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
