@@ -16,6 +16,7 @@ IMPLICIT NONE
 ! Define local variables
 INTEGER(lng) :: i,j,k,m									! index variables
 REAL(dbl) :: feq
+REAL(dbl) :: tmp
 
 IF(restart) THEN											! restart from  file 
   
@@ -71,7 +72,8 @@ ELSE															! clean start
 
         u(i,j,k)   = 0.0_dbl							! x-velocity
         v(i,j,k)   = 0.0_dbl							! y-velocity
-        w(i,j,k)   = 0.0_dbl							! z-velocity
+        tmp = sqrt( x(i) * x(i) + y(j)*y(j) )
+        w(i,j,k)   = 1.0 - tmp/r(k) !Linear velocity profile such that the velocity goes to zero at the wall			! z-velocity
         rho(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)

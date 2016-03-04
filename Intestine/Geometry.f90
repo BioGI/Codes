@@ -421,6 +421,9 @@ END DO
 DO i=0,nz+1
   rDom(i) = wc1*h1(i) + wc2*h2(i)
 END DO
+if(straightTubeTest .eq. 1) then
+   rDom = tubeRadius
+end if
 
 !IF((rDom(0) .NE. rDom(nz)) .OR. (rDom(nz+1) .NE. rDom(1))) THEN
 !  WRITE(6678,*) 'rDom(0)', rDom(0)
@@ -810,6 +813,9 @@ v2(nz-1:nz+1) = v2(1)
 DO i=0,nz+1
   velDom(i) = wc1*v1(i) + wc2*v2(i)
 END DO
+if(straightTubeTest .eq. 1) then
+   velDom = 0.0
+end if
 
 !----------------------------------------------------------------------------
 

@@ -332,7 +332,13 @@ READ(10,*) nPers				! total number of periods to run
 READ(10,*) numOuts			! number of output files (roughly)
 READ(10,*) restart			! use restart file? (0 if no, 1 if yes)
 READ(10,*) ParticleTrack		! A flag to indicate if particle is on or off (0 if off, 1 if on)
+READ(10,*) straightTubeTest             ! A flag to indicate if we're doing a straight tube test
+READ(10,*) tubeRadius                   ! Radius of the straight tube if we're doing a straight tube test
 CLOSE(10)
+
+if(straightTubeTest .eq. 1) then
+   WRITE(*,*) "Working on a straight tube test with radius ", tubeRadius
+end if
 
 ! Check to make sure the number of processors (numprocs) and the number of subdomains are equal
 NumSubsTotal = NumSubsX*NumSubsY*NumSubsZ
