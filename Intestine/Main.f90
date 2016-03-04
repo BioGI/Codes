@@ -53,7 +53,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
   	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]       
-
+        CALL FlagCoarseMeshNodesIntersectingWithFineMeshNodes
+ 
         ! Setup interpolation 
         iter = 0  
         write(*,*) 'Using iter=0 for initializing SetNodesInterface_nPlus1_fine. Has to be modified for restart'

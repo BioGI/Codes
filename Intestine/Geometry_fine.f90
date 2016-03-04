@@ -836,6 +836,43 @@ end do
 END SUBROUTINE SetNodesInterface_nPlus1_fine
 !------------------------------------------------
 
+SUBROUTINE FlagCoarseMeshNodesIntersectingWithFineMeshNodes
+
+INTEGER(lng)	:: i,j,k,m	! index variables
+INTEGER :: ii, jj, kk, iFine, jFine, kFine
+REAL(dbl) :: xcfBy2, xcfBy2_fine ! Half of LBM resolution
+REAL(dbl) :: tmp
+
+flagNodeIntersectFine = 0_dbl
+xcfBy2 = 0.5*xcf
+xcfBy2_fine = 0.5 * xcf_fine
+
+!Do the top and bottom XZ planes first
+do k=1,nzSub
+   flagNodeIntersectFine(45,45,k) = 0.16
+   flagNodeIntersectFine(45,57,k) = 0.16
+   do i=46,56
+      flagNodeIntersectFine(i,45,k) = 0.4375 !3.5/8.0
+      flagNodeIntersectFine(45,i,k) = 0.4375 !3.5/8.0
+      flagNodeIntersectFine(i,57,k) = 0.4375 !3.5/8.0      
+      flagNodeIntersectFine(57,i,k) = 0.4375 !3.5/8.0      
+   end do
+   flagNodeIntersectFine(57,45,k) = 0.16
+   flagNodeIntersectFine(57,57,k) = 0.16
+end do
+   
+
+! write(*,*) 'Temporarily putting flagNodeIntersectFine into phi_fine for visualization'
+! do i = 1,nxSub
+!    do j = 1,nySub
+!       do k = 1,nzSub
+!          phi(i,j,k) = flagNodeIntersectFine(i,j,k)
+!       end do
+!    end do
+! end do
+  
+END SUBROUTINE FlagCoarseMeshNodesIntersectingWithFineMeshNodes
+
 FUNCTION degreeOverlapCube(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
 
   !! Find the degree of overlap between two cubes
@@ -856,6 +893,21 @@ FUNCTION degreeOverlapCube(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
   RETURN
 
 END FUNCTION degreeOverlapCube
+
+FUNCTION degreeOverlapCube2(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
+
+  !! Find the degree of overlap between two cubes
+  ! First cube (assumed to be larger - coarse mesh) has corners (x,y,z) and (xp,yp,zp)
+  ! Second cube (assumed to be smaller - fine mesh) has corners (a,b,c) and (ap,bp,cp)
+  
+  REAL(dbl) :: x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp
+  REAL(dbl) :: degreeOverlapCube2
+
+  degreeOverlapCube2 = (max(min(ap,xp)-max(a,x1),0.0_dbl)/xcf) * (max(min(bp,yp)-max(b,y1),0.0_dbl)/ycf) * (max(min(cp,zp)-max(c,z1),0.0_dbl)/zcf)
+  RETURN
+
+END FUNCTION degreeOverlapCube2
+
 
 !================================================
 END MODULE Geometry_Fine

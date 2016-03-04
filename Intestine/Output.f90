@@ -614,7 +614,7 @@ DO k=1,nzSub
     DO i=1,nxSub
 
       IF(node(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + 1.0! phi(i,j,k)
+        phiDomain = phiDomain + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k)
         numFluids = numFluids + 1_lng
       END IF
 

@@ -215,6 +215,7 @@ real(dbl), allocatable, dimension(:,:,:) :: feqFF_backYZ
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 real(dbl), allocatable, dimension(:,:,:) :: flagNodeIntersectCoarse !Flag nodes that intersect with the volume around coarse mesh nodes
+real(dbl), allocatable, dimension(:,:,:) :: flagNodeIntersectFine !Flag nodes that intersect with the volume around coarse mesh nodes
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -678,6 +679,7 @@ allocate(feqFF_bottomXZ(0:NumDistDirs,44:59,1:nzSub))  !Includes the ends - Indi
 allocate(feqFF_frontYZ(0:NumDistDirs,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 allocate(feqFF_backYZ(0:NumDistDirs,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
+allocate(flagNodeIntersectFine(nxSub, nySub, nzSub))
 !------------------------------------------------
 END SUBROUTINE AllocateArrays
 !------------------------------------------------
