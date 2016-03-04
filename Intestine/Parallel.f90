@@ -457,6 +457,40 @@ END DO
 ! Allocate the MPI_WAITALL status array
 ALLOCATE(waitStat(MPI_STATUS_SIZE,2*NumCommDirs))
 
+ALLOCATE(partransfersend(NumParVar,NumCommDirsPar))
+ALLOCATE(partransferrecv(NumParVar,NumCommDirsPar))
+ALLOCATE(numpartransfer(NumCommDirsPar))
+ALLOCATE(parreqid(2*NumCommDirsPar))
+ALLOCATE(parwtstat(MPI_STATUS_SIZE,2*NumCommDirsPar))
+ALLOCATE(probestat(MPI_STATUS_SIZE))
+
+ParInit%parid = 0_lng
+ParInit%cur_part = 0_lng
+ParInit%new_part = 0_lng
+ParInit%xp = 0.0_dbl
+ParInit%yp = 0.0_dbl
+ParInit%zp = 0.0_dbl
+ParInit%up = 0.0_dbl
+ParInit%vp = 0.0_dbl
+ParInit%wp = 0.0_dbl
+ParInit%rp = 0.0_dbl
+ParInit%xpold = 0.0_dbl
+ParInit%ypold = 0.0_dbl
+ParInit%zpold = 0.0_dbl
+ParInit%upold = 0.0_dbl
+ParInit%vpold = 0.0_dbl
+ParInit%wpold = 0.0_dbl
+ParInit%rpold = 0.0_dbl
+ParInit%par_conc = 0.0_dbl
+ParInit%bulk_conc = 0.0_dbl
+ParInit%sh = 0.0_dbl
+ParInit%S = 0.0_dbl
+ParInit%Sst = 0.0_dbl
+ParInit%Veff = 0.0_dbl
+ParInit%Nbj = 0.0_dbl
+ParInit%gamma_cont = 0.0_dbl
+ParInit%delNBbyCV = 0.0_dbl
+
 !------------------------------------------------
 END SUBROUTINE MPI_Initialize
 !------------------------------------------------
