@@ -1117,16 +1117,16 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
 
    CALL Interp_Parvel 							! interpolate final particle velocities after the final position is ascertained. 
    
-   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
-   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
-   CALL Compute_Cb(V_eff_Ratio,CaseNo,Cb_Hybrid)  
+!   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
+!   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
+!   CALL Compute_Cb(V_eff_Ratio,CaseNo,Cb_Hybrid)  
    
    open(172,file='Cb-history.dat',position='append')
    write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
 
-   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
-   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
-   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
+!   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
+!   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
+!   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
 									!drug molecules released by the particle at this new position
 ENDIF
 
