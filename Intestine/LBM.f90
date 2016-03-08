@@ -1180,15 +1180,6 @@ DO WHILE (ASSOCIATED(current))
 	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF
 
-	!------- Wrappign around in y-direction for periodic BC in y
-	IF (current%pardata%yp.GE.REAL(ny,dbl)) THEN
-	   current%pardata%yp = MOD(current%pardata%yp,REAL(ny,dbl))
-	ENDIF
-	IF (current%pardata%yp.LT.1.0_dbl) THEN
-	   current%pardata%yp = current%pardata%yp+REAL(ny,dbl)
-	ENDIF
-
-
 	!------- Estimate to which partition the updated position belongs to.
 	DO ipartition = 1_lng,NumSubsTotal 
            IF ((current%pardata%xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
