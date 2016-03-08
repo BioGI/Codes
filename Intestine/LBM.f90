@@ -1173,11 +1173,11 @@ DO WHILE (ASSOCIATED(current))
  IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
-	IF (current%pardata%zp.GE.REAL(nz,dbl)) THEN
-	   current%pardata%zp = MOD(current%pardata%zp,REAL(nz,dbl))
+	IF (current%pardata%zp.GE.REAL(L,dbl)) THEN
+	   current%pardata%zp = MOD(current%pardata%zp,REAL(L,dbl))
 	ENDIF
 	IF (current%pardata%zp.LE.0.0_dbl) THEN
-	   current%pardata%zp = current%pardata%zp+REAL(nz,dbl)
+	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF
 
 	!------- Wrappign around in y-direction for periodic BC in y
