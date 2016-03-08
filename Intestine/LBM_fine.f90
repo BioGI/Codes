@@ -160,30 +160,21 @@ DO WHILE (ASSOCIATED(current))
  IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
-	IF (current%pardata%zp.GE.REAL(nz,dbl)) THEN
-	   current%pardata%zp = MOD(current%pardata%zp,REAL(nz,dbl))
+	IF (current%pardata%zp.GE.REAL(L,dbl)) THEN
+	   current%pardata%zp = MOD(current%pardata%zp,REAL(L,dbl))
 	ENDIF
 	IF (current%pardata%zp.LE.0.0_dbl) THEN
-	   current%pardata%zp = current%pardata%zp+REAL(nz,dbl)
+	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF
-
-	!------- Wrappign around in y-direction for periodic BC in y
-	IF (current%pardata%yp.GE.REAL(ny,dbl)) THEN
-	   current%pardata%yp = MOD(current%pardata%yp,REAL(ny,dbl))
-	ENDIF
-	IF (current%pardata%yp.LT.1.0_dbl) THEN
-	   current%pardata%yp = current%pardata%yp+REAL(ny,dbl)
-	ENDIF
-
 
 	!------- Estimate to which partition the updated position belongs to.
 	DO ipartition = 1_lng,NumSubsTotal 
-           IF ((current%pardata%xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
-	      (current%pardata%xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-	      (current%pardata%yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-	      (current%pardata%yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-	      (current%pardata%zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-	      (current%pardata%zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+           IF (( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+	      ( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+	      ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+	      ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+	      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+	      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
               
               current%pardata%new_part = ipartition
 	    END IF
