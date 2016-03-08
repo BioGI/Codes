@@ -79,6 +79,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	IF(ParticleTrack.EQ.ParticleOn) THEN 				! If particle tracking is 'on' then do the following
            CALL IniParticles
            CALL Particle_Setup
+           CALL Particle_Setup_fine           
 	ENDIF
 
         IF(restart) THEN		! calculate the villous locations/angles at iter0-1 [MODULE: Geometry]
@@ -102,7 +103,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !	   CALL Calc_Global_Bulk_Scalar_Conc				! Estimate bluk	scalar concentration in each partition
 !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.  
 	   CALL Particle_Track
-	   CALL Particle_MPI_Transfer
+!	   CALL Particle_MPI_Transfer
 	ENDIF
         
         ! IF(iter .GE. phiStart) THEN
@@ -128,6 +129,13 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
            fPlus_fine = fPlus
 !           CALL Stream_Fine            ! Stream fine grid
 !           CALL Macro_Fine             ! Calculate Macro properties on fine grid
+           IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
+              !	   CALL Calc_Global_Bulk_Scalar_Conc				! Estimate bluk	scalar concentration in each partition
+              !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.  
+              CALL Particle_Track_fine
+              CALL Particle_MPI_Transfer !The first time this is called, it should technically do the work for any particles in the coarse mesh that have to be transferred across processors as well.
+           ENDIF
+           
 !           CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
 !           CALL Collision_Fine     ! Collision step on the fine grid
            CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid

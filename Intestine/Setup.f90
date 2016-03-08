@@ -253,6 +253,9 @@ INTEGER(dbl):: num_particles							! Total number of particles in domain
 INTEGER(lng), ALLOCATABLE :: iMaxDomain(:),iMinDomain(:) 			! List of starting/enning i indices for each subdomain
 INTEGER(lng), ALLOCATABLE :: jMaxDomain(:),jMinDomain(:) 			! List of starting/enning j indices for each subdomain
 INTEGER(lng), ALLOCATABLE :: kMaxDomain(:),kMinDomain(:) 			! List of starting/enning k indices for each subdomain
+INTEGER(lng), ALLOCATABLE :: iMaxDomain_fine(:),iMinDomain_fine(:) 			! List of starting/enning i indices for each subdomain
+INTEGER(lng), ALLOCATABLE :: jMaxDomain_fine(:),jMinDomain_fine(:) 			! List of starting/enning j indices for each subdomain
+INTEGER(lng), ALLOCATABLE :: kMaxDomain_fine(:),kMinDomain_fine(:) 			! List of starting/enning k indices for each subdomain
 REAL(dbl), ALLOCATABLE  :: partransfersend(:,:),partransferrecv(:,:)
 INTEGER(lng),ALLOCATABLE :: parreqid(:),parwtstat(:,:)				! number of send/recv requests
 INTEGER(lng),ALLOCATABLE :: probestat(:)					! MPI status object

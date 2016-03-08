@@ -385,6 +385,13 @@ INTEGER(lng) :: quotientX, quotientY, quotientZ	 ! variables for determining the
 
 ALLOCATE(SubID_fine(NumCommDirs)) ! id number of neighboring subdomains (same as rank of processing unit working on domain)
 
+ALLOCATE(iMaxDomain_fine(NumSubsTotal))
+ALLOCATE(iMinDomain_fine(NumSubsTotal))
+ALLOCATE(jMaxDomain_fine(NumSubsTotal))
+ALLOCATE(jMinDomain_fine(NumSubsTotal))
+ALLOCATE(kMaxDomain_fine(NumSubsTotal))
+ALLOCATE(kMinDomain_fine(NumSubsTotal))
+
 ! fill out communication direction vectors
 CDx(1) =   1_lng
 CDy(1) =   0_lng
@@ -495,32 +502,6 @@ mySub = myid + 1_lng							! subdomain number
 !WRITE(sub(1:2),'(I2.2)') mySub			! write subdomain number to 'sub' for output file exentsions
 WRITE(sub(1:5),'(I5.5)') mySub			! write subdomain number to 'sub' for output file exentsions
 
-! Loop through the subdomains
-DO kSub=1,NumSubsZ
-  DO jSub=1,NumSubsY
-    DO iSub=1,NumSubsX
-
-      thisSub = iSub + (jSub-1)*NumSubsX + (kSub-1)*NumSubsX*NumSubsY	! get the ID of the current Subdomain
-
-      IF(mySub .EQ. thisSub) THEN													! fill out the SubID array of the current subdomain is the 
-     
-        ! Loop through the communication directions for the current subdomain
-        DO iComm=1,NumCommDirs
-
-          iiSub = iSub + CDx(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
-          jjSub = jSub + CDy(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
-          kkSub = kSub + CDz(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
-      
-          CALL SetSubID_fine(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
-
-        END DO
-
-      END IF
-
-    END DO
-  END DO
-END DO
-
 ! Define the local computational domain bounds (iMin:iMax,jMin:jMax,kMin:kMax)
 quotientX	= CEILING(REAL(nx_fine)/NumSubsX)	! divide the number of nodes by the number of subdomains (round up)
 quotientY	= CEILING(REAL(ny_fine)/NumSubsY)	! divide the number of nodes by the number of subdomains (round up)
@@ -547,6 +528,57 @@ END IF
 IF(kMax_fine .GT. nz_fine) THEN
   kMax_fine = nz_fine																! if kMax is greater than nz, correct it
 END IF
+
+! Loop through the subdomains
+DO kSub=1,NumSubsZ
+  DO jSub=1,NumSubsY
+    DO iSub=1,NumSubsX
+
+      thisSub = iSub + (jSub-1)*NumSubsX + (kSub-1)*NumSubsX*NumSubsY	! get the ID of the current Subdomain
+
+      IF(mySub .EQ. thisSub) THEN													! fill out the SubID array of the current subdomain is the 
+     
+        ! Loop through the communication directions for the current subdomain
+        DO iComm=1,NumCommDirs
+
+          iiSub = iSub + CDx(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
+          jjSub = jSub + CDy(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
+          kkSub = kSub + CDz(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
+      
+          CALL SetSubID_fine(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
+
+        END DO
+
+      END IF
+
+! Fill up arrays containging iMax, iMin, jMax,jMin,kMax, kMin for all subdomains
+
+
+	iMinDomain_fine(thisSub) = MOD((thisSub-1_lng),NumSubsX)*quotientX + 1_lng			! starting local i index 
+	iMaxDomain_fine(thisSub) = iMinDomain_fine(thisSub) + (quotientX - 1_lng)				! ending local i index
+	
+	jMinDomain_fine(thisSub) = MOD(((thisSub-1_lng)/NumSubsX),NumSubsY)*quotientY + 1_lng	! starting local j index
+	jMaxDomain_fine(thisSub) = jMinDomain_fine(thisSub) + (quotientY - 1_lng)				! ending local j index
+	
+	kMinDomain_fine(thisSub) = ((thisSub-1_lng)/(NumSubsX*NumSubsY))*quotientZ + 1_lng		! starting local k index 
+	kMaxDomain_fine(thisSub) = kMinDomain_fine(thisSub) + (quotientZ - 1_lng)				! ending local k index
+	
+	! Check the bounds
+	IF(iMaxDomain_fine(thisSub) .GT. nx_fine) THEN
+	  iMaxDomain_fine(thisSub) = nx_fine																! if iMax is greater than nx, correct it
+	END IF
+	
+	IF(jMaxDomain_fine(thisSub) .GT. ny_fine) THEN
+	  jMaxDomain_fine(thisSub) = ny_fine																! if jMax is greater than ny, correct it
+	END IF
+	
+	IF(kMaxDomain_fine(thisSub) .GT. nz_fine) THEN
+	  kMaxDomain_fine(thisSub) = nz_fine																! if kMax is greater than nz, correct it
+	END IF
+
+   END DO
+  END DO
+END DO
 
 ! Determine the number of nodes in each direction
 nxSub_fine = (iMax_fine - iMin_fine) + 1_lng
@@ -635,6 +667,9 @@ ALLOCATE(rho_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ALLOCATE(phi_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1), 						&
          phiTemp_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ALLOCATE(delphi_particle_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
+ALLOCATE(tausgs_particle_x_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
+ALLOCATE(tausgs_particle_y_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
+ALLOCATE(tausgs_particle_z_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 
 ! Node Flags
 ALLOCATE(node_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
