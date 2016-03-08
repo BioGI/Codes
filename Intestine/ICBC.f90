@@ -3,7 +3,8 @@ MODULE ICBC		! Sets Initial and Boundary Conditions
 					! Contains setup subroutines (ICs,BounceBack,IniParticles)
 !==================================================================================================
 USE SetPrecision
-USE Setup  
+USE Setup
+USE Setup_fine  
 USE MPI
 
 CONTAINS
@@ -141,16 +142,15 @@ ELSE
 		READ(60,*) parid,xp,yp,zp,par_radius ! read particle.dat file
                 ! Search the partition this particle belongs to
   
-                IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-     
+                IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
                  
                    DO ipartition = 1_lng,NumSubsTotal 
-                      IF ((xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
-                           (xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-                           (yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-                           (yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-                           (zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-                           (zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+                      IF (( (xp/xcf) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+                           ( (xp/xcf) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( (yp/ycf) .GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                           ( (yp/ycf) .LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( (zp/zcf) .GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                           ( (zp/zcf) .LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
                          
                          particle_partition = ipartition
                       END IF
@@ -160,18 +160,17 @@ ELSE
                 ELSE
                    
                    DO ipartition = 1_lng,NumSubsTotal 
-                      IF ((xp.GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
-                           (xp.LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-                           (yp.GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-                           (yp.LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-                           (zp.GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-                           (zp.LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
+                      IF (( (xp/xcf_fine) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
+                           ( (xp/xcf_fine) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( (yp/ycf_fine) .GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                           ( (yp/ycf_fine) .LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( (zp/zcf_fine) .GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                           ( (zp/zcf_fine) .LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
                          
                          particle_partition = ipartition
                       END IF
                       
                    END DO
-
 
                 END IF
                       
