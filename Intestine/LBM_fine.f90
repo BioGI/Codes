@@ -354,7 +354,7 @@ DO WHILE (ASSOCIATED(current))
          
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
-         current%pardata%up=c
+         current%pardata%up=c * vcf_fine
          
          
          ! v-interpolation
@@ -370,7 +370,7 @@ DO WHILE (ASSOCIATED(current))
          
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
-         current%pardata%vp=c
+         current%pardata%vp=c * vcf_fine
          
          ! w-interpolation
          ! Do first level linear interpolation in x-direction
@@ -385,7 +385,7 @@ DO WHILE (ASSOCIATED(current))
          
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
-         current%pardata%wp=c
+         current%pardata%wp=c * vcf_fine
 
       END IF
          
