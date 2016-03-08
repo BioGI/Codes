@@ -197,87 +197,91 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
-	xp = current%pardata%xp - REAL(iMin-1_lng,dbl)
-	yp = current%pardata%yp - REAL(jMin-1_lng,dbl)
-	zp = current%pardata%zp - REAL(kMin-1_lng,dbl)
+      IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
-	ix0=FLOOR(xp)
-	ix1=CEILING(xp)
-	iy0=FLOOR(yp)
-	iy1=CEILING(yp)
-	iz0=FLOOR(zp)
-	iz1=CEILING(zp)
+         xp = current%pardata%xp - REAL(iMin-1_lng,dbl)
+         yp = current%pardata%yp - REAL(jMin-1_lng,dbl)
+         zp = current%pardata%zp - REAL(kMin-1_lng,dbl)
+         
+         ix0=FLOOR(xp)
+         ix1=CEILING(xp)
+         iy0=FLOOR(yp)
+         iy1=CEILING(yp)
+         iz0=FLOOR(zp)
+         iz1=CEILING(zp)
 !!!!!! MAKE SURE THE ABOVE NODES ARE FLUID NODES
+         
+         IF (ix1 /= ix0) THEN 
+            xd=(xp-REAL(ix0,dbl))/(REAL(ix1,dbl)-REAL(ix0,dbl))	
+         ELSE
+            xd = 0.0_dbl
+         END IF
+         
+         IF (iy1 /= iy0) THEN 
+            yd=(yp-REAL(iy0,dbl))/(REAL(iy1,dbl)-REAL(iy0,dbl))	
+         ELSE
+            yd = 0.0_dbl
+         END IF
+         
+         
+         IF (iz1 /= iz0) THEN 
+            zd=(zp-REAL(iz0,dbl))/(REAL(iz1,dbl)-REAL(iz0,dbl))
+         ELSE
+            zd = 0.0_dbl
+         END IF
+         
+         
+         ! u-interpolation
+         ! Do first level linear interpolation in x-direction
+         c00 = u(ix0,iy0,iz0)*(1.0_dbl-xd)+u(ix1,iy0,iz0)*xd	
+         c01 = u(ix0,iy0,iz1)*(1.0_dbl-xd)+u(ix1,iy0,iz1)*xd	
+         c10 = u(ix0,iy1,iz0)*(1.0_dbl-xd)+u(ix1,iy1,iz0)*xd	
+         c11 = u(ix0,iy1,iz1)*(1.0_dbl-xd)+u(ix1,iy1,iz1)*xd	
+         
+         ! Do second level linear interpolation in y-direction
+         c0  = c00*(1.0_dbl-yd)+c10*yd
+         c1  = c01*(1.0_dbl-yd)+c11*yd
+         
+         ! Do third level linear interpolation in z-direction
+         c   = c0*(1.0_dbl-zd)+c1*zd
+         current%pardata%up=c
+         
+         
+         ! v-interpolation
+         ! Do first level linear interpolation in x-direction
+         c00 = v(ix0,iy0,iz0)*(1.0_dbl-xd)+v(ix1,iy0,iz0)*xd
+         c01 = v(ix0,iy0,iz1)*(1.0_dbl-xd)+v(ix1,iy0,iz1)*xd
+         c10 = v(ix0,iy1,iz0)*(1.0_dbl-xd)+v(ix1,iy1,iz0)*xd
+         c11 = v(ix0,iy1,iz1)*(1.0_dbl-xd)+v(ix1,iy1,iz1)*xd	
+         
+         ! Do second level linear interpolation in y-direction
+         c0  = c00*(1.0_dbl-yd)+c10*yd
+         c1  = c01*(1.0_dbl-yd)+c11*yd
+         
+         ! Do third level linear interpolation in z-direction
+         c   = c0*(1.0_dbl-zd)+c1*zd
+         current%pardata%vp=c
+         
+         ! w-interpolation
+         ! Do first level linear interpolation in x-direction
+         c00 = w(ix0,iy0,iz0)*(1.0_dbl-xd)+w(ix1,iy0,iz0)*xd	
+         c01 = w(ix0,iy0,iz1)*(1.0_dbl-xd)+w(ix1,iy0,iz1)*xd	
+         c10 = w(ix0,iy1,iz0)*(1.0_dbl-xd)+w(ix1,iy1,iz0)*xd	
+         c11 = w(ix0,iy1,iz1)*(1.0_dbl-xd)+w(ix1,iy1,iz1)*xd	
+         
+         ! Do second level linear interpolation in y-direction
+         c0  = c00*(1.0_dbl-yd)+c10*yd
+         c1  = c01*(1.0_dbl-yd)+c11*yd
+         
+         ! Do third level linear interpolation in z-direction
+         c   = c0*(1.0_dbl-zd)+c1*zd
+         current%pardata%wp=c
 
-	IF (ix1 /= ix0) THEN 
-           xd=(xp-REAL(ix0,dbl))/(REAL(ix1,dbl)-REAL(ix0,dbl))	
-	ELSE
-           xd = 0.0_dbl
-	END IF
-
-	IF (iy1 /= iy0) THEN 
-           yd=(yp-REAL(iy0,dbl))/(REAL(iy1,dbl)-REAL(iy0,dbl))	
-	ELSE
-           yd = 0.0_dbl
-	END IF
-
-
-	IF (iz1 /= iz0) THEN 
-           zd=(zp-REAL(iz0,dbl))/(REAL(iz1,dbl)-REAL(iz0,dbl))
-	ELSE
-           zd = 0.0_dbl
-	END IF
-
-
-! u-interpolation
-! Do first level linear interpolation in x-direction
-	c00 = u(ix0,iy0,iz0)*(1.0_dbl-xd)+u(ix1,iy0,iz0)*xd	
-	c01 = u(ix0,iy0,iz1)*(1.0_dbl-xd)+u(ix1,iy0,iz1)*xd	
-	c10 = u(ix0,iy1,iz0)*(1.0_dbl-xd)+u(ix1,iy1,iz0)*xd	
-	c11 = u(ix0,iy1,iz1)*(1.0_dbl-xd)+u(ix1,iy1,iz1)*xd	
-	
-! Do second level linear interpolation in y-direction
-	c0  = c00*(1.0_dbl-yd)+c10*yd
-	c1  = c01*(1.0_dbl-yd)+c11*yd
-
-! Do third level linear interpolation in z-direction
-	c   = c0*(1.0_dbl-zd)+c1*zd
-        current%pardata%up=c
-
-
-! v-interpolation
-! Do first level linear interpolation in x-direction
-	c00 = v(ix0,iy0,iz0)*(1.0_dbl-xd)+v(ix1,iy0,iz0)*xd
-	c01 = v(ix0,iy0,iz1)*(1.0_dbl-xd)+v(ix1,iy0,iz1)*xd
-	c10 = v(ix0,iy1,iz0)*(1.0_dbl-xd)+v(ix1,iy1,iz0)*xd
-	c11 = v(ix0,iy1,iz1)*(1.0_dbl-xd)+v(ix1,iy1,iz1)*xd	
-
-! Do second level linear interpolation in y-direction
-	c0  = c00*(1.0_dbl-yd)+c10*yd
-	c1  = c01*(1.0_dbl-yd)+c11*yd
-
-! Do third level linear interpolation in z-direction
-	c   = c0*(1.0_dbl-zd)+c1*zd
-        current%pardata%vp=c
-
-! w-interpolation
-! Do first level linear interpolation in x-direction
-	c00 = w(ix0,iy0,iz0)*(1.0_dbl-xd)+w(ix1,iy0,iz0)*xd	
-	c01 = w(ix0,iy0,iz1)*(1.0_dbl-xd)+w(ix1,iy0,iz1)*xd	
-	c10 = w(ix0,iy1,iz0)*(1.0_dbl-xd)+w(ix1,iy1,iz0)*xd	
-	c11 = w(ix0,iy1,iz1)*(1.0_dbl-xd)+w(ix1,iy1,iz1)*xd	
-
-! Do second level linear interpolation in y-direction
-	c0  = c00*(1.0_dbl-yd)+c10*yd
-	c1  = c01*(1.0_dbl-yd)+c11*yd
-
-! Do third level linear interpolation in z-direction
-	c   = c0*(1.0_dbl-zd)+c1*zd
-        current%pardata%wp=c
-
-! point to next node in the list
-	current => next
-
+      END IF
+         
+      ! point to next node in the list
+      current => next
+      
 ENDDO
 
 !===================================================================================================
@@ -1088,17 +1092,21 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      current%pardata%xpold = current%pardata%xp
-      current%pardata%ypold = current%pardata%yp
-      current%pardata%zpold = current%pardata%zp
-	
-      current%pardata%upold = current%pardata%up
-      current%pardata%vpold = current%pardata%vp
-      current%pardata%wpold = current%pardata%wp
-	
-      current%pardata%xp=current%pardata%xpold+current%pardata%up
-      current%pardata%yp=current%pardata%ypold+current%pardata%vp
-      current%pardata%zp=current%pardata%zpold+current%pardata%wp
+      IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+
+         current%pardata%xpold = current%pardata%xp
+         current%pardata%ypold = current%pardata%yp
+         current%pardata%zpold = current%pardata%zp
+         
+         current%pardata%upold = current%pardata%up
+         current%pardata%vpold = current%pardata%vp
+         current%pardata%wpold = current%pardata%wp
+         
+         current%pardata%xp=current%pardata%xpold+current%pardata%up
+         current%pardata%yp=current%pardata%ypold+current%pardata%vp
+         current%pardata%zp=current%pardata%zpold+current%pardata%wp
+         
+      END IF
 	
       current => next
    ENDDO
@@ -1109,9 +1117,15 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    current => ParListHead%next
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
-      current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold)
-      current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold)
-      current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold)
+
+      IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+
+         
+         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold)
+         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold)
+         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold)
+
+      END IF
       current => next
    ENDDO
 
@@ -1127,7 +1141,9 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
 !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
 !   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
 !   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
-									!drug molecules released by the particle at this new position
+   !drug molecules released by the particle at this new position
+
+
 ENDIF
 
 
@@ -1154,7 +1170,9 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 	
-	!------- Wrappign around in z-direction for periodic BC in z
+ IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+
+         !------- Wrappign around in z-direction for periodic BC in z
 	IF (current%pardata%zp.GE.REAL(nz,dbl)) THEN
 	   current%pardata%zp = MOD(current%pardata%zp,REAL(nz,dbl))
 	ENDIF
@@ -1190,7 +1208,8 @@ DO WHILE (ASSOCIATED(current))
 	   ParticleTransfer = .TRUE.
 	END IF
 	
-	
+END IF
+
 	SELECT CASE(current%pardata%parid)
 	CASE(1_lng)
       open(72,file='particle1-history.dat',position='append')
