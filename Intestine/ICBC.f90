@@ -139,18 +139,42 @@ ELSE
 		!CurPar%next%next => null()
 		!CurPar => CurPar%next
 		READ(60,*) parid,xp,yp,zp,par_radius ! read particle.dat file
-		! Search the partition this particle belongs to
-		DO ipartition = 1_lng,NumSubsTotal 
-			IF ((xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
-			(xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-			(yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-			(yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-			(zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-			(zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+                ! Search the partition this particle belongs to
+  
+                IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+     
+                 
+                   DO ipartition = 1_lng,NumSubsTotal 
+                      IF ((xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+                           (xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                           (yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                           (yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                           (zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                           (zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+                         
+                         particle_partition = ipartition
+                      END IF
+                      
+                   END DO
+                   
+                ELSE
+                   
+                   DO ipartition = 1_lng,NumSubsTotal 
+                      IF ((xp.GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
+                           (xp.LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                           (yp.GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                           (yp.LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                           (zp.GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                           (zp.LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
+                         
+                         particle_partition = ipartition
+                      END IF
+                      
+                   END DO
 
-				particle_partition = ipartition
-			END IF
-		END DO
+
+                END IF
+                      
 		! Create a particle element in the linked list only if the particles belongs to this partition
 		IF (particle_partition.EQ.mySub) THEN
 			CALL list_init(CurPar%next)		

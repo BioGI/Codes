@@ -44,6 +44,9 @@ INTEGER(lng), PARAMETER :: COARSEMESH		= -1_lng					! coarseMesh
 
 REAL(dbl), ALLOCATABLE :: phi_fine(:,:,:)			! passive scalar
 REAL(dbl), ALLOCATABLE :: delphi_particle_fine(:,:,:)	! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: tausgs_particle_x_fine(:,:,:)				! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: tausgs_particle_y_fine(:,:,:)				! passive scalar contribution from particles
+REAL(dbl), ALLOCATABLE :: tausgs_particle_z_fine(:,:,:)				! passive scalar contribution from particles
 REAL(dbl), ALLOCATABLE :: phiTemp_fine(:,:,:)		! temporary storage of passive scalar
 ! Sc - same as Setup
 ! Dm - same as Setup
@@ -158,7 +161,6 @@ INTEGER(lng)	:: Ci_fine,Cj_fine,Ck_fine ! center node location (global)
 
 ! PI = 3.1415926535897932384626433832 - same as Setup
 ! D, L - same as Setup
-REAL(dbl) :: fractionDfine						! fraction of the diameter used for the fine mesh
 INTEGER ::   gridRatio						! Ratio of coarse/fine grid size 
 ! a1, a2 - same as Setup
 ! eps1, eps2 - same as Setup
@@ -239,6 +241,8 @@ INTEGER(lng)               :: numOuts_fine      ! number of output files
 INTEGER(lng)	           :: fileCount_fine    ! current output file number (out of total number of output files)
 INTEGER(lng)	           :: outFlag_fine      ! specifies whether to output in readable format (1), binaries (2), or both (3)
 INTEGER(lng)               :: radcount_fine     ! counts the number of output iterations for storing the radius
+
+LOGICAL :: ParticleTransfer_fine
 
 ! System Clock Variables (for PrintStatus)
 ! start, current, final, rate - same as Setup

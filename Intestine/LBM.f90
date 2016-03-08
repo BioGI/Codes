@@ -197,7 +197,7 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          xp = current%pardata%xp - REAL(iMin-1_lng,dbl)
          yp = current%pardata%yp - REAL(jMin-1_lng,dbl)
@@ -1092,7 +1092,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          current%pardata%xpold = current%pardata%xp
          current%pardata%ypold = current%pardata%yp
@@ -1118,7 +1118,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          
          current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold)
@@ -1170,7 +1170,7 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 	
- IF ( ( (current%pardata%xp - fracDfine * D * 0.5 - xcf) * (current%pardata%xp + fracDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fracDfine * D * 0.5 - xcf) * (current%pardata%yp + fracDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+ IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
 	IF (current%pardata%zp.GE.REAL(nz,dbl)) THEN
