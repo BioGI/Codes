@@ -89,9 +89,9 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
          current%pardata%vpold = current%pardata%vp
          current%pardata%wpold = current%pardata%wp
          
-         current%pardata%xp=current%pardata%xpold+current%pardata%up
-         current%pardata%yp=current%pardata%ypold+current%pardata%vp
-         current%pardata%zp=current%pardata%zpold+current%pardata%wp
+         current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf_fine
+         current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf_fine
+         current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf_fine
          
       END IF
 	
@@ -108,9 +108,9 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
       IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
 
          
-         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold)
-         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold)
-         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold)
+         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf_fine
+         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf_fine
+         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf_fine
 
       END IF
       current => next

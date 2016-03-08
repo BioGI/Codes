@@ -202,6 +202,9 @@ DO WHILE (ASSOCIATED(current))
          xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
          yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
          zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
+
+         write(31,*) 'current%pardata%xp = ', current%pardata%xp, ' xx(1) = ', xx(1), ' xcf = ', xcf
+         write(31,*) 'current%pardata%zp = ', current%pardata%zp, ' zz(1) = ', zz(1), ' xcf = ', xcf
          
          ix0=FLOOR(xp)
          ix1=CEILING(xp)
@@ -276,7 +279,7 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf
-
+         write(31,*) 'current%pardata%wp = ', current%pardata%wp
       END IF
          
       ! point to next node in the list
@@ -1102,9 +1105,9 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
          current%pardata%vpold = current%pardata%vp
          current%pardata%wpold = current%pardata%wp
          
-         current%pardata%xp=current%pardata%xpold+current%pardata%up
-         current%pardata%yp=current%pardata%ypold+current%pardata%vp
-         current%pardata%zp=current%pardata%zpold+current%pardata%wp
+         current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf
+         current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf
+         current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf
          
       END IF
 	
@@ -1121,9 +1124,9 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
       IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          
-         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold)
-         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold)
-         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold)
+         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
+         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf
+         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf
 
       END IF
       current => next
