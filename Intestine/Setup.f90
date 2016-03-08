@@ -318,8 +318,7 @@ SUBROUTINE Global_Setup		! sets up simulation
 IMPLICIT NONE
 
 ! CALL ReadInput					! read input from file
-!CALL SubDomainSetup			! set up the MPI subdomains
-CALL SubDomainSetupNew			! set up the MPI subdomains
+CALL SubDomainSetup			! set up the MPI subdomains
 CALL AllocateArrays			! allocate global variable arrays
 
 !------------------------------------------------
@@ -418,7 +417,7 @@ END SUBROUTINE ReadInput
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE SubDomainSetupNew	! generates the information (ID number, starting/ending indices) of each neighboring subdomain (using the subroutine SetSubIDBC in this module)
+SUBROUTINE SubDomainSetup ! generates the information (ID number, starting/ending indices) of each neighboring subdomain (using the subroutine SetSubIDBC in this module)
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -591,8 +590,7 @@ DO kSub=1,NumSubsZ
           jjSub = jSub + CDy(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
           kkSub = kSub + CDz(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
       
-          !CALL SetSubID(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
-          CALL SetSubIDNew(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
+          CALL SetSubID(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
 
         END DO
 
@@ -684,218 +682,11 @@ nzSub = (kMax - kMin) + 1_lng
 !STOP
 
 !------------------------------------------------
-END SUBROUTINE SubDomainSetupNew
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE SubDomainSetup	! generates the information (ID number, starting/ending indices) of each neighboring subdomain (using the subroutine SetSubIDBC in this module)
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-! Define local variables
-INTEGER(lng) :: CDx(NumCommDirs), CDy(NumCommDirs), CDz(NumCommDirs)		! communication direction vectors in the x, y, and z directions respectively
-INTEGER(lng) :: thisSub																	! ID of the current subdomain
-INTEGER(lng) :: iComm,iSub,jSub,kSub,iiSub,jjSub,kkSub						! index variables
-INTEGER(lng) :: quotientX, quotientY, quotientZ					 				! variables for determining the local subdomain bounds
-
-ALLOCATE(SubID(NumCommDirs))															! id number of neighboring subdomains (same as rank of processing unit working on domain)
-
-! fill out communication direction vectors
-CDx(1) =   1_lng
-CDy(1) =   0_lng
-CDz(1) =   0_lng
-
-CDx(2) =	 -1_lng
-CDy(2) =	  0_lng
-CDz(2) =   0_lng
-
-CDx(3) =   0_lng
-CDy(3) =   1_lng
-CDz(3) =   0_lng
-
-CDx(4) =   0_lng
-CDy(4) =  -1_lng
-CDz(4) =   0_lng
-
-CDx(5) =   0_lng
-CDy(5) =   0_lng
-CDz(5) =   1_lng
-
-CDx(6) =   0_lng
-CDy(6) =   0_lng
-CDz(6) =  -1_lng
-
-CDx(7) =   1_lng
-CDy(7) =   1_lng
-CDz(7) =   0_lng
-
-CDx(8) =  -1_lng
-CDy(8) =  -1_lng
-CDz(8) =   0_lng
-
-CDx(9) =   1_lng
-CDy(9) =  -1_lng
-CDz(9) =   0_lng
-
-CDx(10) = -1_lng
-CDy(10) =  1_lng
-CDz(10) =  0_lng
-
-CDx(11) =  0_lng
-CDy(11) =  1_lng
-CDz(11) =  1_lng
-
-CDx(12) =  0_lng
-CDy(12) = -1_lng
-CDz(12) = -1_lng
-
-CDx(13) =  0_lng
-CDy(13) =  1_lng
-CDz(13) = -1_lng
-
-CDx(14) =  0_lng
-CDy(14) = -1_lng
-CDz(14) =  1_lng
-
-CDx(15) =  1_lng
-CDy(15) =  0_lng
-CDz(15) =  1_lng
-
-CDx(16) = -1_lng
-CDy(16) =  0_lng
-CDz(16) = -1_lng
-
-CDx(17) = -1_lng
-CDy(17) =  0_lng
-CDz(17) =  1_lng
-
-CDx(18) =  1_lng
-CDy(18) =  0_lng
-CDz(18) = -1_lng
-
-CDx(19) =  1_lng
-CDy(19) =  1_lng
-CDz(19) =  1_lng
-
-CDx(20) = -1_lng
-CDy(20) = -1_lng
-CDz(20) = -1_lng
-
-CDx(21) =  1_lng
-CDy(21) =  1_lng
-CDz(21) = -1_lng
-
-CDx(22) = -1_lng
-CDy(22) = -1_lng
-CDz(22) =  1_lng
-
-CDx(23) = -1_lng
-CDy(23) =  1_lng
-CDz(23) =  1_lng
-
-CDx(24) =  1_lng
-CDy(24) = -1_lng
-CDz(24) = -1_lng
-
-CDx(25) =  1_lng
-CDy(25) = -1_lng
-CDz(25) =  1_lng
-
-CDx(26) = -1_lng
-CDy(26) =  1_lng
-CDz(26) = -1_lng
-
-! Number of the current subdomain
-mySub = myid + 1_lng							! subdomain number
-!WRITE(sub(1:2),'(I2.2)') mySub			! write subdomain number to 'sub' for output file exentsions
-WRITE(sub(1:5),'(I5.5)') mySub			! write subdomain number to 'sub' for output file exentsions
-
-! Loop through the subdomains
-DO kSub=1,NumSubsZ
-  DO jSub=1,NumSubsY
-    DO iSub=1,NumSubsX
-
-      thisSub = iSub + (jSub-1)*NumSubsX + (kSub-1)*NumSubsX*NumSubsY	! get the ID of the current Subdomain
-
-      IF(mySub .EQ. thisSub) THEN													! fill out the SubID array of the current subdomain is the 
-     
-        ! Loop through the communication directions for the current subdomain
-        DO iComm=1,NumCommDirs
-
-          iiSub = iSub + CDx(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
-          jjSub = jSub + CDy(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
-          kkSub = kSub + CDz(iComm)													! subdomain index of neighboring subdomain in the iCommth communication direction
-      
-          CALL SetSubID(iComm,iiSub,jjSub,kkSub)								! identify the neighboring subdomains (SubID)
-
-        END DO
-
-      END IF
-
-    END DO
-  END DO
-END DO
-
-! Define the local computational domain bounds (iMin:iMax,jMin:jMax,kMin:kMax)
-quotientX	= CEILING(REAL(nx)/NumSubsX)						! divide the number of nodes by the number of subdomains (round up)
-quotientY	= CEILING(REAL(ny)/NumSubsY)						! divide the number of nodes by the number of subdomains (round up)
-quotientZ	= CEILING(REAL(nz)/NumSubsZ)						! divide the number of nodes by the number of subdomains (round up)
-
-iMin = MOD(myid,NumSubsX)*quotientX + 1_lng					! starting local i index 
-iMax = iMin + (quotientX - 1_lng)								! ending local i index
-
-jMin = MOD((myid/NumSubsX),NumSubsY)*quotientY + 1_lng	! starting local j index
-jMax = jMin + (quotientY - 1_lng)								! ending local j index
-
-kMin = (myid/(NumSubsX*NumSubsY))*quotientZ + 1_lng		! starting local k index 
-kMax = kMin + (quotientZ - 1_lng)								! ending local k index
-
-! Check the bounds
-IF(iMax .GT. nx) THEN
-  iMax = nx																! if iMax is greater than nx, correct it
-END IF
-
-IF(jMax .GT. ny) THEN
-  jMax = ny																! if jMax is greater than ny, correct it
-END IF
-
-IF(kMax .GT. nz) THEN
-  kMax = nz																! if kMax is greater than nz, correct it
-END IF
-
-! Determine the number of nodes in each direction
-nxSub = (iMax - iMin) + 1_lng
-nySub = (jMax - jMin) + 1_lng
-nzSub = (kMax - kMin) + 1_lng
-
-! Write the local bounds to a file [TEST]
-!OPEN(171,FILE='localBounds-'//sub//'.dat')
-!WRITE(171,*) 'iMin =', iMin, 'iMax=', iMax
-!WRITE(171,*) 'jMin =', jMin, 'jMax=', jMax 
-!WRITE(171,*) 'kMin =', kMin, 'kMax=', kMax
-!WRITE(171,*) 
-!WRITE(171,*) 'nx =', nx, 'ny=', ny, 'nz=', nz
-!WRITE(171,*) 'nxSub =', nxSub, 'nySub=', nySub, 'nzSub=', nzSub
-!WRITE(171,*) 
-!WRITE(171,*) 'quotientX =', quotientX
-!WRITE(171,*) 'quotientY =', quotientY
-!WRITE(171,*) 'quotientZ =', quotientZ
-!CLOSE(171)
-
-! Write the subID to a file [TEST]
-!OPEN(172,FILE='sub-'//sub//'.dat')
-!DO iComm=1,NumCommDirs
-!  WRITE(172,*)'iComm=',iComm,'SubID(iComm)=', SubID(iComm)
-!END DO
-!CLOSE(172)
-!STOP
-
-!------------------------------------------------
 END SUBROUTINE SubDomainSetup
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE SetSubIDNew(iComm,iiSub,jjSub,kkSub)									! sets SubID based on neighboring subdomains
+SUBROUTINE SetSubID(iComm,iiSub,jjSub,kkSub)									! sets SubID based on neighboring subdomains
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
@@ -961,44 +752,6 @@ ELSE
 END IF
 
 !write(*,*) SubID(iComm),NumSubsX,NumSubsY,NumSubsZ,iiSub,jjSub,kkSub,SubID(icomm)
-
-!------------------------------------------------
-END SUBROUTINE SetSubIDNew
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE SetSubID(iComm,iiSub,jjSub,kkSub)									! sets SubID based on neighboring subdomains
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-! Define local variables
-INTEGER(lng), INTENT(IN) :: iComm, iiSub, jjSub, kkSub 					! index variables
-INTEGER(lng) :: nSub, kkSub2														! neighboring subdomain ID, kkSub (reset for periodicity)
-
-IF(((jjSub .LT. 1) .OR. (jjSub .GT. NumSubsY))	.OR.	&
-!   ((kkSub .LT. 1) .OR. (kkSub .GT. NumSubsZ))	.OR. 	& 					! comment out for periodic BCs in the k-direction
-   ((iiSub .LT. 1) .OR. (iiSub .GT. NumSubsX)))	THEN 
-
-  SubID(iComm) = 0_lng																! no neighbor
-
-ELSE IF((kkSub .LT. 1)) THEN
-
-  kkSub2 = NumSubsZ																	! reset kkSub for periodicity in the z-direction
-  nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
-  SubID(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
-
-ELSE IF((kkSub .GT. NumSubsZ)) THEN
-
-  kkSub2 = 1_lng																		! reset kkSub for periodicity in the z-direction
-  nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub2-1)*NumSubsX*NumSubsY	! neighboring subdomain ID
-  SubID(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
-    
-ELSE
-  
-  nSub = iiSub + (jjSub-1)*NumSubsX + (kkSub-1)*NumSubsX*NumSubsY		! neighboring subdomain ID
-  SubID(iComm) = nSub																! set SubID(iComm) to neighboring sudomain ID
-
-END IF
 
 !------------------------------------------------
 END SUBROUTINE SetSubID
