@@ -199,9 +199,9 @@ DO WHILE (ASSOCIATED(current))
 
       IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
-         xp = (current%pardata%xp-xx(1))/xcf - REAL(iMin-1_lng,dbl)
-         yp = (current%pardata%yp-yy(1))/ycf - REAL(jMin-1_lng,dbl)
-         zp = (current%pardata%zp-zz(1))/zcf - REAL(kMin-1_lng,dbl)
+         xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
+         yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
+         zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
          
          ix0=FLOOR(xp)
          ix1=CEILING(xp)
