@@ -170,6 +170,10 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	ENDIF
 
      ! CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
+     IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
+        CALL PrintParticles						! output the particle velocity, radius, position and con. [MODULE: Output]
+     ENDIF
+
      ! CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
      ! CALL PrintMass			! print the total mass in the system (TEST)
      ! CALL PrintVolume			! print the volume in the system (TEST)
