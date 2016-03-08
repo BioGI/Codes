@@ -1182,13 +1182,13 @@ DO WHILE (ASSOCIATED(current))
 
 	!------- Estimate to which partition the updated position belongs to.
 	DO ipartition = 1_lng,NumSubsTotal 
-           IF ((current%pardata%xp.GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
-	      (current%pardata%xp.LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-	      (current%pardata%yp.GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-	      (current%pardata%yp.LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-	      (current%pardata%zp.GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-	      (current%pardata%zp.LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
-              
+           IF (( ((current%pardata%xp - xx(1))/xcf + 1) .GE. REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+	      ( ((current%pardata%xp - xx(1))/xcf + 1) .LT. (REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+	      ( ((current%pardata%yp - yy(1))/ycf + 1) .GE. REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+	      ( ((current%pardata%yp - yy(1))/ycf + 1) .LT. (REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+	      ( ((current%pardata%zp - zz(1))/zcf + 1) .GE. REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+	      ( ((current%pardata%zp - zz(1))/zcf + 1) .LT. (REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+             
               current%pardata%new_part = ipartition
 	    END IF
             !write(*,*) ipartition,kMinDomain(ipartition),kMaxDomain(ipartition)
