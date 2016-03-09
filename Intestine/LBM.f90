@@ -203,9 +203,6 @@ DO WHILE (ASSOCIATED(current))
          yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
          zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
 
-         write(31,*) 'current%pardata%xp = ', current%pardata%xp, ' xx(1) = ', xx(1), ' xcf = ', xcf
-         write(31,*) 'current%pardata%zp = ', current%pardata%zp, ' zz(1) = ', zz(1), ' xcf = ', xcf
-         
          ix0=FLOOR(xp)
          ix1=CEILING(xp)
          iy0=FLOOR(yp)
@@ -279,7 +276,6 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf
-         write(31,*) 'current%pardata%wp = ', current%pardata%wp
       END IF
          
       ! point to next node in the list
