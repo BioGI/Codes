@@ -143,14 +143,14 @@ ELSE
                 ! Search the partition this particle belongs to
   
                 IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-                 
+                   
                    DO ipartition = 1_lng,NumSubsTotal 
-                      IF (( (xp/xcf) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
-                           ( (xp/xcf) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( (yp/ycf) .GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-                           ( (yp/ycf) .LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( (zp/zcf) .GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-                           ( (zp/zcf) .LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+                      IF (( ((xp-xx(1))/xcf + 1) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+                           ( ((xp-xx(1))/xcf + 1) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( ((yp-yy(1))/ycf + 1) .GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                           ( ((yp-yy(1))/ycf + 1) .LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( ((zp-zz(1))/zcf + 1) .GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                           ( ((zp-zz(1))/zcf + 1) .LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
                          
                          particle_partition = ipartition
                       END IF
@@ -158,24 +158,26 @@ ELSE
                    END DO
                    
                 ELSE
-                   
+
+                 
                    DO ipartition = 1_lng,NumSubsTotal 
-                      IF (( (xp/xcf_fine) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
-                           ( (xp/xcf_fine) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( (yp/ycf_fine) .GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-                           ( (yp/ycf_fine) .LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( (zp/zcf_fine) .GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-                           ( (zp/zcf_fine) .LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
+                      IF (( ((xp-xx_fine(1))/xcf_fine + 1) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
+                           ( ((xp-xx_fine(1))/xcf_fine + 1) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( ((yp-yy_fine(1))/ycf_fine + 1) .GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                           ( ((yp-yy_fine(1))/ycf_fine + 1) .LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                           ( ((zp-zz_fine(1))/zcf_fine + 1) .GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                           ( ((zp-zz_fine(1))/zcf_fine + 1) .LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
                          
                          particle_partition = ipartition
                       END IF
                       
                    END DO
-
+                   
                 END IF
                       
 		! Create a particle element in the linked list only if the particles belongs to this partition
 		IF (particle_partition.EQ.mySub) THEN
+     
 			CALL list_init(CurPar%next)		
 			CurPar%next%prev => CurPar
 			CurPar%next%next => null()
