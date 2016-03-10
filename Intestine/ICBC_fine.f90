@@ -17,6 +17,7 @@ IMPLICIT NONE
 ! Define local variables
 INTEGER(lng) :: i,j,k,m									! index variables
 REAL(dbl) :: feq
+REAL(dbl) :: tmp
 
 IF(restart) THEN											! restart from  file 
   
@@ -57,7 +58,10 @@ ELSE															! clean start
 
         u_fine(i,j,k)   = 0.0_dbl							! x-velocity
         v_fine(i,j,k)   = 0.0_dbl							! y-velocity
-        w_fine(i,j,k)   = 0.0_dbl							! z-velocity
+        v_fine(i,j,k) = -0.1_dbl
+        tmp = sqrt( x_fine(i) * x_fine(i) + y_fine(j)*y_fine(j) )
+        w_fine(i,j,k) = 1.0 - tmp/r_fine(k)
+!        w_fine(i,j,k)   = 0.0_dbl							! z-velocity
         rho_fine(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)
