@@ -73,6 +73,7 @@ ELSE															! clean start
 
         u(i,j,k)   = 0.0_dbl							! x-velocity
         v(i,j,k)   = 0.0_dbl							! y-velocity
+        v(i,j,k) = -0.1_dbl
         tmp = sqrt( x(i) * x(i) + y(j)*y(j) )
         w(i,j,k)   = 1.0 - tmp/r(k) !Linear velocity profile such that the velocity goes to zero at the wall			! z-velocity
         rho(i,j,k) = denL								! density
@@ -142,7 +143,7 @@ ELSE
 		READ(60,*) parid,xp,yp,zp,par_radius ! read particle.dat file
                 ! Search the partition this particle belongs to
   
-                IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+                IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
                    
                    DO ipartition = 1_lng,NumSubsTotal 
                       IF (( ((xp-xx(1))/xcf + 1) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
