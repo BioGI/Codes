@@ -79,7 +79,13 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
+      write(31,*) 'Checking particle location ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+      write(31,*) '(current%pardata%xp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%xp - fractionDfine * D * 0.5 - xcf)
+      write(31,*) '(current%pardata%xp + fractionDfine * D * 0.5 + xcf) = ', (current%pardata%xp + fractionDfine * D * 0.5 + xcf)
+      write(31,*) '(current%pardata%yp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%yp - fractionDfine * D * 0.5 - xcf)
+      write(31,*) '(current%pardata%yp + fractionDfine * D * 0.5 + ycf) = ', (current%pardata%yp + fractionDfine * D * 0.5 + ycf)
       IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
+         write(31,*) 'Fine Particle Track xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp         
 
          current%pardata%xpold = current%pardata%xp
          current%pardata%ypold = current%pardata%yp
@@ -160,25 +166,29 @@ DO WHILE (ASSOCIATED(current))
  IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
-	IF (current%pardata%zp.GE.REAL(L,dbl)) THEN
-	   current%pardata%zp = MOD(current%pardata%zp,REAL(L,dbl))
-	ENDIF
-	IF (current%pardata%zp.LE.0.0_dbl) THEN
+        IF (current%pardata%zp.GE.REAL(L-zcf_fine,dbl)) THEN
+           write(31,*) 'Wrapping around in z, old particle location = ', current%pardata%zp
+	   current%pardata%zp = current%pardata%zp - L !MOD(current%pardata%zp,REAL(L,dbl))
+           write(31,*) 'new particle location = ', current%pardata%zp
+	ELSE IF (current%pardata%zp .LE. (-1.0 * zcf_fine) ) THEN
 	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF
 
 	!------- Estimate to which partition the updated position belongs to.
-	DO ipartition = 1_lng,NumSubsTotal 
+        DO ipartition = 1_lng,NumSubsTotal
+           write(31,*) '((current%pardata%zp - zz_fine(1))/zcf_fine + 1) = ', ((current%pardata%zp - zz_fine(1))/zcf_fine + 1)
+    
            IF (( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .GE. REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
 	      ( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .LT. (REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
 	      ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .GE. REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
 	      ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .LT. (REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
 	      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .GE. REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
 	      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .LT. (REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
-              
+
               current%pardata%new_part = ipartition
+              write(*,*) ipartition, kMinDomain(ipartition),kMaxDomain(ipartition)                            
 	    END IF
-            !write(*,*) ipartition,kMinDomain(ipartition),kMaxDomain(ipartition)
+
 	END DO
 	
 
@@ -186,53 +196,53 @@ DO WHILE (ASSOCIATED(current))
 	   ParticleTransfer_fine = .TRUE.
 	END IF
 	
-END IF
-
 	SELECT CASE(current%pardata%parid)
 	CASE(1_lng)
       open(72,file='particle1-history.dat',position='append')
-      write(72,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(72,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(72)
 	CASE(3_lng)
       open(73,file='particle3-history.dat',position='append')
-      write(73,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(73,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(73) 
 	CASE(5_lng)
       open(74,file='particle5-history.dat',position='append')
-      write(74,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(74,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(74)
 	CASE(7_lng)
       open(75,file='particle7-history.dat',position='append')
-      write(75,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(75,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(75)
 	CASE(9_lng)
       open(76,file='particle9-history.dat',position='append')
-      write(76,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(76,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(76) 
 	CASE(10_lng)
       open(77,file='particle10-history.dat',position='append')
-      write(77,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(77,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(77)
 	CASE(8_lng)
       open(78,file='particle8-history.dat',position='append')
-      write(78,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(78,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(78)
 	CASE(6_lng)
       open(79,file='particle6-history.dat',position='append')
-      write(79,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(79,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(79)
 	CASE(4_lng)
       open(80,file='particle4-history.dat',position='append')
-      write(80,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(80,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(80)
 	CASE(2_lng)
       open(81,file='particle2-history.dat',position='append')
-      write(81,*) iter,iter*tcf,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(81,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
       close(81)
      
       END SELECT
-	
-      current => next   				! point to next node in the list
+
+   END IF
+   
+   current => next   				! point to next node in the list
 ENDDO
 
 !------------------------------------------------
@@ -298,7 +308,7 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in fine mesh
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in fine mesh
 
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
          yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
@@ -334,7 +344,14 @@ DO WHILE (ASSOCIATED(current))
          ELSE
             zd = 0.0_dbl
          END IF
-         
+
+         write(31,*) 'Fine Interp_Vel xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+         write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
+         flush(31)
+         write(31,*) 'ix0,iy0,iz0,iz1 = ', w_fine(ix0,iy0,iz0), w_fine(ix0,iy0,iz1)
+         write(31,*) 'ix0,iy1,iz0,iz1 = ', w_fine(ix0,iy1,iz0), w_fine(ix0,iy1,iz1)
+         write(31,*) 'ix1,iy0,iz0,iz1 = ', w_fine(ix1,iy0,iz0), w_fine(ix1,iy0,iz1)
+         write(31,*) 'ix1,iy1,iz0,iz1 = ', w_fine(ix1,iy1,iz0), w_fine(ix1,iy1,iz1)         
          
          ! u-interpolation
          ! Do first level linear interpolation in x-direction
@@ -381,6 +398,8 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf_fine
+         write(31,*) 'current%pardata%wp=', current%pardata%wp
+         flush(31)
 
       END IF
          

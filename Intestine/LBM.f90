@@ -197,7 +197,7 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5) * (current%pardata%xp + fractionDfine * D * 0.5) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5) * (current%pardata%yp + fractionDfine * D * 0.5) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
          yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
@@ -231,6 +231,14 @@ DO WHILE (ASSOCIATED(current))
          END IF
          
          
+         write(31,*) 'Coarse Interp_Vel xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+         write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
+         flush(31)
+         write(31,*) 'ix0,iy0,iz0,iz1 = ', w(ix0,iy0,iz0), w(ix0,iy0,iz1)
+         write(31,*) 'ix0,iy1,iz0,iz1 = ', w(ix0,iy1,iz0), w(ix0,iy1,iz1)
+         write(31,*) 'ix1,iy0,iz0,iz1 = ', w(ix1,iy0,iz0), w(ix1,iy0,iz1)
+         write(31,*) 'ix1,iy1,iz0,iz1 = ', w(ix1,iy1,iz0), w(ix1,iy1,iz1)
+
          ! u-interpolation
          ! Do first level linear interpolation in x-direction
          c00 = u(ix0,iy0,iz0)*(1.0_dbl-xd)+u(ix1,iy0,iz0)*xd	
@@ -245,7 +253,6 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%up=c * vcf
-         
          
          ! v-interpolation
          ! Do first level linear interpolation in x-direction
@@ -264,6 +271,7 @@ DO WHILE (ASSOCIATED(current))
          
          ! w-interpolation
          ! Do first level linear interpolation in x-direction
+    
          c00 = w(ix0,iy0,iz0)*(1.0_dbl-xd)+w(ix1,iy0,iz0)*xd	
          c01 = w(ix0,iy0,iz1)*(1.0_dbl-xd)+w(ix1,iy0,iz1)*xd	
          c10 = w(ix0,iy1,iz0)*(1.0_dbl-xd)+w(ix1,iy1,iz0)*xd	
@@ -276,6 +284,8 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf
+         write(31,*) 'current%pardata%wp=', current%pardata%wp
+         flush(31)
       END IF
          
       ! point to next node in the list
@@ -1091,8 +1101,15 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-
+      write(31,*) 'Checking particle location ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+      write(31,*) '(current%pardata%xp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%xp - fractionDfine * D * 0.5 - xcf)
+      write(31,*) '(current%pardata%xp + fractionDfine * D * 0.5 + xcf) = ', (current%pardata%xp + fractionDfine * D * 0.5 + xcf)
+      write(31,*) '(current%pardata%yp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%yp - fractionDfine * D * 0.5 - xcf)
+      write(31,*) '(current%pardata%yp + fractionDfine * D * 0.5 + ycf) = ', (current%pardata%yp + fractionDfine * D * 0.5 + ycf)
+      flush(31)
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+         write(31,*) 'Coarse Particle Track xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+         
          current%pardata%xpold = current%pardata%xp
          current%pardata%ypold = current%pardata%yp
          current%pardata%zpold = current%pardata%zp
@@ -1117,7 +1134,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          
          current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
@@ -1169,13 +1186,14 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 	
- IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+ IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
-	IF (current%pardata%zp.GE.REAL(L,dbl)) THEN
-	   current%pardata%zp = MOD(current%pardata%zp,REAL(L,dbl))
-	ENDIF
-	IF (current%pardata%zp.LE.0.0_dbl) THEN
+        IF (current%pardata%zp.GE.REAL(L-zcf,dbl)) THEN
+           write(31,*) 'Wrapping around in z, old particle location = ', current%pardata%zp
+	   current%pardata%zp = current%pardata%zp - L !MOD(current%pardata%zp,REAL(L,dbl))
+           write(31,*) 'new particle location = ', current%pardata%zp    
+	ELSE IF (current%pardata%zp .LE. (-1.0*zcf) ) THEN
 	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF
 
@@ -1198,8 +1216,6 @@ DO WHILE (ASSOCIATED(current))
 	   ParticleTransfer = .TRUE.
 	END IF
 	
-END IF
-
 	SELECT CASE(current%pardata%parid)
 	CASE(1_lng)
       open(72,file='particle1-history.dat',position='append')
@@ -1244,7 +1260,9 @@ END IF
      
       END SELECT
 	
-      current => next   				! point to next node in the list
+   END IF
+   
+   current => next   				! point to next node in the list
 ENDDO
 
 !------------------------------------------------
