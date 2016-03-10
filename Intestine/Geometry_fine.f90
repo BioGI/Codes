@@ -277,6 +277,9 @@ end do
 DO i=-gridRatio+1,nz_fine+gridRatio+1
   rDom_fine(i) = wc1*h1(i) + wc2*h2(i)
 END DO
+if(straightTubeTest .eq. 1) then
+   rDom_fine = tubeRadius
+end if
 
 !----------------------------------------------------------------------------
 
