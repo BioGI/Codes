@@ -197,7 +197,7 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5) * (current%pardata%xp + fractionDfine * D * 0.5) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5) * (current%pardata%yp + fractionDfine * D * 0.5) > 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( flagParticleCF(current%pardata%parid) .eqv. .false.) THEN  !Check if particle is in coarse mesh
 
          xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
          yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
@@ -230,15 +230,6 @@ DO WHILE (ASSOCIATED(current))
             zd = 0.0_dbl
          END IF
          
-         
-         write(31,*) 'Coarse Interp_Vel xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
-         write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
-         flush(31)
-         write(31,*) 'ix0,iy0,iz0,iz1 = ', w(ix0,iy0,iz0), w(ix0,iy0,iz1)
-         write(31,*) 'ix0,iy1,iz0,iz1 = ', w(ix0,iy1,iz0), w(ix0,iy1,iz1)
-         write(31,*) 'ix1,iy0,iz0,iz1 = ', w(ix1,iy0,iz0), w(ix1,iy0,iz1)
-         write(31,*) 'ix1,iy1,iz0,iz1 = ', w(ix1,iy1,iz0), w(ix1,iy1,iz1)
-
          ! u-interpolation
          ! Do first level linear interpolation in x-direction
          c00 = u(ix0,iy0,iz0)*(1.0_dbl-xd)+u(ix1,iy0,iz0)*xd	
@@ -284,8 +275,6 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf
-         write(31,*) 'current%pardata%wp=', current%pardata%wp
-         flush(31)
       END IF
          
       ! point to next node in the list
@@ -1084,6 +1073,10 @@ REAL(dbl)      		 :: upold(1:np),vpold(1:np),wpold(1:np) 	! old particle velocit
 REAL(dbl)                :: Cb_Domain, Cb_Local, Cb_Hybrid, V_eff_Ratio
 TYPE(ParRecord), POINTER :: current
 TYPE(ParRecord), POINTER :: next
+LOGICAL                  :: hardCheckCoarseMesh, softCheckCoarseMesh, hardCheckCoarseMeshNF
+REAL(dbl)                :: ur, theta
+REAL(dbl)                :: xpNF, ypNF, zpNF !First order extrapolation of new particle location.
+
 
 ParticleTransfer = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
 delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
@@ -1101,14 +1094,17 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      write(31,*) 'Checking particle location ', current%pardata%xp, current%pardata%yp, current%pardata%zp
-      write(31,*) '(current%pardata%xp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%xp - fractionDfine * D * 0.5 - xcf)
-      write(31,*) '(current%pardata%xp + fractionDfine * D * 0.5 + xcf) = ', (current%pardata%xp + fractionDfine * D * 0.5 + xcf)
-      write(31,*) '(current%pardata%yp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%yp - fractionDfine * D * 0.5 - xcf)
-      write(31,*) '(current%pardata%yp + fractionDfine * D * 0.5 + ycf) = ', (current%pardata%yp + fractionDfine * D * 0.5 + ycf)
-      flush(31)
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-         write(31,*) 'Coarse Particle Track xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+      hardCheckCoarseMesh = ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 )
+      softCheckCoarseMesh = ( (current%pardata%xp - fractionDfine * D * 0.5 - (gridRatio-1)*xcf_fine) * (current%pardata%xp + fractionDfine * D * 0.5 + (gridRatio-1)*xcf_fine) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - (gridRatio-1)*ycf_fine) * (current%pardata%yp + fractionDfine * D * 0.5 + (gridRatio-1)*ycf_fine) > 0 )
+      xpNF = current%pardata%xp + current%pardata%up * tcf !Hypothetical new location of particle based on first order extrapolation
+      ypNF = current%pardata%yp + current%pardata%vp * tcf !Hypothetical new location of particle based on first order extrapolation
+      zpNF = current%pardata%zp + current%pardata%wp * tcf !Hypothetical new location of particle based on first order extrapolation
+      hardCheckCoarseMeshNF = ( (xpNF - fractionDfine * D * 0.5 - xcf) * (xpNF + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (ypNF - fractionDfine * D * 0.5 - ycf) * (ypNF + fractionDfine * D * 0.5 + ycf) > 0 )  !Check if the hypothetical new location of the particle is clearly in the coarse mesh.    
+!      theta = (atan2(-current%pardata%yp,-current%pardata%xp) + pi)
+!      ur = current%pardata%up * cos(theta) + current%pardata%vp * sin(theta)
+     
+      IF ( hardCheckCoarseMesh .or. (softCheckCoarseMesh .and. flagParticleCF(current%pardata%parid) .and. hardCheckCoarseMeshNF) ) THEN  !Check if particle is in coarse mesh. Also check if the particle is in the interface region and was previously in the fine mesh and is coming out of it. 
+         flagParticleCF(current%pardata%parid) = .false.
          
          current%pardata%xpold = current%pardata%xp
          current%pardata%ypold = current%pardata%yp
@@ -1121,6 +1117,9 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
          current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf
          current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf
          current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf
+
+      ELSE
+         flagParticleCF(current%pardata%parid) = .true.         
          
       END IF
 	
@@ -1134,8 +1133,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-
+      IF ( flagParticleCF(current%pardata%parid) .eqv. .false. ) THEN  !Ideally, I want to check if particle is in coarse mesh, if not skip this step and just let the first order time-stepping remain. But that doesn't seem to work. Hence doing a soft check for the coarse mesh.
          
          current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
          current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf
@@ -1186,13 +1184,11 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 	
- IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+ IF ( flagParticleCF(current%pardata%parid) .eqv. .false. ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
         IF (current%pardata%zp.GE.REAL(L-zcf,dbl)) THEN
-           write(31,*) 'Wrapping around in z, old particle location = ', current%pardata%zp
 	   current%pardata%zp = current%pardata%zp - L !MOD(current%pardata%zp,REAL(L,dbl))
-           write(31,*) 'new particle location = ', current%pardata%zp    
 	ELSE IF (current%pardata%zp .LE. (-1.0*zcf) ) THEN
 	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF

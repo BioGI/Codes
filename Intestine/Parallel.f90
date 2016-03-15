@@ -893,7 +893,7 @@ INTEGER(lng) :: nreqs,source,sendtag,dest,recvtag		! number of send/recv request
 INTEGER(lng) :: mpierr,commdir,iComm,par_num!,numparticlesDomain			! MPI standard error object
 LOGICAL :: probeflag
 INTEGER(lng) :: parsendindex(NumCommDirsPar), parrecvindex(NumCommDirsPar)
-
+LOGICAL      :: hardCheckCoarseMesh
 
 ! IMPORTANT NOTE: It is important for the partransfersend and partransferrecv arrays to store the particle data in columns, i.e. of 
 ! dimenions NumParVar x NumCommDirsPar as against NumCommDirsPar x  NumParVar as we are planning to send packets of data 
@@ -1011,7 +1011,15 @@ DO iComm = 1,NumCommDirsPar
 	
 			! UNPACK DATA
 			current%pardata 		=ParRecvArray(par_num,iComm)
-			current%pardata%cur_part 	= mySub!current%pardata%new_part
+                        current%pardata%cur_part 	= mySub!current%pardata%new_part
+
+                        hardCheckCoarseMesh = ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 )
+                        IF ( hardCheckCoarseMesh ) THEN
+                           flagParticleCF(current%pardata%parid) = .false.
+                        ELSE
+                           flagParticleCF(current%pardata%parid) = .true.
+                        END IF
+                        
 		END IF
 	END DO
 END DO

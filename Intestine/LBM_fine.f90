@@ -79,13 +79,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      write(31,*) 'Checking particle location ', current%pardata%xp, current%pardata%yp, current%pardata%zp
-      write(31,*) '(current%pardata%xp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%xp - fractionDfine * D * 0.5 - xcf)
-      write(31,*) '(current%pardata%xp + fractionDfine * D * 0.5 + xcf) = ', (current%pardata%xp + fractionDfine * D * 0.5 + xcf)
-      write(31,*) '(current%pardata%yp - fractionDfine * D * 0.5 - xcf) = ', (current%pardata%yp - fractionDfine * D * 0.5 - xcf)
-      write(31,*) '(current%pardata%yp + fractionDfine * D * 0.5 + ycf) = ', (current%pardata%yp + fractionDfine * D * 0.5 + ycf)
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
-         write(31,*) 'Fine Particle Track xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp         
+      IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
 
          current%pardata%xpold = current%pardata%xp
          current%pardata%ypold = current%pardata%yp
@@ -111,7 +105,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    DO WHILE (ASSOCIATED(current))
       next => current%next 						! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
+      IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
 
          
          current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf_fine
@@ -163,20 +157,17 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 	
- IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - xcf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in coarse mesh
+ IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
 
          !------- Wrappign around in z-direction for periodic BC in z
         IF (current%pardata%zp.GE.REAL(L-zcf_fine,dbl)) THEN
-           write(31,*) 'Wrapping around in z, old particle location = ', current%pardata%zp
 	   current%pardata%zp = current%pardata%zp - L !MOD(current%pardata%zp,REAL(L,dbl))
-           write(31,*) 'new particle location = ', current%pardata%zp
 	ELSE IF (current%pardata%zp .LE. (-1.0 * zcf_fine) ) THEN
 	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
 	ENDIF
 
 	!------- Estimate to which partition the updated position belongs to.
         DO ipartition = 1_lng,NumSubsTotal
-           write(31,*) '((current%pardata%zp - zz_fine(1))/zcf_fine + 1) = ', ((current%pardata%zp - zz_fine(1))/zcf_fine + 1)
     
            IF (( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .GE. REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
 	      ( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .LT. (REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
@@ -308,16 +299,12 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
-      IF ( ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) .le. 0 ) .and. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) .le. 0 ) ) THEN  !Check if particle is in fine mesh
+      IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
 
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
          yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
          zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
 
-!         write(31,*) 'iMin_fine = ', iMin_fine, ' kMin_fine = ', kMin_fine
-!         write(31,*) 'current%pardata%xp = ', current%pardata%xp, ' xx_fine(1) = ', xx_fine(1), ' xcf_fine = ', xcf_fine
-!         write(31,*) 'current%pardata%zp = ', current%pardata%zp, ' zz_fine(1) = ', zz_fine(1), ' xcf_fine = ', xcf_fine
-         
          ix0=FLOOR(xp)
          ix1=CEILING(xp)
          iy0=FLOOR(yp)
@@ -345,14 +332,6 @@ DO WHILE (ASSOCIATED(current))
             zd = 0.0_dbl
          END IF
 
-         write(31,*) 'Fine Interp_Vel xp,yp,zp = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
-         write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
-         flush(31)
-         write(31,*) 'ix0,iy0,iz0,iz1 = ', w_fine(ix0,iy0,iz0), w_fine(ix0,iy0,iz1)
-         write(31,*) 'ix0,iy1,iz0,iz1 = ', w_fine(ix0,iy1,iz0), w_fine(ix0,iy1,iz1)
-         write(31,*) 'ix1,iy0,iz0,iz1 = ', w_fine(ix1,iy0,iz0), w_fine(ix1,iy0,iz1)
-         write(31,*) 'ix1,iy1,iz0,iz1 = ', w_fine(ix1,iy1,iz0), w_fine(ix1,iy1,iz1)         
-         
          ! u-interpolation
          ! Do first level linear interpolation in x-direction
          c00 = u_fine(ix0,iy0,iz0)*(1.0_dbl-xd)+u_fine(ix1,iy0,iz0)*xd	
@@ -398,8 +377,6 @@ DO WHILE (ASSOCIATED(current))
          ! Do third level linear interpolation in z-direction
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf_fine
-         write(31,*) 'current%pardata%wp=', current%pardata%wp
-         flush(31)
 
       END IF
          
