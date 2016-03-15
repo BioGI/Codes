@@ -123,7 +123,8 @@ ELSE
 	! Linked list approach
 	OPEN(60,FILE='particle.dat')
 	READ(60,*) np
-	num_particles = np
+        num_particles = np
+        allocate(flagParticleCF(np))
 	! Initialize Header Pointer
 	
 	!ALLOCATE(ParListHead)
@@ -144,7 +145,7 @@ ELSE
                 ! Search the partition this particle belongs to
   
                 IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-                   
+                   flagParticleCF(parid) = .false.
                    DO ipartition = 1_lng,NumSubsTotal 
                       IF (( ((xp-xx(1))/xcf + 1) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
                            ( ((xp-xx(1))/xcf + 1) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
@@ -159,8 +160,8 @@ ELSE
                    END DO
                    
                 ELSE
-
-                 
+                   flagParticleCF(parid) = .true.
+                   
                    DO ipartition = 1_lng,NumSubsTotal 
                       IF (( ((xp-xx_fine(1))/xcf_fine + 1) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
                            ( ((xp-xx_fine(1))/xcf_fine + 1) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &

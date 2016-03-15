@@ -239,7 +239,7 @@ INTEGER(lng) :: ParticleTrack							! a flag to denote if particle track is on (
 INTEGER(lng), PARAMETER :: ParticleOn= 1					! flag to signify Particle Tracking is on
 INTEGER(lng), PARAMETER :: ParticleOff= 0					! flag for signify if particle tracking is off
 INTEGER(lng) :: np								! number of particles
-
+LOGICAL, ALLOCATABLE :: flagParticleCF(:)                                           ! Flag to indicate whether the particle is in the coarse (0) or the fine mesh (1). 
 REAL(dbl), PARAMETER :: molarvol = 268.000_dbl					! (cm^3/mole) drug's molar volume
 REAL(dbl), PARAMETER :: diffm = 7.5000000e-6					! (cm2/s) drug's diffusivity	
 REAL(dbl), PARAMETER :: R0 = 0.0026_dbl		
