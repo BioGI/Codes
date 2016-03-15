@@ -23,7 +23,11 @@ def plotParticleHistory():
     plt.xlabel('Time (s)')
     plt.ylabel('z location (m)')
     plt.savefig('particle1_zLocation.png')
+
+    plt.xlim(0,0.31)
+    plt.savefig('particle1_zLocationZoom.png')
     plt.show()
+
     
     fig = plt.figure()
     ax = plt.axes([0.19,0.18,0.96-0.19,0.92-0.18])
@@ -37,6 +41,10 @@ def plotParticleHistory():
     plt.xlabel('Time (s)')
     plt.ylabel('y location (m)')
     plt.savefig('particle1_yLocation.png')
+
+    plt.xlim(0,0.31)    
+    plt.ylim(-0.0008,0.0008)
+    plt.savefig('particle1_yLocationZoom.png')    
     plt.show()
 
 def computeAnalyticalParticleHistory(x0,y0,z0,t0,t):
