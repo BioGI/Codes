@@ -120,7 +120,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    
 !   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
 !   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
-!   CALL Compute_Cb(V_eff_Ratio,CaseNo,Cb_Hybrid)  
+   CALL Compute_Cb_fine(V_eff_Ratio,CaseNo,Cb_Hybrid)  
    
    open(172,file='Cb-history.dat',position='append')
    write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
@@ -388,6 +388,513 @@ ENDDO
 !===================================================================================================
 END SUBROUTINE Interp_Parvel_fine ! Using Trilinear interpolation
 !===================================================================================================
+
+!===================================================================================================
+SUBROUTINE Compute_Cb_fine(V_eff_Ratio,CaseNo,Cb_Hybrid) ! Computes the mesh-independent bulk concentration
+!===================================================================================================
+
+IMPLICIT NONE
+
+INTEGER(lng)  			:: i,j,k, kk, CaseNo
+INTEGER(lng)  			:: ix0,ix1,iy0,iy1,iz0,iz00,iz1,iz11			! Trilinear interpolation parameters
+INTEGER(lng)			:: NumFluids_Veff = 0_lng
+INTEGER,DIMENSION(2)   		:: LN_x,  LN_y,  LN_z				! Lattice Nodes Surronding the particle
+INTEGER,DIMENSION(2)   		:: NEP_x, NEP_y, NEP_z                  	! Lattice Nodes Surronding the particle
+
+REAL(dbl)     			:: c00,c01,c10,c11,c0,c1,c,xd,yd,zd		! Trilinear interpolation parameters
+REAL(dbl)  	   		:: xp,yp,zp
+REAL(dbl)			:: delta_par,delta_mesh,zcf3,Nbj,Veff,bulkconc
+REAL(dbl)       	        :: N_b         					! Modeling parameter to extend the volume of influence  
+REAL(dbl)    	        	:: R_P, Sh_P, delta_P
+REAl(dbl)               	:: R_influence_p, L_influence_p			! Parameters related to particle's volume of influence
+REAl(dbl)               	:: V_influence_P, V_eff_Ratio			! Parameters related to particle's volume of influence
+REAL(dbl)			:: Cb_Total_Veff
+REAL(dbl),DIMENSION(2)   	:: VIB_x, VIB_y, VIB_z	 			! Volume of Influence's Borders
+REAL(dbl),DIMENSION(2)    	:: NVB_x, NVB_y, NVB_z				! Node Volume's Borders
+REAL(dbl)                       :: Delta_X, Delta_Y, Delta_Z
+REAL(dbl)                       :: x_DP, y_DP, z_DP				! Coordinates of "Discretized Point" (DP)
+REAL(dbl)                       :: Cb_Hybrid
+
+TYPE(ParRecord), POINTER  	:: current
+TYPE(ParRecord), POINTER  	:: next
+
+delta_mesh = 1.0_dbl
+
+!zcf3 = xcf*ycf*zcf
+zcf3 = 1.0
+
+current => ParListHead%next
+DO WHILE (ASSOCIATED(current))
+
+!------ Copy pointer of next node
+	next => current%next
+
+      IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
+!------ Calculate length scale for jth particle:  delta = R / Sh
+!------ Calculate effective radius: R_influence_P = R + (N_b *delta)
+!------ Note: need to convert this into Lattice units and not use the physical length units
+!------ Then compute equivalent cubic mesh length scale
+	N_b = 1.0
+        R_P  = current%pardata%rp
+	Sh_P = current%pardata%sh
+        delta_P = R_P / Sh_P
+        R_influence_P = (R_P + N_b * delta_P) / xcf
+
+!------ Computing equivalent cubic mesh length scale
+        V_influence_P= (4.0_dbl/3.0_dbl) * PI * R_influence_P**3.0_dbl
+        L_influence_P= V_influence_P **(1.0_dbl/3.0_dbl)
+
+        V_eff_Ratio = V_influence_P / zcf3 					! Ratio of the effective volume to cell size 
+
+!------ Finding particle location in this processor
+	xp= current%pardata%xp - REAL(iMin-1_lng,dbl)
+	yp= current%pardata%yp - REAL(jMin-1_lng,dbl)
+	zp= current%pardata%zp - REAL(kMin-1_lng,dbl)
+
+
+!----------------------------------------------------------------------------------------------------------------------
+!------ Veff is smaller than the mesh volume --> Cb = Trilinear interpolation of the concentration at particle location
+!----------------------------------------------------------------------------------------------------------------------
+        IF (V_eff_Ratio .LE. 1.0) THEN 					
+           CaseNo = 1
+	   ix0 =FLOOR(xp)
+           ix1 =CEILING(xp)
+           iy0 =FLOOR(yp)
+           iy1 =CEILING(yp)
+           iz0 =FLOOR(zp)
+           iz1 =CEILING(zp)
+
+!----------TO BE DONE: MAKE SURE THE ABOVE NODES ARE FLUID NODES
+
+           IF (ix1 /= ix0) THEN
+              xd=(xp-REAL(ix0,dbl))/(REAL(ix1,dbl)-REAL(ix0,dbl))
+           ELSE
+              xd = 0.0_dbl
+           END IF
+          
+           IF (iy1 /= iy0) THEN
+              yd=(yp-REAL(iy0,dbl))/(REAL(iy1,dbl)-REAL(iy0,dbl))
+           ELSE
+              yd = 0.0_dbl
+           END IF
+       
+           IF (iz1 /= iz0) THEN
+              zd=(zp-REAL(iz0,dbl))/(REAL(iz1,dbl)-REAL(iz0,dbl))
+           ELSE
+              zd = 0.0_dbl
+           END IF
+
+!--------- Concentration Trilinear Iinterpolation
+!--------- Interpolation in x-direction
+           c00 = phi(ix0,iy0,iz0) * (1.0_dbl-xd) + phi(ix1,iy0,iz0) * xd
+           c01 = phi(ix0,iy0,iz1) * (1.0_dbl-xd) + phi(ix1,iy0,iz1) * xd
+           c10 = phi(ix0,iy1,iz0) * (1.0_dbl-xd) + phi(ix1,iy1,iz0) * xd
+           c11 = phi(ix0,iy1,iz1) * (1.0_dbl-xd) + phi(ix1,iy1,iz1) * xd
+!--------- Interpolation in y-direction
+           c0  = c00 * (1.0_dbl-yd) + c10 * yd
+           c1  = c01 * (1.0_dbl-yd) + c11 * yd
+!--------- Interpolation in z-direction
+           c   = c0 * (1.0_dbl-zd) + c1 * zd
+
+           Cb_Hybrid= c 
+
+!----------------------------------------------------------------------------------------------------------------------
+!------ Veff is slightly larger than mesh volume --> Volume of influence is discretized 
+!------ Cb= Average of concentration interpolated on each of the descritized nodes inside volume of influence 
+!----------------------------------------------------------------------------------------------------------------------
+ 	ELSE IF ( (V_eff_Ratio .GT. 1.0) .AND. (V_eff_Ratio .LT. 27.0 ) ) THEN		
+           CaseNo = 2
+!--------- NEW: Volume of Influence Border (VIB) for this particle
+           VIB_x(1)= xp - 0.5_dbl * L_influence_P
+           VIB_x(2)= xp + 0.5_dbl * L_influence_P
+           VIB_y(1)= yp - 0.5_dbl * L_influence_P
+           VIB_y(2)= yp + 0.5_dbl * L_influence_P
+           VIB_z(1)= zp - 0.5_dbl * L_influence_P
+           VIB_z(2)= zp + 0.5_dbl * L_influence_P
+
+!--------- Discretizing the volume of influence to  make sure at least 64 points are available
+           Delta_X = (VIB_x(2)-VIB_x(1)) / 3.0 
+	   Delta_Y = (VIB_y(2)-VIB_y(1)) / 3.0
+	   Delta_Z = (VIB_z(2)-VIB_z(1)) / 3.0 
+
+           Cb_Total_Veff = 0
+           NumFluids_Veff = 0
+
+!--------- Loop over discretized points and averaging the concentration
+           DO i= 0, 3
+              DO j= 0, 3
+                 DO k= 0, 3
+                    x_DP = VIB_x(1) + (i * Delta_X) 
+                    y_DP = VIB_y(1) + (j * Delta_Y)
+                    z_DP = VIB_z(1) + (k * Delta_Z)
+
+!------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
+                    ix0 = FLOOR(x_DP)
+                    ix1 = CEILING(x_DP)
+                    iy0 = FLOOR(y_DP)
+                    iy1 = CEILING(y_DP)
+                    iz0 = FLOOR(z_DP)
+                    iz1 = CEILING(z_DP)
+
+!------------------ TO BE DONE: MAKE SURE THE ABOVE NODES ARE FLUID NODES
+                    IF (ix1 /= ix0) THEN
+                       xd=(x_DP-REAL(ix0,dbl))/(REAL(ix1,dbl)-REAL(ix0,dbl))
+                    ELSE
+                       xd = 0.0_dbl
+                    END IF
+
+                    IF (iy1 /= iy0) THEN
+                        yd=(y_DP-REAL(iy0,dbl))/(REAL(iy1,dbl)-REAL(iy0,dbl))
+                    ELSE
+                        yd = 0.0_dbl
+                    END IF
+       
+                    IF (iz1 /= iz0) THEN
+                       zd=(z_DP-REAL(iz0,dbl))/(REAL(iz1,dbl)-REAL(iz0,dbl))
+                    ELSE
+                       zd = 0.0_dbl
+                    END IF
+
+!------------------ Taking care of the periodic BC in Z-dir
+                    iz00 = iz0
+                    IF (iz0 .gt. nz) THEN
+                       iz00 = iz0 - (nz - 1)
+                    ELSE IF (iz0 .lt. 1) THEN
+                       iz00 = iz0 + (nz-1)
+                    END IF
+
+                    iz11 = iz1         
+                    IF (iz1 .gt. nz) THEN
+                       iz11 = iz1 - (nz-1)
+                    ELSE IF (iz1 .lt. 1) THEN
+                       iz11 = iz1 + (nz-1)
+                    END IF
+
+!------------------ Concentration Trilinear Iinterpolation
+!------------------ Interpolation in x-direction
+                    c00 = phi(ix0,iy0,iz00) * (1.0_dbl-xd) + phi(ix1,iy0,iz00) * xd
+                    c01 = phi(ix0,iy0,iz11) * (1.0_dbl-xd) + phi(ix1,iy0,iz11) * xd
+                    c10 = phi(ix0,iy1,iz00) * (1.0_dbl-xd) + phi(ix1,iy1,iz00) * xd
+                    c11 = phi(ix0,iy1,iz11) * (1.0_dbl-xd) + phi(ix1,iy1,iz11) * xd
+!------------------ Interpolation in y-direction
+                    c0  = c00 * (1.0_dbl-yd) + c10 * yd
+                    c1  = c01 * (1.0_dbl-yd) + c11 * yd
+!------------------ Interpolation in z-direction
+                    c   = c0 * (1.0_dbl-zd) + c1 * zd
+
+                    Cb_Total_Veff  = Cb_Total_Veff  + c
+                    NumFluids_Veff = NumFluids_Veff + 1_lng
+                 END DO
+             END DO
+          END DO
+          
+          Cb_Hybrid= Cb_Total_Veff / NumFluids_Veff
+
+!----------------------------------------------------------------------------------------------------------------------
+!------ Veff is much larger than mesh volume --> Cb= total number of moles in volume of influence / volume of influence 
+!----------------------------------------------------------------------------------------------------------------------
+        ELSE IF (V_eff_Ratio .GE. 27.0) THEN                             
+           CaseNo = 3
+!--------- NEW: Volume of Influence Border (VIB) for this particle
+           VIB_x(1)= xp - 0.5_dbl * L_influence_P
+           VIB_x(2)= xp + 0.5_dbl * L_influence_P
+           VIB_y(1)= yp - 0.5_dbl * L_influence_P
+           VIB_y(2)= yp + 0.5_dbl * L_influence_P
+           VIB_z(1)= zp - 0.5_dbl * L_influence_P
+           VIB_z(2)= zp + 0.5_dbl * L_influence_P
+
+!--------- NEW: Finding the lattice "Nodes Effected by Particle"
+           NEP_x(1)= CEILING(VIB_x(1))
+           NEP_x(2)= FLOOR  (VIB_x(2))
+           NEP_y(1)= CEILING(VIB_y(1))
+           NEP_y(2)= FLOOR  (VIB_y(2))
+           NEP_z(1)= CEILING(VIB_z(1))
+           NEP_z(2)= FLOOR  (VIB_z(2))
+
+           Cb_Total_Veff = 0.0_dbl
+           NumFluids_Veff = 0_lng
+
+           DO i= NEP_x(1),NEP_x(2) 
+              DO j= NEP_y(1),NEP_y(2)
+                 DO k= NEP_z(1),NEP_z(2)
+
+                    !---- Taking care of the periodic BC in Z-dir
+                    kk = k
+		    IF (k .gt. nz) THEN
+                       kk = k - (nz - 1)  
+           	    ELSE IF (k .lt. 1) THEN
+                       kk = k + (nz-1)
+		    END IF   
+
+                    IF (node(i,j,kk) .EQ. FLUID) THEN
+                       Cb_Total_Veff  = Cb_Total_Veff  + phi(i,j,kk)
+                       NumFluids_Veff = NumFluids_Veff + 1_lng
+                    END IF
+                 END DO
+             END DO
+          END DO
+          
+          Cb_Hybrid= Cb_Total_Veff / NumFluids_Veff
+
+       END IF
+ 
+       current%pardata%bulk_conc = Cb_Hybrid
+
+    END IF
+    current => next
+
+END DO
+
+!===================================================================================================
+END SUBROUTINE Compute_Cb_fine
+!===================================================================================================
+
+!===================================================================================================
+SUBROUTINE Interp_ParToNodes_Conc_Fine
+!===================================================================================================
+
+!--- Interpolate Particle concentration release to node locations 
+!--- Called by Particle_Track (LBM.f90) to get delphi_particle
+
+IMPLICIT NONE
+INTEGER(lng)  		  :: i,j,k,kk
+REAL(dbl)     		  :: xp,yp,zp
+REAL(dbl)		  :: delta_par,delta_mesh,zcf3,Nbj,Veff,bulkconc
+REAL(dbl)                 :: N_d         				! Modeling parameter to extend the volume of influence around 
+REAL(dbl)                 :: R_P, Sh_P, delta_P
+REAL(dbl)                 :: R_influence_P, L_influence_P
+REAL(dbl),DIMENSION(2)    :: VIB_x, VIB_y, VIB_z 			! Volume of Influence's Borders
+REAL(dbl),DIMENSION(2)    :: NVB_x, NVB_y, NVB_z			! Node Volume's Borders
+INTEGER  ,DIMENSION(2)    :: LN_x,  LN_y,  LN_z				! Lattice Nodes Surronding the particle
+INTEGER  ,DIMENSION(2)    :: NEP_x, NEP_y, NEP_z                        ! Lattice Nodes Surronding the particle
+REAL(dbl)		  :: tmp, Overlap_sum
+TYPE(ParRecord), POINTER  :: current
+TYPE(ParRecord), POINTER  :: next
+
+
+delta_mesh = 1.0_dbl
+zcf3 = xcf_fine*ycf_fine*zcf_fine
+current => ParListHead%next
+
+DO WHILE (ASSOCIATED(current))
+
+!------ Copy pointer of next node
+	next => current%next 
+
+!------ Calculate length scale for jth particle:  delta = R / Sh
+!------ Calculate effective radius: R_influence_P = R + (N_d *delta)
+!------ Note: need to convert this into Lattice units and not use the physical length units
+!------ Then compute equivalent cubic mesh length scale
+	N_d = 1.0
+        R_P  = current%pardata%rp
+	Sh_P = current%pardata%sh
+        delta_P = R_P / Sh_P
+        R_influence_P = (R_P + N_d * delta_P)
+
+!------ Computing equivalent cubic mesh length scale
+        L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
+ 
+!------ NEW: Volume of Influence Border (VIB) for this particle
+        VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
+        VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
+        VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
+        VIB_y(2)= current%pardata%yp + 0.5_dbl * L_influence_P
+        VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
+        VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
+
+
+        !If volume of influence extends into coarse mesh, also calculate scalar release for coarse mesh
+        checkEffVolumeOverlapCoarseMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
+             ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P ) - 0.99
+        
+        Overlap_sum_coarse = 0.0_dbl
+        if (checkEffVolumeOverlapCoarseMesh .lt. 0) then
+
+           !------ Finding particle location in this processor
+           xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
+           yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
+           zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
+           
+           !------ NEW: Finding the lattice "Nodes Effected by Particle" 
+           !------ NEW: Finding the lattice "Nodes Effected by Particle" 
+           NEP_x(1)= FLOOR(xp - 0.5*L_influence_P/xcf )
+           NEP_x(2)= CEILING(xp + 0.5*L_influence_P/xcf)
+           NEP_y(1)= FLOOR(yp - 0.5*L_influence_P/xcf )
+           NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf)
+           NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf )
+           NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf)
+           
+           !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
+
+           Overlap= 0.0
+           
+           DO i= NEP_x(1),NEP_x(2) 
+              DO j= NEP_y(1),NEP_y(2)
+                 DO k= NEP_z(1),NEP_z(2)
+                    NVB_x(1) = x(i) - 0.5_dbl*xcf
+                    NVB_x(2) = x(i) + 0.5_dbl*xcf
+                    NVB_y(1) = y(j) - 0.5_dbl*ycf
+                    NVB_y(2) = y(j) + 0.5_dbl*ycf
+                    NVB_z(1) = z(k) - 0.5_dbl*zcf
+                    NVB_z(2) = z(k) + 0.5_dbl*zcf
+                    
+                    tmp = MAX ( MIN(VIB_x(2),NVB_x(2)) - MAX(VIB_x(1),NVB_x(1)), 0.0_dbl) * &
+                         MAX ( MIN(VIB_y(2),NVB_y(2)) - MAX(VIB_y(1),NVB_y(1)), 0.0_dbl) * &
+                         MAX ( MIN(VIB_z(2),NVB_z(2)) - MAX(VIB_z(1),NVB_z(1)), 0.0_dbl)
+                    
+                    !---- Taking care of the periodic BC in Z-dir
+                    kk = k 
+                    IF (k .gt. nz) THEN
+                       kk = k - (nz - 1)
+                    ELSE IF (k .lt. 1) THEN
+                       kk = k + (nz-1)
+                    END IF
+                    
+                    IF (node(i,j,kk) .EQ. FLUID) THEN
+                       Overlap(i,j,kk)= tmp
+                       Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk)
+                    END IF
+                 END DO
+              END DO
+           END DO
+           
+          
+        end if
+        
+!------ Finding particle location in this processor
+         xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
+         yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
+         zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
+
+!------ NEW: Finding the lattice "Nodes Effected by Particle" 
+        NEP_x(1)= FLOOR(xp - 0.5*L_influence_P/xcf_fine )
+        NEP_x(2)= CEILING(xp + 0.5*L_influence_P/xcf_fine)
+        NEP_y(1)= FLOOR(yp - 0.5*L_influence_P/xcf_fine )
+        NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf_fine)
+        NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf_fine )
+        NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf_fine)
+
+!------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
+        Overlap_sum_fine = 0.0_dbl
+        Overlap= 0.0
+ 
+        DO i= NEP_x(1),NEP_x(2) 
+           DO j= NEP_y(1),NEP_y(2)
+              DO k= NEP_z(1),NEP_z(2)
+	         NVB_x(1) = x_fine(i) - 0.5_dbl*xcf_fine
+        	 NVB_x(2) = x_fine(i) + 0.5_dbl*xcf_fine
+		 NVB_y(1) = y_fine(j) - 0.5_dbl*ycf_fine
+		 NVB_y(2) = y_fine(j) + 0.5_dbl*ycf_fine
+		 NVB_z(1) = z_fine(k) - 0.5_dbl*zcf_fine
+		 NVB_z(2) = z_fine(k) + 0.5_dbl*zcf_fine
+
+		 tmp = MAX ( MIN(VIB_x(2),NVB_x(2)) - MAX(VIB_x(1),NVB_x(1)), 0.0_dbl) * &
+                       MAX ( MIN(VIB_y(2),NVB_y(2)) - MAX(VIB_y(1),NVB_y(1)), 0.0_dbl) * &
+                       MAX ( MIN(VIB_z(2),NVB_z(2)) - MAX(VIB_z(1),NVB_z(1)), 0.0_dbl)
+                
+		!---- Taking care of the periodic BC in Z-dir
+                kk = k 
+      		IF (k .gt. nz) THEN
+                    kk = k - (nz - 1)
+                ELSE IF (k .lt. 1) THEN
+                    kk = k + (nz-1)
+                END IF
+
+                IF (node_fine(i,j,kk) .EQ. FLUID) THEN
+                    Overlap_fine(i,j,kk)= tmp
+                    Overlap_sum_fine= Overlap_sum + Overlap(i,j,kk)
+                 END IF
+              END DO
+           END DO
+        END DO
+
+        Overlap_sum = Overlap_sum_coarse + Overlap_sum_fine !Add the overlap in the coarse and the fine meshes.
+        
+!------ Computing particle release contribution to scalar field at each lattice node
+        DO i= NEP_x(1),NEP_x(2)
+           DO j= NEP_y(1),NEP_y(2)
+              DO k= NEP_z(1),NEP_z(2)
+                 
+		 !----- Taking care of the periodic BC in Z-dir
+                 kk = k 
+                 IF (k .gt. nz) THEN
+                     kk = k - (nz-1)
+                 ELSE IF (k .lt. 1) THEN
+                     kk = k + (nz-1)
+                 END IF
+ 
+                 IF (node_fine(i,j,kk) .EQ. FLUID) THEN                 
+                 
+		    !----- Overlap_sum going to zero when the particle is disapearing
+		    IF (Overlap_sum .gt. 1e-40) THEN
+                       Overlap_fine(i,j,kk) = Overlap_fine(i,j,kk) / Overlap_sum
+                    ELSE
+                       Overlap_fine(i,j,kk) = 0.0
+                    END IF
+
+                    delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNBbyCV * Overlap_fine(i,j,kk) 
+
+                 END IF 
+              END DO
+           END DO
+        END DO
+
+        !Now the coarse mesh
+        if (checkEffVolumeOverlapCoarseMesh .lt. 0) then
+
+           !------ Finding particle location in this processor
+           xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
+           yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
+           zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
+           
+           !------ NEW: Finding the lattice "Nodes Effected by Particle" 
+           !------ NEW: Finding the lattice "Nodes Effected by Particle" 
+           NEP_x(1)= FLOOR(xp - 0.5*L_influence_P/xcf )
+           NEP_x(2)= CEILING(xp + 0.5*L_influence_P/xcf)
+           NEP_y(1)= FLOOR(yp - 0.5*L_influence_P/xcf )
+           NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf)
+           NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf )
+           NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf)
+
+           !------ Computing particle release contribution to scalar field at each lattice node
+           DO i= NEP_x(1),NEP_x(2)
+              DO j= NEP_y(1),NEP_y(2)
+                 DO k= NEP_z(1),NEP_z(2)
+                    
+                    !----- Taking care of the periodic BC in Z-dir
+                    kk = k 
+                    IF (k .gt. nz) THEN
+                       kk = k - (nz-1)
+                    ELSE IF (k .lt. 1) THEN
+                       kk = k + (nz-1)
+                    END IF
+                    
+                    IF (node(i,j,kk) .EQ. FLUID) THEN                 
+                       
+                       !----- Overlap_sum going to zero when the particle is disapearing
+                       IF (Overlap_sum .gt. 1e-40) THEN
+                          Overlap(i,j,kk) = Overlap(i,j,kk) / Overlap_sum
+                       ELSE
+                          Overlap(i,j,kk) = 0.0
+                       END IF
+                       
+                       delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNBbyCV * Overlap(i,j,kk) 
+                       
+                    END IF
+                 END DO
+              END DO
+           END DO
+
+        end if
+
+!------ point to next node in the list
+	current => next
+ENDDO
+
+!===================================================================================================
+END SUBROUTINE Interp_ParToNodes_Conc_Fine
+!===================================================================================================
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE Collision_Fine		! calculates equilibrium distribution function AND collision step for each node

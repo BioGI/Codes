@@ -440,6 +440,7 @@ DO WHILE (ASSOCIATED(current))
 !------ Copy pointer of next node
 	next => current%next
 
+      IF ( flagParticleCF(current%pardata%parid) .eqv. .false.) THEN  !Check if particle is in coarse mesh
 !------ Calculate length scale for jth particle:  delta = R / Sh
 !------ Calculate effective radius: R_influence_P = R + (N_b *delta)
 !------ Note: need to convert this into Lattice units and not use the physical length units
@@ -649,8 +650,9 @@ DO WHILE (ASSOCIATED(current))
        END IF
  
        current%pardata%bulk_conc = Cb_Hybrid
-       
-       current => next
+
+    END IF
+    current => next
 
 END DO
 
@@ -886,31 +888,32 @@ DO WHILE (ASSOCIATED(current))
         R_P  = current%pardata%rp
 	Sh_P = current%pardata%sh
         delta_P = R_P / Sh_P
-        R_influence_P = (R_P + N_d * delta_P) / xcf
-
+        R_influence_P = (R_P + N_d * delta_P)
+        
 !------ Computing equivalent cubic mesh length scale
-        L_influence_P = ( (4.0_dbl*PI/3.0_dbl) * R_influence_P**3.0_dbl)**(1.0_dbl/3.0_dbl)
+        L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
  
-!------ Finding particle location in this processor
-	xp= current%pardata%xp - REAL(iMin-1_lng,dbl)
-	yp= current%pardata%yp - REAL(jMin-1_lng,dbl)
-	zp= current%pardata%zp - REAL(kMin-1_lng,dbl)
-
 !------ NEW: Volume of Influence Border (VIB) for this particle
-        VIB_x(1)= xp - 0.5_dbl * L_influence_P
-        VIB_x(2)= xp + 0.5_dbl * L_influence_P
-        VIB_y(1)= yp - 0.5_dbl * L_influence_P
-        VIB_y(2)= yp + 0.5_dbl * L_influence_P
-        VIB_z(1)= zp - 0.5_dbl * L_influence_P
-        VIB_z(2)= zp + 0.5_dbl * L_influence_P
+        VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
+        VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
+        VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
+        VIB_y(2)= current%pardata%yp + 0.5_dbl * L_influence_P
+        VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
+        VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
 
+!------ Finding particle location in this processor
+        xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
+        yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
+        zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
+        
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-        NEP_x(1)= FLOOR(VIB_x(1))
-        NEP_x(2)= CEILING(VIB_x(2))
-        NEP_y(1)= FLOOR(VIB_y(1))
-        NEP_y(2)= CEILING(VIB_y(2))
-        NEP_z(1)= FLOOR(VIB_z(1))
-        NEP_z(2)= CEILING(VIB_z(2))
+!------ NEW: Finding the lattice "Nodes Effected by Particle" 
+        NEP_x(1)= FLOOR(xp - 0.5*L_influence_P/xcf )
+        NEP_x(2)= CEILING(xp + 0.5*L_influence_P/xcf)
+        NEP_y(1)= FLOOR(yp - 0.5*L_influence_P/xcf )
+        NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf)
+        NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf )
+        NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf)
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
         Overlap_sum = 0.0_dbl
@@ -1147,14 +1150,14 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    
 !   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
 !   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
-!   CALL Compute_Cb(V_eff_Ratio,CaseNo,Cb_Hybrid)  
+   CALL Compute_Cb(V_eff_Ratio,CaseNo,Cb_Hybrid)  
    
    open(172,file='Cb-history.dat',position='append')
    write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
 
 !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
 !   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
-!   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
+   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
    !drug molecules released by the particle at this new position
 
 
