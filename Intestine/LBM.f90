@@ -3,6 +3,7 @@ MODULE LBM				! LBM Subroutines (Equilibrium, Collision, Stream, Macro, Scalar, 
 !==================================================================================================
 USE SetPrecision
 USE Setup
+USE Setup_fine
 USE ICBC
 
 IMPLICIT NONE
@@ -849,7 +850,7 @@ END SUBROUTINE Compute_shear
 
 
 !===================================================================================================
-SUBROUTINE Interp_ParToNodes_Conc_New 
+SUBROUTINE Interp_ParToNodes_Conc
 !===================================================================================================
 
 !--- Interpolate Particle concentration release to node locations 
@@ -866,7 +867,7 @@ REAL(dbl),DIMENSION(2)    :: VIB_x, VIB_y, VIB_z 			! Volume of Influence's Bord
 REAL(dbl),DIMENSION(2)    :: NVB_x, NVB_y, NVB_z			! Node Volume's Borders
 INTEGER  ,DIMENSION(2)    :: LN_x,  LN_y,  LN_z				! Lattice Nodes Surronding the particle
 INTEGER  ,DIMENSION(2)    :: NEP_x, NEP_y, NEP_z                        ! Lattice Nodes Surronding the particle
-REAL(dbl)		  :: tmp, Overlap_sum
+REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_coarse, Overlap_sum_fine, checkEffVolumeOverlapFineMesh
 TYPE(ParRecord), POINTER  :: current
 TYPE(ParRecord), POINTER  :: next
 
@@ -901,7 +902,62 @@ DO WHILE (ASSOCIATED(current))
         VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
         VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
 
-!------ Finding particle location in this processor
+        
+        !If volume of influence extends into coarse mesh, also calculate scalar release for coarse mesh
+        checkEffVolumeOverlapFineMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
+             ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P )
+        if (checkEffVolumeOverlapFineMesh .gt. 0.01) then
+
+           !------ Finding particle location in this processor
+           xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
+           yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
+           zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
+           
+           !------ NEW: Finding the lattice "Nodes Effected by Particle" 
+           NEP_x(1)= FLOOR(xp - 0.5*L_influence_P/xcf_fine )
+           NEP_x(2)= CEILING(xp + 0.5*L_influence_P/xcf_fine)
+           NEP_y(1)= FLOOR(yp - 0.5*L_influence_P/xcf_fine )
+           NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf_fine)
+           NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf_fine )
+           NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf_fine)
+           
+           !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
+           Overlap_sum_fine = 0.0_dbl
+           Overlap_fine= 0.0
+           
+           DO i= NEP_x(1),NEP_x(2) 
+              DO j= NEP_y(1),NEP_y(2)
+                 DO k= NEP_z(1),NEP_z(2)
+                    NVB_x(1) = x_fine(i) - 0.5_dbl*xcf_fine
+                    NVB_x(2) = x_fine(i) + 0.5_dbl*xcf_fine
+                    NVB_y(1) = y_fine(j) - 0.5_dbl*ycf_fine
+                    NVB_y(2) = y_fine(j) + 0.5_dbl*ycf_fine
+                    NVB_z(1) = z_fine(k) - 0.5_dbl*zcf_fine
+                    NVB_z(2) = z_fine(k) + 0.5_dbl*zcf_fine
+                    
+                    tmp = MAX ( MIN(VIB_x(2),NVB_x(2)) - MAX(VIB_x(1),NVB_x(1)), 0.0_dbl) * &
+                         MAX ( MIN(VIB_y(2),NVB_y(2)) - MAX(VIB_y(1),NVB_y(1)), 0.0_dbl) * &
+                         MAX ( MIN(VIB_z(2),NVB_z(2)) - MAX(VIB_z(1),NVB_z(1)), 0.0_dbl)
+                    
+                    !---- Taking care of the periodic BC in Z-dir
+                    kk = k 
+                    IF (k .gt. nz) THEN
+                       kk = k - (nz - 1)
+                    ELSE IF (k .lt. 1) THEN
+                       kk = k + (nz-1)
+                    END IF
+                    
+                    IF (node_fine(i,j,kk) .EQ. FLUID) THEN
+                       Overlap_fine(i,j,kk)= tmp
+                       Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk)
+                    END IF
+                 END DO
+              END DO
+           END DO
+           
+        end if
+        
+        !------ Finding particle location in this processor
         xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
         yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
         zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
@@ -916,18 +972,18 @@ DO WHILE (ASSOCIATED(current))
         NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf)
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
-        Overlap_sum = 0.0_dbl
+        Overlap_sum_coarse = 0.0_dbl
         Overlap= 0.0
  
         DO i= NEP_x(1),NEP_x(2) 
            DO j= NEP_y(1),NEP_y(2)
               DO k= NEP_z(1),NEP_z(2)
-	         NVB_x(1) = REAL(i,dbl) - 0.5_dbl*delta_mesh
-        	 NVB_x(2) = REAL(i,dbl) + 0.5_dbl*delta_mesh
-		 NVB_y(1) = REAL(j,dbl) - 0.5_dbl*delta_mesh
-		 NVB_y(2) = REAL(j,dbl) + 0.5_dbl*delta_mesh
-		 NVB_z(1) = REAL(k,dbl) - 0.5_dbl*delta_mesh
-		 NVB_z(2) = REAL(k,dbl) + 0.5_dbl*delta_mesh
+	         NVB_x(1) = x(i) - 0.5_dbl*xcf
+        	 NVB_x(2) = x(i) + 0.5_dbl*xcf
+		 NVB_y(1) = y(j) - 0.5_dbl*ycf
+		 NVB_y(2) = y(j) + 0.5_dbl*ycf
+		 NVB_z(1) = z(k) - 0.5_dbl*zcf
+		 NVB_z(2) = z(k) + 0.5_dbl*zcf
 
 		 tmp = MAX ( MIN(VIB_x(2),NVB_x(2)) - MAX(VIB_x(1),NVB_x(1)), 0.0_dbl) * &
                        MAX ( MIN(VIB_y(2),NVB_y(2)) - MAX(VIB_y(1),NVB_y(1)), 0.0_dbl) * &
@@ -943,24 +999,16 @@ DO WHILE (ASSOCIATED(current))
 
                 IF (node(i,j,kk) .EQ. FLUID) THEN
                     Overlap(i,j,kk)= tmp
-                    Overlap_sum= Overlap_sum + Overlap(i,j,kk)
+                    Overlap_sum_coarse= Overlap_sum_coarse + Overlap(i,j,kk)
                  END IF
               END DO
            END DO
         END DO
 
-!------ Computing NB_j and Veff for each particle
-!        Nbj = 0.0_dbl                                                           ! initialize Nbj - the number of moles of drug in the effective volume surrounding the particle
-!        Veff = 0.0_dbl                                                          ! initialize Veff - the eff. volume of each particle
-!
-!------ Solving an equation for Rj/Reff in order to estimate Veff and Nbj (see notes form July 2015)
-!        CALL Find_Root(current%pardata%parid, current%pardata%bulk_conc, current%pardata%par_conc &
-!                      ,current%pardata%gamma_cont,current%pardata%rp,Nbj,Veff)
-!        current%pardata%Veff = Veff                                             ! store Veff in particle record
-!        current%pardata%Nbj = Nbj                                               ! store Nbj in particle record
-!        Nbj = Nbj/zcf3  
-!
-!------ Computing particle release contribution to scalar field at each lattice node
+
+        Overlap_sum = Overlap_sum + Overlap_sum_fine
+        
+        !------ Computing particle release contribution to scalar field at each lattice node
         DO i= NEP_x(1),NEP_x(2)
            DO j= NEP_y(1),NEP_y(2)
               DO k= NEP_z(1),NEP_z(2)
@@ -992,12 +1040,44 @@ DO WHILE (ASSOCIATED(current))
            END DO
         END DO
 
+        if (checkEffVolumeOverlapFineMesh .gt. 0.01) then
+           !------ Computing particle release contribution to scalar field at each lattice node
+           DO i= NEP_x(1),NEP_x(2)
+              DO j= NEP_y(1),NEP_y(2)
+                 DO k= NEP_z(1),NEP_z(2)
+                    
+                    !----- Taking care of the periodic BC in Z-dir
+                    kk = k 
+                    IF (k .gt. nz) THEN
+                       kk = k - (nz-1)
+                    ELSE IF (k .lt. 1) THEN
+                       kk = k + (nz-1)
+                    END IF
+                    
+                    IF (node_fine(i,j,kk) .EQ. FLUID) THEN                 
+                       
+                       !----- Overlap_sum going to zero when the particle is disapearing
+                       IF (Overlap_sum .gt. 1e-40) THEN
+                          Overlap_fine(i,j,kk) = Overlap_fine(i,j,kk) / Overlap_sum
+                       ELSE
+                          Overlap_fine(i,j,kk) = 0.0
+                       END IF
+                       
+                       delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNBbyCV * Overlap_fine(i,j,kk) 
+                       
+                    END IF
+                 END DO
+              END DO
+           END DO
+           
+        end if
+        
 !------ point to next node in the list
 	current => next
 ENDDO
 
 !===================================================================================================
-END SUBROUTINE Interp_ParToNodes_Conc_New  		 
+END SUBROUTINE Interp_ParToNodes_Conc
 !===================================================================================================
 
 
@@ -1157,7 +1237,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
 
 !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
 !   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
-   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
+   CALL Interp_ParToNodes_Conc  					! distributes released drug concentration to neightbouring nodes 
    !drug molecules released by the particle at this new position
 
 

@@ -43,6 +43,7 @@ INTEGER(lng), PARAMETER :: COARSEMESH		= -1_lng					! coarseMesh
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Scalar Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 REAL(dbl), ALLOCATABLE :: phi_fine(:,:,:)			! passive scalar
+REAL(dbl), ALLOCATABLE :: overlap_fine(:,:,:)                                        ! Partitioning for drug dissolution model
 REAL(dbl), ALLOCATABLE :: delphi_particle_fine(:,:,:)	! passive scalar contribution from particles
 REAL(dbl), ALLOCATABLE :: tausgs_particle_x_fine(:,:,:)				! passive scalar contribution from particles
 REAL(dbl), ALLOCATABLE :: tausgs_particle_y_fine(:,:,:)				! passive scalar contribution from particles
@@ -666,6 +667,7 @@ ALLOCATE(rho_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ! Scalar
 ALLOCATE(phi_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1), 						&
          phiTemp_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
+ALLOCATE(overlap_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ALLOCATE(delphi_particle_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ALLOCATE(tausgs_particle_x_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))
 ALLOCATE(tausgs_particle_y_fine(0:nxSub_fine+1,0:nySub_fine+1,0:nzSub_fine+1))

@@ -667,7 +667,7 @@ REAL(dbl),DIMENSION(2)    :: VIB_x, VIB_y, VIB_z 			! Volume of Influence's Bord
 REAL(dbl),DIMENSION(2)    :: NVB_x, NVB_y, NVB_z			! Node Volume's Borders
 INTEGER  ,DIMENSION(2)    :: LN_x,  LN_y,  LN_z				! Lattice Nodes Surronding the particle
 INTEGER  ,DIMENSION(2)    :: NEP_x, NEP_y, NEP_z                        ! Lattice Nodes Surronding the particle
-REAL(dbl)		  :: tmp, Overlap_sum
+REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_coarse, Overlap_sum_fine, checkEffVolumeOverlapFineMesh
 TYPE(ParRecord), POINTER  :: current
 TYPE(ParRecord), POINTER  :: next
 
@@ -704,11 +704,11 @@ DO WHILE (ASSOCIATED(current))
 
 
         !If volume of influence extends into coarse mesh, also calculate scalar release for coarse mesh
-        checkEffVolumeOverlapCoarseMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
+        checkEffVolumeOverlapFineMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
              ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P ) - 0.99
         
         Overlap_sum_coarse = 0.0_dbl
-        if (checkEffVolumeOverlapCoarseMesh .lt. 0) then
+        if (checkEffVolumeOverlapFineMesh .lt. 0) then
 
            !------ Finding particle location in this processor
            xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
@@ -776,7 +776,7 @@ DO WHILE (ASSOCIATED(current))
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
         Overlap_sum_fine = 0.0_dbl
-        Overlap= 0.0
+        Overlap_fine= 0.0
  
         DO i= NEP_x(1),NEP_x(2) 
            DO j= NEP_y(1),NEP_y(2)
@@ -802,7 +802,7 @@ DO WHILE (ASSOCIATED(current))
 
                 IF (node_fine(i,j,kk) .EQ. FLUID) THEN
                     Overlap_fine(i,j,kk)= tmp
-                    Overlap_sum_fine= Overlap_sum + Overlap(i,j,kk)
+                    Overlap_sum_fine= Overlap_sum + Overlap_fine(i,j,kk)
                  END IF
               END DO
            END DO
@@ -840,7 +840,7 @@ DO WHILE (ASSOCIATED(current))
         END DO
 
         !Now the coarse mesh
-        if (checkEffVolumeOverlapCoarseMesh .lt. 0) then
+        if (checkEffVolumeOverlapFineMesh .lt. 0) then
 
            !------ Finding particle location in this processor
            xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
