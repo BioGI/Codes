@@ -101,15 +101,16 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
 !	   CALL Calc_Global_Bulk_Scalar_Conc				! Estimate bluk	scalar concentration in each partition
-!	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.  
+    !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.
+           write(31,*) 'Calling Particle_Track'
 	   CALL Particle_Track
 !	   CALL Particle_MPI_Transfer
 	ENDIF
         
-        ! IF(iter .GE. phiStart) THEN
-        !    CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
-        ! END IF
-        
+        IF(iter .GE. phiStart) THEN
+           CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
+        END IF
+        phi_fine = phi_fine + delphi_particle_fine !Add the drug release corresponding to any particle in the coarse mesh whose effective volume interfaces with the fine mesh
         CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
 
 !	CALL Collision			! collision step [MODULE: Algorithm]
@@ -126,7 +127,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         DO subiter=1,gridRatio
            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
            CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-           fPlus_fine = fPlus
+           fPlus_fine = f_fine
 !           CALL Stream_Fine            ! Stream fine grid
 !           CALL Macro_Fine             ! Calculate Macro properties on fine grid
            IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
@@ -135,8 +136,10 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
               CALL Particle_Track_fine
               CALL Particle_MPI_Transfer !The first time this is called, it should technically do the work for any particles in the coarse mesh that have to be transferred across processors as well.
            ENDIF
+           write(31,*) 'Calling Scalar_Fine'
+           CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
+!           phi = phi + delphi_particle           
            
-!           CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
 !           CALL Collision_Fine     ! Collision step on the fine grid
            CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
 

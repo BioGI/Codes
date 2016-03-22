@@ -126,8 +126,8 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
 
 !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
-!   CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
-!   CALL Interp_ParToNodes_Conc_New 					! distributes released drug concentration to neightbouring nodes 
+   CALL Calc_Scalar_Release_fine					! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
+   CALL Interp_ParToNodes_Conc_Fine 					! distributes released drug concentration to neightbouring nodes 
    !drug molecules released by the particle at this new position
 
 
@@ -420,8 +420,7 @@ TYPE(ParRecord), POINTER  	:: next
 
 delta_mesh = 1.0_dbl
 
-!zcf3 = xcf*ycf*zcf
-zcf3 = 1.0
+zcf3 = xcf*ycf*zcf
 
 current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
@@ -438,19 +437,20 @@ DO WHILE (ASSOCIATED(current))
         R_P  = current%pardata%rp
 	Sh_P = current%pardata%sh
         delta_P = R_P / Sh_P
-        R_influence_P = (R_P + N_b * delta_P) / xcf
+        R_influence_P = (R_P + N_b * delta_P) 
 
 !------ Computing equivalent cubic mesh length scale
+        L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
         V_influence_P= (4.0_dbl/3.0_dbl) * PI * R_influence_P**3.0_dbl
-        L_influence_P= V_influence_P **(1.0_dbl/3.0_dbl)
-
         V_eff_Ratio = V_influence_P / zcf3 					! Ratio of the effective volume to cell size 
 
-!------ Finding particle location in this processor
-	xp= current%pardata%xp - REAL(iMin-1_lng,dbl)
-	yp= current%pardata%yp - REAL(jMin-1_lng,dbl)
-	zp= current%pardata%zp - REAL(kMin-1_lng,dbl)
+         write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
+         flush(31)
 
+!------ Finding particle location in this processor
+         xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
+         yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
+         zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
 
 !----------------------------------------------------------------------------------------------------------------------
 !------ Veff is smaller than the mesh volume --> Cb = Trilinear interpolation of the concentration at particle location
@@ -486,10 +486,17 @@ DO WHILE (ASSOCIATED(current))
 
 !--------- Concentration Trilinear Iinterpolation
 !--------- Interpolation in x-direction
-           c00 = phi(ix0,iy0,iz0) * (1.0_dbl-xd) + phi(ix1,iy0,iz0) * xd
-           c01 = phi(ix0,iy0,iz1) * (1.0_dbl-xd) + phi(ix1,iy0,iz1) * xd
-           c10 = phi(ix0,iy1,iz0) * (1.0_dbl-xd) + phi(ix1,iy1,iz0) * xd
-           c11 = phi(ix0,iy1,iz1) * (1.0_dbl-xd) + phi(ix1,iy1,iz1) * xd
+           write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
+           write(31,*) 'ix1,ix1,iz1 = ', ix1, iy1, iz1
+           write(31,*) phi_fine(ix0,iy0,iz0), phi_fine(ix1,iy0,iz0)
+           write(31,*) phi_fine(ix0,iy0,iz1), phi_fine(ix1,iy0,iz1)
+           write(31,*) phi_fine(ix0,iy1,iz0), phi_fine(ix1,iy1,iz0)
+           write(31,*) phi_fine(ix0,iy1,iz1), phi_fine(ix1,iy1,iz1)
+           flush(31)
+           c00 = phi_fine(ix0,iy0,iz0) * (1.0_dbl-xd) + phi_fine(ix1,iy0,iz0) * xd
+           c01 = phi_fine(ix0,iy0,iz1) * (1.0_dbl-xd) + phi_fine(ix1,iy0,iz1) * xd
+           c10 = phi_fine(ix0,iy1,iz0) * (1.0_dbl-xd) + phi_fine(ix1,iy1,iz0) * xd
+           c11 = phi_fine(ix0,iy1,iz1) * (1.0_dbl-xd) + phi_fine(ix1,iy1,iz1) * xd
 !--------- Interpolation in y-direction
            c0  = c00 * (1.0_dbl-yd) + c10 * yd
            c1  = c01 * (1.0_dbl-yd) + c11 * yd
@@ -497,6 +504,8 @@ DO WHILE (ASSOCIATED(current))
            c   = c0 * (1.0_dbl-zd) + c1 * zd
 
            Cb_Hybrid= c 
+           write(31,*) 'Cb_Hybrid = ', Cb_Hybrid
+           flush(31)
 
 !----------------------------------------------------------------------------------------------------------------------
 !------ Veff is slightly larger than mesh volume --> Volume of influence is discretized 
@@ -639,6 +648,8 @@ DO WHILE (ASSOCIATED(current))
        END IF
  
        current%pardata%bulk_conc = Cb_Hybrid
+       write(31,*) 'current%pardata%bulk_conc = ', current%pardata%bulk_conc
+       flush(31)
 
     END IF
     current => next
@@ -647,6 +658,80 @@ END DO
 
 !===================================================================================================
 END SUBROUTINE Compute_Cb_fine
+!===================================================================================================
+
+!===================================================================================================
+SUBROUTINE Calc_Scalar_Release_fine! Calculate rate of scalar release at every time step  
+!===================================================================================================
+
+! Called by Particle_Track (LBM.f90) to get delNBbyCV, update particle radius,
+! Sh(t)- sherwood number
+
+IMPLICIT NONE
+INTEGER(lng)  :: numFluids,i,j,k
+REAL(dbl)     :: deltaR,bulkVolume,temp,cbt,zcf3,bulkconc
+TYPE(ParRecord), POINTER :: current
+TYPE(ParRecord), POINTER :: next
+
+
+!bulkVolume=xcf*ycf_fine*zcf_fine*Cb_numFluids/num_particles
+bulkVolume=xcf_fine*ycf_fine*zcf_fine
+zcf3=xcf_fine*ycf_fine*zcf_fine
+
+!calculate delNBbyCV for each particle in the domain
+current => ParListHead%next
+DO WHILE (ASSOCIATED(current))
+	next => current%next ! copy pointer of next node
+
+      IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
+
+         current%pardata%rpold=current%pardata%rp
+         
+         bulkconc = current%pardata%bulk_conc
+         
+         temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+         write(31,*) 'current%pardata%sh = ', current%pardata%sh
+         write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+         
+         IF (temp.GE.0.0_dbl) THEN
+            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         ELSE
+            temp = 0.0_dbl
+            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         END IF
+         
+         deltaR=current%pardata%rpold-current%pardata%rp
+         
+         current%pardata%delNBbyCV=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+              -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+              /(molarvol*bulkVolume)
+         write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
+         write(31,*) 'current%pardata%rp = ', current%pardata%rp         
+         write(31,*) 'current%pardata%delNBbyCV = ', current%pardata%delNBbyCV
+         write(31,*) 'molarvol, bulkVolume ', molarvol, bulkVolume
+         flush(31)
+         
+         IF (associated(current,ParListHead%next)) THEN
+            write(9,*) iter*tcf_fine,current%pardata%parid,current%pardata%rp,current%pardata%Sh,Cb_global*zcf3*Cb_numFluids,current%pardata%delNBbyCV,Cb_global,Cb_numFluids
+            CALL FLUSH(9)
+         ENDIF
+
+      END IF
+         ! point to next node in the list
+      current => next
+   ENDDO
+
+
+IF (myid .EQ. 0) THEN
+       	open(799,file='testoutput.dat',position='append')
+	write(799,*) iter*tcf_fine,Cb_global*zcf3*Cb_numFluids,Cb_global,Cb_numFluids
+        close(799)
+ENDIF
+
+!===================================================================================================
+END SUBROUTINE Calc_Scalar_Release_Fine
 !===================================================================================================
 
 !===================================================================================================
@@ -767,12 +852,12 @@ DO WHILE (ASSOCIATED(current))
          zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
 
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-        NEP_x(1)= FLOOR(xp - 0.5*L_influence_P/xcf_fine )
-        NEP_x(2)= CEILING(xp + 0.5*L_influence_P/xcf_fine)
-        NEP_y(1)= FLOOR(yp - 0.5*L_influence_P/xcf_fine )
-        NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf_fine)
-        NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf_fine )
-        NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf_fine)
+         NEP_x(1)= MAX(0,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
+         NEP_x(2)= MIN(nxSub_fine,CEILING(xp + 0.5*L_influence_P/xcf_fine))
+         NEP_y(1)= MAX(0,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
+         NEP_y(2)= MIN(nySub_fine,CEILING(yp + 0.5*L_influence_P/ycf_fine))
+         NEP_z(1)= MAX(0,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
+         NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
         Overlap_sum_fine = 0.0_dbl
@@ -800,16 +885,17 @@ DO WHILE (ASSOCIATED(current))
                     kk = k + (nz-1)
                 END IF
 
+                write(31,*) 'i,j,k = ', i,j,kk, ' Overlap = ', tmp
                 IF (node_fine(i,j,kk) .EQ. FLUID) THEN
                     Overlap_fine(i,j,kk)= tmp
-                    Overlap_sum_fine= Overlap_sum + Overlap_fine(i,j,kk)
+                    Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk)
                  END IF
               END DO
            END DO
         END DO
 
         Overlap_sum = Overlap_sum_coarse + Overlap_sum_fine !Add the overlap in the coarse and the fine meshes.
-        
+        write(31,*) 'Overlaps t,c,f= ', Overlap_sum, Overlap_sum_coarse, Overlap_sum_fine        
 !------ Computing particle release contribution to scalar field at each lattice node
         DO i= NEP_x(1),NEP_x(2)
            DO j= NEP_y(1),NEP_y(2)
@@ -832,7 +918,10 @@ DO WHILE (ASSOCIATED(current))
                        Overlap_fine(i,j,kk) = 0.0
                     END IF
 
-                    delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNBbyCV * Overlap_fine(i,j,kk) 
+                    delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNBbyCV * Overlap_fine(i,j,kk)
+                    write(31,*) 'i,j,kk = ', i,j,kk, ' delphi_fine = ', current%pardata%delNBbyCV, Overlap_fine(i,j,kk), current%pardata%delNBbyCV * Overlap_fine(i,j,kk)
+                    flush(31)
+                    
 
                  END IF 
               END DO
