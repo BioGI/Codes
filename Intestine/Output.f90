@@ -393,7 +393,7 @@ IF ((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) &
 
    !------ open the proper output file
    OPEN(160,FILE='pardat-'//iter_char//'-'//sub//'.csv')
-   WRITE(160,*) '"x","y","z","u","v","w","ParID","Sh","rp","bulk_conc","delNBbyCV","Sst","S","Veff","Nbj"'
+   WRITE(160,*) '"x","y","z","u","v","w","ParID","Sh","rp","bulk_conc","delNB","Sst","S","Veff","Nbj"'
 
    !------ Using linked lists
    current => ParListHead%next
@@ -415,7 +415,7 @@ IF ((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) &
 			current%pardata%sh 	  ,',',	&
 			current%pardata%rp/xcf 	  ,',',	&
 			current%pardata%bulk_conc ,',', &
-			current%pardata%delNBbyCV ,',', &
+			current%pardata%delNB ,',', &
 			current%pardata%Sst 	  ,',',	&
 			current%pardata%S 	  ,',',	&
 			current%pardata%Veff 	  ,',',	&
@@ -1061,7 +1061,7 @@ ELSE
 		CALL FLUSH(5)
 		! Write to combined output file	
 		OPEN(685,FILE='pardat-all-'//iter_char//'.csv')
-                WRITE(685,*) '"x","y","z","u","v","w","ParID","Sh","rp","bulk_conc","delNBbyCV","Sst","S","Veff","Nbj"'
+                WRITE(685,*) '"x","y","z","u","v","w","ParID","Sh","rp","bulk_conc","delNB","Sst","S","Veff","Nbj"'
 
 		DO nnn=1,numLineEnd
         		WRITE(685,1001) ParticleData(nnn,1)  		,',', &

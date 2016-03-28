@@ -569,7 +569,7 @@ ParInit%Sst = 0.0_dbl
 ParInit%Veff = 0.0_dbl
 ParInit%Nbj = 0.0_dbl
 ParInit%gamma_cont = 0.0_dbl
-ParInit%delNBbyCV = 0.0_dbl
+ParInit%delNB = 0.0_dbl
 
 !------------------------------------------------
 END SUBROUTINE MPI_Initialize

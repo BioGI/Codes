@@ -51,43 +51,43 @@ DO k=1,nzSub_fine
       
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
       
-	phiTemp_fine(i,j,k) = phiTemp_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
-        phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
-	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
+! 	phiTemp_fine(i,j,k) = phiTemp_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
+!         phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
+! 	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
-        DO m=0,NumDistDirs
+!         DO m=0,NumDistDirs
       
-          ! i,j,k location of neighboring node
-          im1 = i - ex(m)
-          jm1 = j - ey(m)
-          km1 = k - ez(m)
+!           ! i,j,k location of neighboring node
+!           im1 = i - ex(m)
+!           jm1 = j - ey(m)
+!           km1 = k - ez(m)
 
-          IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
-             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-          ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-          ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
-            CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
-            phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
-!            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
-          ELSE
-            OPEN(1000,FILE="error_fine.txt")
-            WRITE(1000,'(A75)') "error in PassiveScalar_fine.f90 at Line 66: node(im1,jm1,km1) is out of range"
-            WRITE(1000,*) "iter",iter
-            WRITE(1000,*) "m=",m
-            WRITE(1000,*) "i=",i,"j=",j,"k=",k
-            WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
-            WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-            WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
-            WRITE(1000,*) "node(i,j,k)=",node(i,j,k)
-            WRITE(1000,*) "node(im1,jm1,km1)=",node(im1,jm1,km1)
-            CLOSE(1000)
-            STOP
-          END IF
+!           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
+!              phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+!           ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
+!              phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+!           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
+!             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
+!             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
+! !            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
+!           ELSE
+!             OPEN(1000,FILE="error_fine.txt")
+!             WRITE(1000,'(A75)') "error in PassiveScalar_fine.f90 at Line 66: node(im1,jm1,km1) is out of range"
+!             WRITE(1000,*) "iter",iter
+!             WRITE(1000,*) "m=",m
+!             WRITE(1000,*) "i=",i,"j=",j,"k=",k
+!             WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
+!             WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
+!             WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
+!             WRITE(1000,*) "node(i,j,k)=",node(i,j,k)
+!             WRITE(1000,*) "node(im1,jm1,km1)=",node(im1,jm1,km1)
+!             CLOSE(1000)
+!             STOP
+!           END IF
 
-        END DO
+!         END DO
 
-	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
+	phi_fine(i,j,k) = phi_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi_fine(i,j,k) .LT. 0.0_dbl) THEN
           phi_fine(i,j,k) = 0.0_dbl

@@ -126,7 +126,7 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
 
 !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
-   CALL Calc_Scalar_Release_fine					! Updates particle radius, calculates new drug conc release rate delNBbyCV. 
+   CALL Calc_Scalar_Release_fine					! Updates particle radius, calculates new drug conc release rate delNB. 
    CALL Interp_ParToNodes_Conc_Fine 					! distributes released drug concentration to neightbouring nodes 
    !drug molecules released by the particle at this new position
 
@@ -190,43 +190,43 @@ DO WHILE (ASSOCIATED(current))
 	SELECT CASE(current%pardata%parid)
 	CASE(1_lng)
       open(72,file='particle1-history.dat',position='append')
-      write(72,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(72,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(72)
 	CASE(3_lng)
       open(73,file='particle3-history.dat',position='append')
-      write(73,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(73,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(73) 
 	CASE(5_lng)
       open(74,file='particle5-history.dat',position='append')
-      write(74,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(74,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(74)
 	CASE(7_lng)
       open(75,file='particle7-history.dat',position='append')
-      write(75,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(75,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(75)
 	CASE(9_lng)
       open(76,file='particle9-history.dat',position='append')
-      write(76,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(76,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(76) 
 	CASE(10_lng)
       open(77,file='particle10-history.dat',position='append')
-      write(77,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(77,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(77)
 	CASE(8_lng)
       open(78,file='particle8-history.dat',position='append')
-      write(78,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(78,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(78)
 	CASE(6_lng)
       open(79,file='particle6-history.dat',position='append')
-      write(79,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(79,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(79)
 	CASE(4_lng)
       open(80,file='particle4-history.dat',position='append')
-      write(80,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(80,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(80)
 	CASE(2_lng)
       open(81,file='particle2-history.dat',position='append')
-      write(81,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNBbyCV,current%pardata%cur_part,current%pardata%new_part
+      write(81,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
       close(81)
      
       END SELECT
@@ -446,6 +446,8 @@ DO WHILE (ASSOCIATED(current))
 
          write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
          flush(31)
+         V_eff_Ratio = 0.1
+         write(31,*) 'Setting V_eff_Ratio manually to less than 1'
 
 !------ Finding particle location in this processor
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
@@ -664,7 +666,7 @@ END SUBROUTINE Compute_Cb_fine
 SUBROUTINE Calc_Scalar_Release_fine! Calculate rate of scalar release at every time step  
 !===================================================================================================
 
-! Called by Particle_Track (LBM.f90) to get delNBbyCV, update particle radius,
+! Called by Particle_Track (LBM.f90) to get delNB, update particle radius,
 ! Sh(t)- sherwood number
 
 IMPLICIT NONE
@@ -675,48 +677,53 @@ TYPE(ParRecord), POINTER :: next
 
 
 !bulkVolume=xcf*ycf_fine*zcf_fine*Cb_numFluids/num_particles
-bulkVolume=xcf_fine*ycf_fine*zcf_fine
 zcf3=xcf_fine*ycf_fine*zcf_fine
 
-!calculate delNBbyCV for each particle in the domain
+!calculate delNB for each particle in the domain
 current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
       IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
 
-         current%pardata%rpold=current%pardata%rp
+         ! current%pardata%rpold=current%pardata%rp
          
-         bulkconc = current%pardata%bulk_conc
+         ! bulkconc = current%pardata%bulk_conc
          
-         temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
-         write(31,*) 'current%pardata%sh = ', current%pardata%sh
-         write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+         ! temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         ! write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+         ! write(31,*) 'current%pardata%sh = ', current%pardata%sh
+         ! write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         ! write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
          
-         IF (temp.GE.0.0_dbl) THEN
-            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         ELSE
-            temp = 0.0_dbl
-            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         END IF
+         ! IF (temp.GE.0.0_dbl) THEN
+         !    current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         ! ELSE
+         !    temp = 0.0_dbl
+         !    current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         ! END IF
+
+!         deltaR=current%pardata%rpold-current%pardata%rp
          
-         deltaR=current%pardata%rpold-current%pardata%rp
+!         current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+!              -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+!              /molarvol
+
+         write(*,*) 'Not allowing particle radius to change in the fine mesh'
+         current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
          
-         current%pardata%delNBbyCV=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
-              -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
-              /(molarvol*bulkVolume)
          write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
          write(31,*) 'current%pardata%rp = ', current%pardata%rp         
-         write(31,*) 'current%pardata%delNBbyCV = ', current%pardata%delNBbyCV
+         write(31,*) 'current%pardata%delNB = ', current%pardata%delNB
          write(31,*) 'molarvol, bulkVolume ', molarvol, bulkVolume
          flush(31)
          
          IF (associated(current,ParListHead%next)) THEN
-            write(9,*) iter*tcf_fine,current%pardata%parid,current%pardata%rp,current%pardata%Sh,Cb_global*zcf3*Cb_numFluids,current%pardata%delNBbyCV,Cb_global,Cb_numFluids
+            write(9,*) iter*tcf_fine,current%pardata%parid,current%pardata%rp,current%pardata%Sh,Cb_global*zcf3*Cb_numFluids,current%pardata%delNB,Cb_global,Cb_numFluids
             CALL FLUSH(9)
          ENDIF
+
+
 
       END IF
          ! point to next node in the list
@@ -778,6 +785,7 @@ DO WHILE (ASSOCIATED(current))
 
 !------ Computing equivalent cubic mesh length scale
         L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
+        write(31,*) 'L_influnce_P = ', L_influence_P, L_influence_P/xcf_fine
  
 !------ NEW: Volume of Influence Border (VIB) for this particle
         VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
@@ -786,15 +794,19 @@ DO WHILE (ASSOCIATED(current))
         VIB_y(2)= current%pardata%yp + 0.5_dbl * L_influence_P
         VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
         VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
-
-
+        write(31,*) 'VIB_x(1) = ', VIB_x(1), 'VIB_x(2) = ', VIB_x(2)
+        write(31,*) 'VIB_y(1) = ', VIB_y(1), 'VIB_y(2) = ', VIB_y(2)
+        write(31,*) 'VIB_z(1) = ', VIB_z(1), 'VIB_z(2) = ', VIB_z(2)
+        
         !If volume of influence extends into coarse mesh, also calculate scalar release for coarse mesh
         checkEffVolumeOverlapFineMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
              ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P ) - 0.99
+        write(31,*) 'checkEffVolumeOverlapFineMesh = ', checkEffVolumeOverlapFineMesh
         
         Overlap_sum_coarse = 0.0_dbl
         if (checkEffVolumeOverlapFineMesh .lt. 0) then
 
+           write(31,*) 'Particle also overlaps with coarse mesh'
            !------ Finding particle location in this processor
            xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
            yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
@@ -808,7 +820,7 @@ DO WHILE (ASSOCIATED(current))
            NEP_y(2)= CEILING(yp + 0.5*L_influence_P/ycf)
            NEP_z(1)= FLOOR(zp - 0.5*L_influence_P/xcf )
            NEP_z(2)= CEILING(zp + 0.5*L_influence_P/zcf)
-           
+        
            !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
 
            Overlap= 0.0
@@ -835,6 +847,7 @@ DO WHILE (ASSOCIATED(current))
                        kk = k + (nz-1)
                     END IF
                     
+                    write(31,*) 'i,j,k = ', i,j,kk, ' Overlap_coarse = ', tmp                    
                     IF (node(i,j,kk) .EQ. FLUID) THEN
                        Overlap(i,j,kk)= tmp
                        Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk)
@@ -843,13 +856,17 @@ DO WHILE (ASSOCIATED(current))
               END DO
            END DO
            
-          
+        else
+           write(31,*) 'Particle overlaps only with fine mesh and not with coarse mesh'
+           
         end if
+        
         
 !------ Finding particle location in this processor
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
          yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
          zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
+           write(31,*) 'xp, yp, zp = ', xp, yp, zp
 
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
          NEP_x(1)= MAX(0,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
@@ -858,6 +875,9 @@ DO WHILE (ASSOCIATED(current))
          NEP_y(2)= MIN(nySub_fine,CEILING(yp + 0.5*L_influence_P/ycf_fine))
          NEP_z(1)= MAX(0,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
          NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
+           write(31,*) 'NEP_x(1) = ', NEP_x(1), 'NEP_x(2) = ', NEP_x(2)
+           write(31,*) 'NEP_y(1) = ', NEP_y(1), 'NEP_y(2) = ', NEP_y(2)
+           write(31,*) 'NEP_z(1) = ', NEP_z(1), 'NEP_z(2) = ', NEP_z(2)
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
         Overlap_sum_fine = 0.0_dbl
@@ -885,7 +905,7 @@ DO WHILE (ASSOCIATED(current))
                     kk = k + (nz-1)
                 END IF
 
-                write(31,*) 'i,j,k = ', i,j,kk, ' Overlap = ', tmp
+                write(31,*) 'i,j,k = ', i,j,kk, ' Overlap_fine = ', tmp
                 IF (node_fine(i,j,kk) .EQ. FLUID) THEN
                     Overlap_fine(i,j,kk)= tmp
                     Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk)
@@ -918,8 +938,8 @@ DO WHILE (ASSOCIATED(current))
                        Overlap_fine(i,j,kk) = 0.0
                     END IF
 
-                    delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNBbyCV * Overlap_fine(i,j,kk)
-                    write(31,*) 'i,j,kk = ', i,j,kk, ' delphi_fine = ', current%pardata%delNBbyCV, Overlap_fine(i,j,kk), current%pardata%delNBbyCV * Overlap_fine(i,j,kk)
+                    delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)/ zcf3
+                    write(31,*) 'i,j,kk = ', i,j,kk, ' delphi_fine = ', current%pardata%delNB, Overlap_fine(i,j,kk), current%pardata%delNB * Overlap_fine(i,j,kk)
                     flush(31)
                     
 
@@ -967,7 +987,7 @@ DO WHILE (ASSOCIATED(current))
                           Overlap(i,j,kk) = 0.0
                        END IF
                        
-                       delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNBbyCV * Overlap(i,j,kk) 
+                       delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / (xcf * ycf * zcf)
                        
                     END IF
                  END DO

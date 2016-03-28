@@ -275,7 +275,7 @@ TYPE ParRecordTransfer
 	REAL(dbl)	:: vp   ! particle v-velocity
 	REAL(dbl)	:: wp	! particle w-velocity
 	REAL(dbl)	:: rp	! particle radius
-	REAL(dbl)	:: delNBbyCV ! particle drug release concentration 
+	REAL(dbl)	:: delNB ! particle drug release concentration 
 	REAL(dbl)	:: par_conc ! particle concentration
 	REAL(dbl)	:: bulk_conc ! bulk concentration at particle location
 	REAL(dbl)	:: xpold	! particle x-position
@@ -782,7 +782,7 @@ SUBROUTINE list_init(self)
 !  ALLOCATE(self%vp)
 !  ALLOCATE(self%wp)
 !  ALLOCATE(self%rp)
-!  ALLOCATE(self%delNBbyCV)
+!  ALLOCATE(self%delNB)
 !  ALLOCATE(self%par_conc)
 !  ALLOCATE(self%bulk_conc)
 !  ALLOCATE(self%rpold)
@@ -1023,7 +1023,7 @@ IF(randORord .EQ. RANDOM) THEN
 END IF
 !Particle arrays
 IF(ParticleTrack.EQ.ParticleOn) THEN
-	!DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNBbyCV)
+	!DEALLOCATE(xp,yp,zp,up,vp,wp,ipar,jpar,kpar,rp,delNB)
 	!DEALLOCATE(par_conc,bulk_conc,sh,gamma_cont,rpold)
 	!DEALLOCATE(ParList)
 	CALL list_free(ParListHead)

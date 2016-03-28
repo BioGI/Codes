@@ -204,7 +204,7 @@ ELSE
 			CurPar%next%pardata%Veff = 0.0_dbl
 			CurPar%next%pardata%Nbj = 0.0_dbl
 			CurPar%next%pardata%bulk_conc = 0.0000_dbl
-			CurPar%next%pardata%delNBbyCV= 0.00000_dbl
+			CurPar%next%pardata%delNB= 0.00000_dbl
 			CurPar%next%pardata%cur_part= mySub
 			CurPar%next%pardata%new_part= mySub
 !			!WRITE(*,*) "Particle Initializing ",i,xp(i),yp(i),zp(i)
