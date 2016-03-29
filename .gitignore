@@ -22,7 +22,6 @@ vel-history.dat
 volume*
 wall*.dat
 analysis.pyc
-analysisDualLattice.py
 analysisDualLattice.pyc
 blah.pvcc
 blah.pvsm
