@@ -1204,8 +1204,6 @@ tausgs_particle_x = 0.0_dbl
 tausgs_particle_y = 0.0_dbl
 tausgs_particle_z = 0.0_dbl
 	
-IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first step, the only part of this subroutine that operates is computing the partitions the particles belong to without releasing any drug.  
-
 !--Second order interpolation in time
 !--Backup particle data from previous time step using a linked list of particle records
 
@@ -1279,10 +1277,6 @@ IF (iter.GT.iter0+0_lng) THEN 						! IF condition ensures that at the first ste
    CALL Calc_Scalar_Release 						! Updates particle radius, calculates new drug conc release rate delNB. 
    CALL Interp_ParToNodes_Conc  					! distributes released drug concentration to neightbouring nodes 
    !drug molecules released by the particle at this new position
-
-
-ENDIF
-
 
 !---- Now update tausgs only for those cells that have non-zero values of tausgs
 DO kk=0,nzSub+1
