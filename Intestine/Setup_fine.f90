@@ -11,7 +11,6 @@ IMPLICIT NONE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LBM Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ! NumDistDirs - same as Setup
-
 REAL(dbl),		ALLOCATABLE :: f_fine(:,:,:,:)							! distribution function
 REAL(dbl), 		ALLOCATABLE :: fplus_fine(:,:,:,:)						! post-collision distribution function
 REAL(dbl), 		ALLOCATABLE :: u_fine(:,:,:),v_fine(:,:,:),w_fine(:,:,:)		! x,y, and z components of the fluid velocity vector
@@ -750,6 +749,8 @@ allocate(fC_bufferSendRight_backYZ(0:NumDistDirs+2,1,2:ny_fine-1))
 allocate(fC_bufferRecvRight_backYZ(0:NumDistDirs+2,2,2:ny_fine-1))
 
 ALLOCATE(reqInterpolationBuffer(8))
+
+ALLOCATE(flagNodeIntersectCoarse(nx_fine, ny_fine, -gridRatio/2:nz_fine+gridRatio/2))
 !------------------------------------------------
 END SUBROUTINE AllocateArrays_Fine
 !------------------------------------------------

@@ -279,7 +279,19 @@ IF(iter .EQ. phiStart) THEN
 	    !pause
       phi(:,:,:) = phiIC			! set the full scalar field to phiIC
 
-    CASE DEFAULT
+    CASE(LINEAR) 						! linear profile such that phi = 0 at the boundary
+  
+      DO k=0,nzSub+1
+        DO j=0,nySub+1
+          DO i=0,nxSub+1
+
+             phi(i,j,k) = 1.0 - sqrt(x(i)**2 + y(j)**2)/r(k)
+             
+          END DO
+        END DO
+      END DO
+
+   CASE DEFAULT
    
       OPEN(1000,FILE="error.txt")
       WRITE(1000,*) "Error in ScalarIC in Setup.f90: sclrIC is not BLOB(1), LINE(2) or INLET(3)..."
@@ -330,26 +342,26 @@ ELSE
   
     CASE(LINE) 						! line of scalar along axis
 
-      IF((SubID(2) .EQ. 0) .AND. (SubID(4) .EQ. 0)) THEN			! if no neighboring subdomains exist in the 2nd and 4th directions, then they lie at the centerline
+!       IF((SubID(2) .EQ. 0) .AND. (SubID(4) .EQ. 0)) THEN			! if no neighboring subdomains exist in the 2nd and 4th directions, then they lie at the centerline
 
-!        ! maintain scalar at centerline
-!        DO k=0,nzSub+1
-!          phi(1,1,k) = phiIC*ee**(-((x(1)**2 + y(1)**2)/(2.0_dbl*sigma**2)))
-!        END DO
+! !        ! maintain scalar at centerline
+! !        DO k=0,nzSub+1
+! !          phi(1,1,k) = phiIC*ee**(-((x(1)**2 + y(1)**2)/(2.0_dbl*sigma**2)))
+! !        END DO
 
-        DO k=0,nzSub+1
-          DO j=0,nySub+1
-            DO i=0,nxSub+1
+!         DO k=0,nzSub+1
+!           DO j=0,nySub+1
+!             DO i=0,nxSub+1
 
-              IF((ABS(x(i)) .LE. 2.51_dbl*xcf) .AND. (ABS(y(j)) .LE. 2.51_dbl*ycf)) THEN				! (5.01 in case it is slightly higher than 5 due to round-off)
-                phi(i,j,k) = phiIC																						! 2D Gaussian Distribution in x and y (maintain phi=1 at r=2.5*zcf)
-              END IF
+!               IF((ABS(x(i)) .LE. 2.51_dbl*xcf) .AND. (ABS(y(j)) .LE. 2.51_dbl*ycf)) THEN				! (5.01 in case it is slightly higher than 5 due to round-off)
+!                 phi(i,j,k) = phiIC																						! 2D Gaussian Distribution in x and y (maintain phi=1 at r=2.5*zcf)
+!               END IF
 
-            END DO
-          END DO
-        END DO  
+!             END DO
+!           END DO
+!         END DO  
 
-      END IF
+!       END IF
 
     CASE(INLET) 						! constant scalar at the inlet
  
@@ -364,7 +376,11 @@ ELSE
             END DO
           END DO
         END DO   
-      END IF
+     END IF
+
+    CASE(LINEAR)
+
+     
  
     CASE(UNIFORM)						! uniform initial distribution 
 
@@ -1266,11 +1282,14 @@ phiijk_m	= (fplus(m,i,j,k)/rho(i,j,k) - wt(m)*Delta)*phiTemp(i,j,k)	! contributi
 
 ! if q is too small, the extrapolation to phiBC can create a large error...
 IF(q .LT. 0.25) THEN
+!   write(31,*) 'Real q = ', q   
   q = 0.25_dbl  																		! approximate the distance ratio as 0.25
 END IF
 
 ! extrapolate using phiB and phijk_m to obtain contribution from the solid node to the current node
 phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at the solid node, using q
+!write(31,*) 'm,i,j,k,q =', m,i,j,k,q, 'phiB = ', phiB, ' phiijk_m = ', phiijk_m
+!write(31,*) 'fplus(m,i,j,k) = ', fplus(m,i,j,k), ' rho(i,j,k) = ', rho(i,j,k), ' phiTemp(i,j,k) = ', phiTemp(i,j,k)
 
 !------------------------------------------------
 END SUBROUTINE ScalarBC

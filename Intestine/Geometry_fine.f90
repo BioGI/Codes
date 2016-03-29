@@ -545,6 +545,43 @@ END DO
 END SUBROUTINE SetNodes_fine
 !------------------------------------------------
 
+SUBROUTINE FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
+
+INTEGER(lng), intent(in) :: i,j,k	! index variables
+INTEGER :: ii, jj, kk, iFine, jFine, kFine
+REAL(dbl) :: xcfBy2, xcfBy2_fine ! Half of LBM resolution
+REAL(dbl) :: tmp
+
+xcfBy2 = 0.5*xcf
+xcfBy2_fine = 0.5 * xcf_fine
+
+kFine = 1 + (k-1)*gridRatio
+jFine = 1 + (j-45)*gridRatio
+iFine = 1 + (i-45)*gridRatio 
+do ii=-gridRatio/2,gridRatio/2 !Complete overlap with coarse mesh node
+   if( ( (iFine+ii) .gt. 0 ) .and. ( (iFine+ii) .lt. nx_fine+1 ) ) then
+      do jj=-gridRatio/2,gridRatio/2
+         if( ( (jFine+jj) .gt. 0 ) .and. ( (jFine+jj) .lt. ny_fine+1 ) )  then                      
+            do kk=-gridRatio/2,gridRatio/2
+               tmp = degreeOverlapCube(x(i)-xcfBy2, x(i)+xcfBy2, y(j)-xcfBy2, y(j)+xcfBy2, z(k)-xcfBy2, z(k)+xcfBy2, x_fine(iFine+ii)-xcfBy2_fine, x_fine(iFine+ii)+xcfBy2_fine, y_fine(jFine+jj)-xcfBy2_fine, y_fine(jFine+jj)+xcfBy2_fine, z_fine(kFine+kk)-xcfBy2_fine, z_fine(kFine+kk)+xcfBy2_fine)
+               flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) = flagNodeIntersectCoarse(iFine+ii,jFine+jj,kFine+kk) + tmp
+            end do
+         end if
+      end do
+   end if
+end do
+
+! write(*,*) 'Temporarily putting flagNodeIntersectCoarse into phi_fine for visualization'
+! do i = 1,nxSub_fine
+!    do j = 1,nySub_fine
+!       do k = 1,nzSub_fine
+!          phi_fine(i,j,k) = flagNodeIntersectCoarse(i,j,k)
+!       end do
+!    end do
+! end do
+  
+END SUBROUTINE FlagFineMeshNodesIntersectingWithCoarseMeshNodes
+
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE SetProperties_fine(i,j,k,ubx,uby,ubz)	! give properties to nodes that just came into the fluid domain (uncovered)
 !--------------------------------------------------------------------------------------------------
@@ -800,6 +837,79 @@ end do
 !------------------------------------------------
 END SUBROUTINE SetNodesInterface_nPlus1_fine
 !------------------------------------------------
+
+SUBROUTINE FlagCoarseMeshNodesIntersectingWithFineMeshNodes
+
+INTEGER(lng)	:: i,j,k,m	! index variables
+INTEGER :: ii, jj, kk, iFine, jFine, kFine
+REAL(dbl) :: xcfBy2, xcfBy2_fine ! Half of LBM resolution
+REAL(dbl) :: tmp
+
+flagNodeIntersectFine = 0_dbl
+xcfBy2 = 0.5*xcf
+xcfBy2_fine = 0.5 * xcf_fine
+
+!Do the top and bottom XZ planes first
+do k=1,nzSub
+   flagNodeIntersectFine(45,45,k) = 0.16
+   flagNodeIntersectFine(45,57,k) = 0.16
+   do i=46,56
+      flagNodeIntersectFine(i,45,k) = 0.4375 !3.5/8.0
+      flagNodeIntersectFine(45,i,k) = 0.4375 !3.5/8.0
+      flagNodeIntersectFine(i,57,k) = 0.4375 !3.5/8.0      
+      flagNodeIntersectFine(57,i,k) = 0.4375 !3.5/8.0      
+   end do
+   flagNodeIntersectFine(57,45,k) = 0.16
+   flagNodeIntersectFine(57,57,k) = 0.16
+end do
+   
+
+! write(*,*) 'Temporarily putting flagNodeIntersectFine into phi_fine for visualization'
+! do i = 1,nxSub
+!    do j = 1,nySub
+!       do k = 1,nzSub
+!          phi(i,j,k) = flagNodeIntersectFine(i,j,k)
+!       end do
+!    end do
+! end do
+  
+END SUBROUTINE FlagCoarseMeshNodesIntersectingWithFineMeshNodes
+
+FUNCTION degreeOverlapCube(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
+
+  !! Find the degree of overlap between two cubes
+  ! First cube (assumed to be larger - coarse mesh) has corners (x,y,z) and (xp,yp,zp)
+  ! Second cube (assumed to be smaller - fine mesh) has corners (a,b,c) and (ap,bp,cp)
+  
+  REAL(dbl) :: x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp
+  REAL(dbl) :: degreeOverlapCube
+
+!  write(31,*) 'min(ap,xp)-max(a,x1) = ', min(ap,xp)-max(a,x1), ' max(min(ap,xp)-max(a,x1),0.0_dbl) = ', max(min(ap,xp)-max(a,x1),0.0_dbl)
+!  write(31,*) 'min(bp,yp)-max(b,y1) = ', min(bp,yp)-max(b,y1), ' max(min(bp,yp)-max(b,y1),0.0_dbl) = ', max(min(bp,yp)-max(b,y1),0.0_dbl)
+!  write(31,*) 'min(cp,zp)-max(c,z1) = ', min(cp,zp)-max(c,z1), ' max(min(cp,zp)-max(c,z1),0.0_dbl) = ', max(min(cp,zp)-max(c,z1),0.0_dbl)
+  
+  degreeOverlapCube = (max(min(ap,xp)-max(a,x1),0.0_dbl)/xcf_fine) * (max(min(bp,yp)-max(b,y1),0.0_dbl)/ycf_fine) * (max(min(cp,zp)-max(c,z1),0.0_dbl)/zcf_fine)
+!  if (degreeOverlapCube .gt. 0) then
+!     write(31,*) 'degreeOverlapCube = ', degreeOverlapCube
+!  end if
+  RETURN
+
+END FUNCTION degreeOverlapCube
+
+FUNCTION degreeOverlapCube2(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
+
+  !! Find the degree of overlap between two cubes
+  ! First cube (assumed to be larger - coarse mesh) has corners (x,y,z) and (xp,yp,zp)
+  ! Second cube (assumed to be smaller - fine mesh) has corners (a,b,c) and (ap,bp,cp)
+  
+  REAL(dbl) :: x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp
+  REAL(dbl) :: degreeOverlapCube2
+
+  degreeOverlapCube2 = (max(min(ap,xp)-max(a,x1),0.0_dbl)/xcf) * (max(min(bp,yp)-max(b,y1),0.0_dbl)/ycf) * (max(min(cp,zp)-max(c,z1),0.0_dbl)/zcf)
+  RETURN
+
+END FUNCTION degreeOverlapCube2
+
 
 !================================================
 END MODULE Geometry_Fine

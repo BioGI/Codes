@@ -36,8 +36,8 @@ PROGRAMS = Intestine3D.exe
 #OBJS = SetPrecision.o Setup.o LBM.o PassiveScalar.o \
        Parallel.o Geometry.o ICBC.o Output.o \
        Main.o
-MODULES = SetPrecision.o Setup.o Setup_fine.o ICBC.o ICBC_fine.o LBM.o LBM_fine.o PassiveScalar.o PassiveScalar_fine.o \
-       Parallel.o Parallel_fine.o Geometry.o Geometry_fine.o Output.o Output_fine.o
+MODULES = SetPrecision.o Setup.o Setup_fine.o ICBC.o ICBC_fine.o LBM.o LBM_fine.o Geometry.o Geometry_fine.o \
+       PassiveScalar.o PassiveScalar_fine.o Parallel.o Parallel_fine.o Output.o Output_fine.o
 SRCOBJS = Main.o
 
 # "make" builds all

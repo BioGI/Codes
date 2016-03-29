@@ -849,7 +849,7 @@ DO WHILE (ASSOCIATED(current))
                     
                     write(31,*) 'i,j,k = ', i,j,kk, ' Overlap_coarse = ', tmp                    
                     IF (node(i,j,kk) .EQ. FLUID) THEN
-                       Overlap(i,j,kk)= tmp
+                       Overlap(i,j,kk)= (1.0-flagNodeIntersectFine(i,j,kk)) * tmp 
                        Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk)
                     END IF
                  END DO

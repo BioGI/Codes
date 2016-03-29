@@ -1197,7 +1197,8 @@ REAL(dbl)                :: xpNF, ypNF, zpNF !First order extrapolation of new p
 
 
 ParticleTransfer = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
-delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
+delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens.
+delphi_particle_fine = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
 
 tausgs_particle_x = 0.0_dbl
 tausgs_particle_y = 0.0_dbl

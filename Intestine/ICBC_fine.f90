@@ -145,7 +145,19 @@ IF(iter .EQ. phiStart) THEN
 	    !pause
       phi_fine(:,:,:) = phiIC			! set the full scalar field to phiIC
 
-    CASE DEFAULT
+    CASE(LINEAR) 						! linear profile such that phi = 0 at the boundary
+  
+      DO k=0,nzSub_fine+1
+        DO j=0,nySub_fine+1
+          DO i=0,nxSub_fine+1
+
+             phi_fine(i,j,k) = 1.0 - sqrt(x_fine(i)**2 + y_fine(j)**2)/r_fine(k)
+             
+          END DO
+        END DO
+      END DO
+
+   CASE DEFAULT
    
       OPEN(1000,FILE="error.txt")
       WRITE(1000,*) "Error in ScalarIC in Setup.f90: sclrIC is not BLOB(1), LINE(2) or INLET(3)..."
@@ -180,26 +192,26 @@ ELSE
   
     CASE(LINE) 						! line of scalar along axis
 
-      IF((SubID(2) .EQ. 0) .AND. (SubID(4) .EQ. 0)) THEN			! if no neighboring subdomains exist in the 2nd and 4th directions, then they lie at the centerline
+!       IF((SubID(2) .EQ. 0) .AND. (SubID(4) .EQ. 0)) THEN			! if no neighboring subdomains exist in the 2nd and 4th directions, then they lie at the centerline
 
-!        ! maintain scalar at centerline
-!        DO k=0,nzSub+1
-!          phi(1,1,k) = phiIC*ee**(-((x(1)**2 + y(1)**2)/(2.0_dbl*sigma**2)))
-!        END DO
+! !        ! maintain scalar at centerline
+! !        DO k=0,nzSub+1
+! !          phi(1,1,k) = phiIC*ee**(-((x(1)**2 + y(1)**2)/(2.0_dbl*sigma**2)))
+! !        END DO
 
-        DO k=0,nzSub+1
-          DO j=0,nySub+1
-            DO i=0,nxSub+1
+!         DO k=0,nzSub+1
+!           DO j=0,nySub+1
+!             DO i=0,nxSub+1
 
-              IF((ABS(x(i)) .LE. 2.51_dbl*xcf) .AND. (ABS(y(j)) .LE. 2.51_dbl*ycf)) THEN				! (5.01 in case it is slightly higher than 5 due to round-off)
-                phi(i,j,k) = phiIC																						! 2D Gaussian Distribution in x and y (maintain phi=1 at r=2.5*zcf)
-              END IF
+!               IF((ABS(x(i)) .LE. 2.51_dbl*xcf) .AND. (ABS(y(j)) .LE. 2.51_dbl*ycf)) THEN				! (5.01 in case it is slightly higher than 5 due to round-off)
+!                 phi(i,j,k) = phiIC																						! 2D Gaussian Distribution in x and y (maintain phi=1 at r=2.5*zcf)
+!               END IF
 
-            END DO
-          END DO
-        END DO  
+!             END DO
+!           END DO
+!         END DO  
 
-      END IF
+!       END IF
 
     CASE(INLET) 						! constant scalar at the inlet
  
@@ -215,7 +227,9 @@ ELSE
           END DO
         END DO   
       END IF
- 
+
+    CASE(LINEAR)
+      
     CASE(UNIFORM)						! uniform initial distribution 
 
       ! scalar is not maintained
@@ -598,8 +612,8 @@ CALL Equilibrium_LOCAL_fine(m,rhoB,ub,vb,wb,feq_m)			        ! calculate the equ
 !phiWall = (phi(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) - (phi(ip1,jp1,kp1)*q*q/(1.0+2.0*q)) 	! calculate phiWall for flux BC (eq. 28 in paper)
 
 ! find the contribution of scalar streamed from the wall to the current node (i,j,k), and from the current node to the next neighboring node (ip1,jp1,kp1)
-phiB		= (feq_m/rhoB - wt(m)*Delta)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
-phiijk_m	= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta)*phiTemp_fine(i,j,k)	! contribution from the current node to the next node in the mth direction
+phiB		= (feq_m/rhoB - wt(m)*Delta_fine)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
+phiijk_m	= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta_fine)*phiTemp_fine(i,j,k)	! contribution from the current node to the next node in the mth direction
 
 ! if q is too small, the extrapolation to phiBC can create a large error...
 IF(q .LT. 0.25) THEN

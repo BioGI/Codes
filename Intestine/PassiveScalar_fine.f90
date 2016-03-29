@@ -24,6 +24,7 @@ phiTemp_fine  = 0.0_dbl		! temporary scalar
 ! scalar parameters
 Dmcf_fine = (zcf_fine*zcf_fine)/tcf_fine		! conversion factor for diffusivity
 Delta_fine = 1.0_dbl - gridRatio*(1.0_dbl - Delta)	! scalar diffusion parameter
+write(31,*) 'nuL = ', nuL, ' Dm = ', Dm, ' Delta = ', Delta, ' Delta_fine = ', Delta_fine
 
 CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC_fine.f90]
 
@@ -52,42 +53,43 @@ DO k=1,nzSub_fine
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
       
 ! 	phiTemp_fine(i,j,k) = phiTemp_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
-!         phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
-! 	!phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
+!       phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
+! 	phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
 !         DO m=0,NumDistDirs
       
-!           ! i,j,k location of neighboring node
-!           im1 = i - ex(m)
-!           jm1 = j - ey(m)
-!           km1 = k - ez(m)
+          ! i,j,k location of neighboring node
+          ! im1 = i - ex(m)
+          ! jm1 = j - ey(m)
+          ! km1 = k - ez(m)
 
-!           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
-!              phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-!           ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-!              phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-!           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
-!             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
-!             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
-! !            CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
-!           ELSE
-!             OPEN(1000,FILE="error_fine.txt")
-!             WRITE(1000,'(A75)') "error in PassiveScalar_fine.f90 at Line 66: node(im1,jm1,km1) is out of range"
-!             WRITE(1000,*) "iter",iter
-!             WRITE(1000,*) "m=",m
-!             WRITE(1000,*) "i=",i,"j=",j,"k=",k
-!             WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
-!             WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
-!             WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
-!             WRITE(1000,*) "node(i,j,k)=",node(i,j,k)
-!             WRITE(1000,*) "node(im1,jm1,km1)=",node(im1,jm1,km1)
-!             CLOSE(1000)
-!             STOP
-!           END IF
+          ! IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
+!             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+          ! ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
+!             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+          ! ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
+          !   CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
+!            phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
+        !     CALL AbsorbedScalarS_fine(i,j,k,m,phiBC)	! measure the absorption rate
+        !   ELSE
+        !     OPEN(1000,FILE="error_fine.txt")
+        !     WRITE(1000,'(A75)') "error in PassiveScalar_fine.f90 at Line 66: node(im1,jm1,km1) is out of range"
+        !     WRITE(1000,*) "iter",iter
+        !     WRITE(1000,*) "m=",m
+        !     WRITE(1000,*) "i=",i,"j=",j,"k=",k
+        !     WRITE(1000,*) "x(i)=",x(i),"y(j)=",y(j),"z(k)=",z(k)
+        !     WRITE(1000,*) "im1=",im1,"jm1=",jm1,"km1=",km1
+        !     WRITE(1000,*) "x(im1)=",x(im1),"y(jm1)=",y(jm1),"z(km1)=",z(km1)
+        !     WRITE(1000,*) "node(i,j,k)=",node(i,j,k)
+        !     WRITE(1000,*) "node(im1,jm1,km1)=",node(im1,jm1,km1)
+        !     CLOSE(1000)
+        !     STOP
+        !   END IF
 
-!         END DO
+        ! END DO
 
 	phi_fine(i,j,k) = phi_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
+
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi_fine(i,j,k) .LT. 0.0_dbl) THEN
           phi_fine(i,j,k) = 0.0_dbl
@@ -116,9 +118,12 @@ REAL(dbl), INTENT(IN) :: phiBC     				! scalar contribution from the boundary c
 REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
 
 phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
-phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
+phiOUT	= (fplus_fine(bb(m),i,j,k)/rho_fine(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp_fine(i,j,k)	! contribution to the wall from the current node (out)
 
-phiAbsorbedS = phiAbsorbedS + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
+!phiAbsorbedS_fine = phiAbsorbedS_fine + (phiOUT - phiIN)	! add the amount of scalar that has been absorbed at the current location in the current direction
+phiAbsorbedS_fine = phiAbsorbedS_fine + (1.0 - flagNodeIntersectCoarse(i,j,k) ) * (phiOUT - phiIN)	! add the amount of scalar that has been absorbed at the current location in the current direction
+write(31,*) 'phiAbsorbedS_fine = ', phiAbsorbedS_fine, 'x,y,z,m,phiIN,phiOUT,1-flag = ', x_fine(i),y_fine(j),z_fine(k),m,phiBC, phiOUT, (1.0 - flagNodeIntersectCoarse(i,j,k) )
+write(31,*) 'fPlus_fine = ', fplus_fine(bb(m),i,j,k), ' phi = ', phiTemp_fine(i,j,k), ' Delta_fine = ', Delta_fine
 
 !------------------------------------------------
 END SUBROUTINE AbsorbedScalarS_fine

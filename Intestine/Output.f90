@@ -380,6 +380,8 @@ TYPE(ParRecord), POINTER :: next
 xaxis=ANINT(0.5_dbl*(nx+1))
 yaxis=ANINT(0.5_dbl*(ny+1))
 
+write(31,*) 'numOuts = ', numOuts
+flush(31)
 IF ((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) &
    .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0) &
    .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
@@ -650,7 +652,7 @@ DO k=1,nzSub
     DO i=1,nxSub
 
       IF(node(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + phi(i,j,k)
+        phiDomain = phiDomain + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k)
         numFluids = numFluids + 1_lng
       END IF
 
@@ -667,8 +669,8 @@ END IF
 ! node volume in physical units
 zcf3 = zcf*zcf*zcf
 
-WRITE(2472,'(I8,7E25.15)') iter, 4.0_dbl*phiAbsorbed*zcf3, 4.0_dbl*phiAbsorbedS*zcf3, 4.0_dbl*phiAbsorbedV*zcf3,				&
-                           (phiTotal-phiDomain)*zcf3, 4.0_dbl*phiDomain*zcf3, (phiAbsorbed+phiDomain)*zcf3, phiAverage*zcf3
+WRITE(2472,'(I8,7E25.15)') iter, phiAbsorbed*zcf3, phiAbsorbedS*zcf3, phiAbsorbedV*zcf3,	&
+                           (phiTotal-phiDomain)*zcf3, phiDomain*zcf3, (phiAbsorbed+phiDomain)*zcf3, phiAverage*zcf3
 CALL FLUSH(2472)
 
 !------------------------------------------------

@@ -68,6 +68,7 @@ INTEGER(lng), PARAMETER :: LINE=2				! scalar initial condition: gaussian distri
 INTEGER(lng), PARAMETER :: INLET=3				! scalar initial condition: gaussian distribution of scalar in the z-direction along the inlet
 INTEGER(lng), PARAMETER :: UNIFORM=4			! scalar initial condition: uniform scalar in the entire domain (phi=phiIC)
 
+INTEGER(lng), PARAMETER :: LINEAR=5				! scalar initial condition: circular linear distribution of scalar at the center of the domain such that phi = 0 at the boundary
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Parallel (MPI) Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -219,6 +220,8 @@ real(dbl), allocatable, dimension(:,:,:) :: feqFF_frontYZ
 real(dbl), allocatable, dimension(:,:,:) :: feqFF_backYZ
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+real(dbl), allocatable, dimension(:,:,:) :: flagNodeIntersectCoarse !Flag nodes that intersect with the volume around coarse mesh nodes
+real(dbl), allocatable, dimension(:,:,:) :: flagNodeIntersectFine !Flag nodes that intersect with the volume around coarse mesh nodes
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Output Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -954,6 +957,7 @@ allocate(feqFF_bottomXZ(0:NumDistDirs,44:59,1:nzSub))  !Includes the ends - Indi
 allocate(feqFF_frontYZ(0:NumDistDirs,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 allocate(feqFF_backYZ(0:NumDistDirs,44:58,1:nzSub))     !Does not include the ends - Indices are directionalDensity, y Index, z Index
 
+allocate(flagNodeIntersectFine(nxSub, nySub, nzSub))
 !------------------------------------------------
 END SUBROUTINE AllocateArrays
 !------------------------------------------------
