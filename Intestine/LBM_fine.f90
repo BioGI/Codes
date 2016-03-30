@@ -64,6 +64,7 @@ TYPE(ParRecord), POINTER :: current
 TYPE(ParRecord), POINTER :: next
 
 ParticleTransfer_fine = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
+delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
 delphi_particle_fine = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
 
 tausgs_particle_x_fine = 0.0_dbl
@@ -769,6 +770,9 @@ DO WHILE (ASSOCIATED(current))
 !------ Copy pointer of next node
 	next => current%next 
 
+      IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
+
+ 
 !------ Calculate length scale for jth particle:  delta = R / Sh
 !------ Calculate effective radius: R_influence_P = R + (N_d *delta)
 !------ Note: need to convert this into Lattice units and not use the physical length units
@@ -845,7 +849,7 @@ DO WHILE (ASSOCIATED(current))
                     
                     write(31,*) 'i,j,k = ', i,j,kk, ' Overlap_coarse = ', tmp                    
                     IF (node(i,j,kk) .EQ. FLUID) THEN
-                       Overlap(i,j,kk)= (1.0-flagNodeIntersectFine(i,j,kk)) * tmp 
+                       Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,k)) 
                        Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk)
                     END IF
                  END DO
@@ -865,11 +869,11 @@ DO WHILE (ASSOCIATED(current))
            write(31,*) 'xp, yp, zp = ', xp, yp, zp
 
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-         NEP_x(1)= MAX(0,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-         NEP_x(2)= MIN(nxSub_fine,CEILING(xp + 0.5*L_influence_P/xcf_fine))
-         NEP_y(1)= MAX(0,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
-         NEP_y(2)= MIN(nySub_fine,CEILING(yp + 0.5*L_influence_P/ycf_fine))
-         NEP_z(1)= MAX(0,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
+         NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
+         NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
+         NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
+         NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
+         NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
          NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
            write(31,*) 'NEP_x(1) = ', NEP_x(1), 'NEP_x(2) = ', NEP_x(2)
            write(31,*) 'NEP_y(1) = ', NEP_y(1), 'NEP_y(2) = ', NEP_y(2)
@@ -982,9 +986,9 @@ DO WHILE (ASSOCIATED(current))
                        ELSE
                           Overlap(i,j,kk) = 0.0
                        END IF
-                       
-                       delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / (xcf * ycf * zcf)
-                       
+
+                       delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / (xcf * ycf * zcf * (1.0-flagNodeIntersectFine(i,j,k)) )
+                       write(31,*) 'i,j,kk = ', i,j,kk, ' delphi = ', current%pardata%delNB, Overlap(i,j,kk), current%pardata%delNB * Overlap(i,j,kk)
                     END IF
                  END DO
               END DO
@@ -992,6 +996,7 @@ DO WHILE (ASSOCIATED(current))
 
         end if
 
+     END IF
 !------ point to next node in the list
 	current => next
 ENDDO

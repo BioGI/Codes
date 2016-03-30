@@ -114,7 +114,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
            CALL Scalar		! calcuate the evolution of scalar in the domain [MODULE: Algorithm]
         END IF
         phi_fine = phi_fine + delphi_particle_fine !Add the drug release corresponding to any particle in the coarse mesh whose effective volume interfaces with the fine mesh
-        CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
 
 !	CALL Collision			! collision step [MODULE: Algorithm]
         CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
@@ -135,7 +134,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 !           CALL Macro_Fine             ! Calculate Macro properties on fine grid
            
            IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
-              delphi_particle = 0
               !	   CALL Calc_Global_Bulk_Scalar_Conc				! Estimate bluk	scalar concentration in each partition
               !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.
               write(31,*) 'Calling Particle_Track_Fine'
@@ -144,13 +142,14 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
            ENDIF
            write(31,*) 'Calling Scalar_Fine'
            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
-           phi = phi + delphi_particle           
+           phi = phi + delphi_particle
            
 !           CALL Collision_Fine     ! Collision step on the fine grid
            CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
 
         END DO
 
+         CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
          CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]                       
          CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
          CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
