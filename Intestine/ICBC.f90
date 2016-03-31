@@ -72,7 +72,7 @@ ELSE															! clean start
       DO i=0,nxSub+1_lng
 
         u(i,j,k)   = 0.0_dbl							! x-velocity
-        v(i,j,k)   = 0.0_dbl							! y-velocity
+        v(i,j,k)   = -0.3_dbl							! y-velocity
         w(i,j,k)   = 0.0_dbl							! z-velocity
         rho(i,j,k) = denL								! density
 	! Balaji added

@@ -683,31 +683,31 @@ DO WHILE (ASSOCIATED(current))
 
       IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
 
-         ! current%pardata%rpold=current%pardata%rp
+         current%pardata%rpold=current%pardata%rp
          
-         ! bulkconc = current%pardata%bulk_conc
+         bulkconc = current%pardata%bulk_conc
          
-         ! temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         ! write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
-         ! write(31,*) 'current%pardata%sh = ', current%pardata%sh
-         ! write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         ! write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+         temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+         write(31,*) 'current%pardata%sh = ', current%pardata%sh
+         write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
          
-         ! IF (temp.GE.0.0_dbl) THEN
-         !    current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         ! ELSE
-         !    temp = 0.0_dbl
-         !    current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         ! END IF
+         IF (temp.GE.0.0_dbl) THEN
+            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         ELSE
+            temp = 0.0_dbl
+            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         END IF
 
-!         deltaR=current%pardata%rpold-current%pardata%rp
+        deltaR=current%pardata%rpold-current%pardata%rp
          
-!         current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
-!              -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
-!              /molarvol
+        current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+             -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+             /molarvol
 
-         write(*,*) 'Not allowing particle radius to change in the fine mesh'
-         current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
+         ! write(*,*) 'Not allowing particle radius to change in the fine mesh'
+         ! current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
          
          write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
          write(31,*) 'current%pardata%rp = ', current%pardata%rp         

@@ -57,7 +57,7 @@ ELSE															! clean start
       DO i=0,nxSub_fine+1_lng
 
         u_fine(i,j,k)   = 0.0_dbl							! x-velocity
-        v_fine(i,j,k)   = 0.0_dbl							! y-velocity
+        v_fine(i,j,k)   = -0.3_dbl							! y-velocity
         w_fine(i,j,k)   = 0.0_dbl							! z-velocity
         rho_fine(i,j,k) = denL								! density
 	! Balaji added

@@ -700,36 +700,36 @@ DO WHILE (ASSOCIATED(current))
 
       IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh
 
-         ! current%pardata%rpold=current%pardata%rp
+         current%pardata%rpold=current%pardata%rp
          
-         ! bulkconc = current%pardata%bulk_conc
+         bulkconc = current%pardata%bulk_conc
          
-         ! temp = current%pardata%rpold**2.0_dbl - 4.0_dbl*tcf*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         ! write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
-         ! write(31,*) 'current%pardata%sh = ', current%pardata%sh
-         ! write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         ! write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+         temp = current%pardata%rpold**2.0_dbl - 4.0_dbl*tcf*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+         write(31,*) 'current%pardata%sh = ', current%pardata%sh
+         write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+         write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
          
-         ! IF (temp.GE.0.0_dbl) THEN
-         !    current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         ! ELSE
-         !    temp = 0.0_dbl
-         !    current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         ! END IF
+         IF (temp.GE.0.0_dbl) THEN
+            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         ELSE
+            temp = 0.0_dbl
+            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+         END IF
          
-         ! deltaR=current%pardata%rpold-current%pardata%rp
+         deltaR=current%pardata%rpold-current%pardata%rp
          
-         ! current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
-         !      -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
-         !      /molarvol
-         ! write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
-         ! write(31,*) 'current%pardata%rp = ', current%pardata%rp         
-         ! write(31,*) 'current%pardata%delNB = ', current%pardata%delNB
-         ! write(31,*) 'molarvol ', molarvol
-         ! flush(31)
+         current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+              -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+              /molarvol
+         write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
+         write(31,*) 'current%pardata%rp = ', current%pardata%rp         
+         write(31,*) 'current%pardata%delNB = ', current%pardata%delNB
+         write(31,*) 'molarvol ', molarvol
+         flush(31)
          
-         write(*,*) 'Not allowing particle radius to change in the fine mesh'
-         current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
+         ! write(*,*) 'Not allowing particle radius to change in the fine mesh'
+         ! current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
          
          write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
          write(31,*) 'current%pardata%rp = ', current%pardata%rp         
@@ -944,11 +944,11 @@ DO WHILE (ASSOCIATED(current))
            zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
            
            !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-           NEP_x(1)= MAX(0,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-           NEP_x(2)= MIN(nxSub_fine,CEILING(xp + 0.5*L_influence_P/xcf_fine))
-           NEP_y(1)= MAX(0,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
-           NEP_y(2)= MIN(nySub_fine,CEILING(yp + 0.5*L_influence_P/ycf_fine))
-           NEP_z(1)= MAX(0,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
+           NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
+           NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
+           NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
+           NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
+           NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
            NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
            
            !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
@@ -978,8 +978,8 @@ DO WHILE (ASSOCIATED(current))
                        kk = k + (nz-1)
                     END IF
                     
-                    IF (node_fine(i,j,kk) .EQ. FLUID) THEN
-                       Overlap_fine(i,j,kk)= tmp
+                    IF ((node_fine(i,j,kk) .EQ. FLUID) ) THEN                       
+                       Overlap_fine(i,j,kk)= tmp 
                        Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk)
                     END IF
                  END DO
@@ -1030,7 +1030,7 @@ DO WHILE (ASSOCIATED(current))
 
                 write(31,*) 'i,j,k = ', i,j,kk, ' Overlap = ', tmp
                 IF (node(i,j,kk) .EQ. FLUID) THEN
-                    Overlap(i,j,kk)= tmp
+                    Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk))
                     Overlap_sum_coarse= Overlap_sum_coarse + Overlap(i,j,kk)
                  END IF
               END DO
@@ -1063,7 +1063,7 @@ DO WHILE (ASSOCIATED(current))
                        Overlap(i,j,kk) = 0.0
                     END IF
 
-                    delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / zcf3
+                    delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / (zcf3 * (1.0-flagNodeIntersectFine(i,j,kk)) )
                     write(31,*) 'i,j,kk = ', i,j,kk, ' delphi = ', current%pardata%delNB, Overlap(i,j,kk), current%pardata%delNB * Overlap(i,j,kk)
                     flush(31)
 !                   tausgs_particle_x(i,j,k)= tausgs_particle_x(i,j,k)- current%pardata%up*Nbj   * (Overlap(i,j,k)/Overlap_sum)
@@ -1075,6 +1075,21 @@ DO WHILE (ASSOCIATED(current))
         END DO
 
         if (checkEffVolumeOverlapFineMesh .gt. 0.01) then
+
+
+           !------ Finding particle location in this processor
+           xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
+           yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
+           zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
+           
+           !------ NEW: Finding the lattice "Nodes Effected by Particle" 
+           NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
+           NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
+           NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
+           NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
+           NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
+           NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
+
            !------ Computing particle release contribution to scalar field at each lattice node
            DO i= NEP_x(1),NEP_x(2)
               DO j= NEP_y(1),NEP_y(2)
@@ -1096,8 +1111,8 @@ DO WHILE (ASSOCIATED(current))
                        ELSE
                           Overlap_fine(i,j,kk) = 0.0
                        END IF
-                       
-                       delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk) / (xcf_fine * ycf_fine * zcf_fine)
+
+                          delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk) / (xcf_fine * ycf_fine * zcf_fine)
                        
                     END IF
                  END DO
