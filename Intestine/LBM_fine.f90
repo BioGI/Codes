@@ -417,7 +417,7 @@ TYPE(ParRecord), POINTER  	:: next
 
 delta_mesh = 1.0_dbl
 
-zcf3 = xcf*ycf*zcf
+zcf3 = xcf_fine*ycf_fine*zcf_fine
 
 current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
@@ -439,12 +439,10 @@ DO WHILE (ASSOCIATED(current))
 !------ Computing equivalent cubic mesh length scale
         L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
         V_influence_P= (4.0_dbl/3.0_dbl) * PI * R_influence_P**3.0_dbl
-        V_eff_Ratio = V_influence_P / zcf3 					! Ratio of the effective volume to cell size 
+        V_eff_Ratio = (L_influence_P / zcf_fine)**3 					! Ratio of the effective volume to cell size 
 
-         write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
-         flush(31)
-         V_eff_Ratio = 0.1
-         write(31,*) 'Setting V_eff_Ratio manually to less than 1'
+        write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
+        flush(31)
 
 !------ Finding particle location in this processor
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
@@ -513,14 +511,14 @@ DO WHILE (ASSOCIATED(current))
  	ELSE IF ( (V_eff_Ratio .GT. 1.0) .AND. (V_eff_Ratio .LT. 27.0 ) ) THEN		
            CaseNo = 2
 !--------- NEW: Volume of Influence Border (VIB) for this particle
-           VIB_x(1)= xp - 0.5_dbl * L_influence_P
-           VIB_x(2)= xp + 0.5_dbl * L_influence_P
-           VIB_y(1)= yp - 0.5_dbl * L_influence_P
-           VIB_y(2)= yp + 0.5_dbl * L_influence_P
-           VIB_z(1)= zp - 0.5_dbl * L_influence_P
-           VIB_z(2)= zp + 0.5_dbl * L_influence_P
+           VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P
+           VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
+           VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
+           VIB_y(2)= current%pardata%yp + 0.5_dbl * L_influence_P
+           VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
+           VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
 
-!--------- Discretizing the volume of influence to  make sure at least 64 points are available
+           !--------- Discretizing the volume of influence to  make sure at least 64 points are available
            Delta_X = (VIB_x(2)-VIB_x(1)) / 3.0 
 	   Delta_Y = (VIB_y(2)-VIB_y(1)) / 3.0
 	   Delta_Z = (VIB_z(2)-VIB_z(1)) / 3.0 
@@ -532,10 +530,18 @@ DO WHILE (ASSOCIATED(current))
            DO i= 0, 3
               DO j= 0, 3
                  DO k= 0, 3
-                    x_DP = VIB_x(1) + (i * Delta_X) 
-                    y_DP = VIB_y(1) + (j * Delta_Y)
-                    z_DP = VIB_z(1) + (k * Delta_Z)
+                    xp = VIB_x(1) + (i * Delta_X) 
+                    yp = VIB_y(1) + (j * Delta_Y)
+                    zp = VIB_z(1) + (k * Delta_Z)
 
+
+                    hardCheckCoarseMesh = ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - ycf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 )
+
+                    if (hardCheckCoarseMesh) then
+                       write(31,*) 'Point in coarse mesh', xp, yp, zp
+
+                    else
+                    
 !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
                     ix0 = FLOOR(x_DP)
                     ix1 = CEILING(x_DP)
@@ -592,6 +598,9 @@ DO WHILE (ASSOCIATED(current))
 
                     Cb_Total_Veff  = Cb_Total_Veff  + c
                     NumFluids_Veff = NumFluids_Veff + 1_lng
+
+                 end if
+                 
                  END DO
              END DO
           END DO
@@ -683,31 +692,31 @@ DO WHILE (ASSOCIATED(current))
 
       IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
 
-         current%pardata%rpold=current%pardata%rp
+        !  current%pardata%rpold=current%pardata%rp
          
-         bulkconc = current%pardata%bulk_conc
+        !  bulkconc = current%pardata%bulk_conc
          
-         temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
-         write(31,*) 'current%pardata%sh = ', current%pardata%sh
-         write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
-         write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+        !  temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+        !  write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+        !  write(31,*) 'current%pardata%sh = ', current%pardata%sh
+        !  write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+        !  write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
          
-         IF (temp.GE.0.0_dbl) THEN
-            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         ELSE
-            temp = 0.0_dbl
-            current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-         END IF
+        !  IF (temp.GE.0.0_dbl) THEN
+        !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+        !  ELSE
+        !     temp = 0.0_dbl
+        !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+        !  END IF
 
-        deltaR=current%pardata%rpold-current%pardata%rp
+        ! deltaR=current%pardata%rpold-current%pardata%rp
          
-        current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
-             -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
-             /molarvol
+        ! current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+        !      -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+        !      /molarvol
 
-         ! write(*,*) 'Not allowing particle radius to change in the fine mesh'
-         ! current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
+         write(*,*) 'Not allowing particle radius to change in the fine mesh'
+         current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
          
          write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
          write(31,*) 'current%pardata%rp = ', current%pardata%rp         
