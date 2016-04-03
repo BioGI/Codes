@@ -79,18 +79,19 @@ tausgs_particle_z_fine = 0.0_dbl
       next => current%next 						! copy pointer of next node
 
       IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
-
-         current%pardata%xpold = current%pardata%xp
-         current%pardata%ypold = current%pardata%yp
-         current%pardata%zpold = current%pardata%zp
-         
-         current%pardata%upold = current%pardata%up
-         current%pardata%vpold = current%pardata%vp
-         current%pardata%wpold = current%pardata%wp
-         
-         current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf_fine
-         current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf_fine
-         current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf_fine
+         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++
+            current%pardata%xpold = current%pardata%xp
+            current%pardata%ypold = current%pardata%yp
+            current%pardata%zpold = current%pardata%zp
+            
+            current%pardata%upold = current%pardata%up
+            current%pardata%vpold = current%pardata%vp
+            current%pardata%wpold = current%pardata%wp
+            
+            current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf_fine
+            current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf_fine
+            current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf_fine
+         END IF
          
       END IF
 	
@@ -106,11 +107,12 @@ tausgs_particle_z_fine = 0.0_dbl
 
       IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
 
-         
-         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf_fine
-         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf_fine
-         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf_fine
-
+         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
+            current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf_fine
+            current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf_fine
+            current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf_fine
+            
+         END IF
       END IF
       current => next
    ENDDO
@@ -297,7 +299,8 @@ DO WHILE (ASSOCIATED(current))
 	next => current%next ! copy pointer of next node
 
       IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
-
+         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++++++
+            
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
          yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
          zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
@@ -376,10 +379,10 @@ DO WHILE (ASSOCIATED(current))
          current%pardata%wp=c * vcf_fine
 
       END IF
-         
-      ! point to next node in the list
-      current => next
-      
+   END IF
+   ! point to next node in the list
+   current => next
+   
 ENDDO
 
 !===================================================================================================

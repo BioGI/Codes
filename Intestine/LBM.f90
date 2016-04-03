@@ -196,10 +196,10 @@ TYPE(ParRecord), POINTER :: next
 
 current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
-	next => current%next ! copy pointer of next node
+   next => current%next ! copy pointer of next node
 
-      IF ( flagParticleCF(current%pardata%parid) .eqv. .false.) THEN  !Check if particle is in coarse mesh
-
+   IF ( flagParticleCF(current%pardata%parid) .eqv. .false.) THEN  !Check if particle is in coarse mesh
+      IF (mySub .EQ.current%pardata%cur_part) THEN !+++++++++++++++++++++++++++++
          xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
          yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
          zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
@@ -277,10 +277,10 @@ DO WHILE (ASSOCIATED(current))
          c   = c0*(1.0_dbl-zd)+c1*zd
          current%pardata%wp=c * vcf
       END IF
-         
-      ! point to next node in the list
-      current => next
-      
+   END IF
+   ! point to next node in the list
+   current => next
+   
 ENDDO
 
 !===================================================================================================
@@ -1346,7 +1346,7 @@ TYPE(ParRecord), POINTER :: next
 LOGICAL                  :: hardCheckCoarseMesh, softCheckCoarseMesh, hardCheckCoarseMeshNF
 REAL(dbl)                :: ur, theta
 REAL(dbl)                :: xpNF, ypNF, zpNF !First order extrapolation of new particle location.
-
+INTEGER(dbl)             :: mpierr
 
 ParticleTransfer = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
 delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens.
@@ -1378,17 +1378,19 @@ tausgs_particle_z = 0.0_dbl
 
          flagParticleCF(current%pardata%parid) = .false.
          
-         current%pardata%xpold = current%pardata%xp
-         current%pardata%ypold = current%pardata%yp
-         current%pardata%zpold = current%pardata%zp
-         
-         current%pardata%upold = current%pardata%up
-         current%pardata%vpold = current%pardata%vp
-         current%pardata%wpold = current%pardata%wp
-         
-         current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf
-         current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf
-         current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf
+         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++
+            current%pardata%xpold = current%pardata%xp
+            current%pardata%ypold = current%pardata%yp
+            current%pardata%zpold = current%pardata%zp
+            
+            current%pardata%upold = current%pardata%up
+            current%pardata%vpold = current%pardata%vp
+            current%pardata%wpold = current%pardata%wp
+            
+            current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf
+            current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf
+            current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf
+         END IF
 
       ELSE
          write(31,*) 'Particle in fine mesh'
@@ -1407,11 +1409,12 @@ tausgs_particle_z = 0.0_dbl
       next => current%next 						! copy pointer of next node
 
       IF ( flagParticleCF(current%pardata%parid) .eqv. .false. ) THEN  !Ideally, I want to check if particle is in coarse mesh, if not skip this step and just let the first order time-stepping remain. But that doesn't seem to work. Hence doing a soft check for the coarse mesh.
+         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
+            current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
+            current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf
+            current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf
+         END IF
          
-         current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
-         current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf
-         current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf
-
       END IF
       current => next
    ENDDO

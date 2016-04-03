@@ -125,20 +125,11 @@ ELSE
         allocate(flagParticleCF(np))
 	! Initialize Header Pointer
 	
-	!ALLOCATE(ParListHead)
-	!ParListHead%next => null()!ParListHead
-	!ParListHead%prev => null()!ParListHead
 	CALL list_init(ParListHead)
 	CurPar => ParListHead
 
-    !IF (myid .EQ. master) THEN
 	! Recursively allocate all the particle records and build the linked list
 	DO i = 1, np
-		!ALLOCATE(CurPar%next)
-		!CurPar%next%prev => CurPar
-		!!CurPar%next%next => ParListHead
-		!CurPar%next%next => null()
-		!CurPar => CurPar%next
 		READ(60,*) parid,xp,yp,zp,par_radius ! read particle.dat file
                 ! Search the partition this particle belongs to
   
@@ -176,7 +167,7 @@ ELSE
                 END IF
                       
 		! Create a particle element in the linked list only if the particles belongs to this partition
-		IF (particle_partition.EQ.mySub) THEN
+!		IF (particle_partition.EQ.mySub) THEN
      
 			CALL list_init(CurPar%next)		
 			CurPar%next%prev => CurPar
@@ -205,18 +196,13 @@ ELSE
 			CurPar%next%pardata%Nbj = 0.0_dbl
 			CurPar%next%pardata%bulk_conc = 0.0000_dbl
 			CurPar%next%pardata%delNB= 0.00000_dbl
-			CurPar%next%pardata%cur_part= mySub
-			CurPar%next%pardata%new_part= mySub
+			CurPar%next%pardata%cur_part= particle_partition
+			CurPar%next%pardata%new_part= particle_partition
 !			!WRITE(*,*) "Particle Initializing ",i,xp(i),yp(i),zp(i)
-!	 		!ss(:,:)=uu(:,:,(nz+1)/2)
-!		        !CALL interp(xp(i),yp(i),ss,nx,ny,up(i))
-!		        !ss(:,:)=vv(:,:,(nz+1)/2)
-!		        !CALL interp(xp(i),yp(i),ss,nx,ny,vp(i))
 			! point to next node in the list
 			CurPar => CurPar%next
-		END IF
+!		END IF
 	END DO
-     !END IF
 	
 	CLOSE(60)
 ENDIF
