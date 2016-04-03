@@ -468,7 +468,6 @@ DO WHILE (ASSOCIATED(current))
          write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
          flush(31)
 
-        
          
 !----------------------------------------------------------------------------------------------------------------------
 !------ Veff is smaller than the mesh volume --> Cb = Trilinear interpolation of the concentration at particle location
@@ -733,7 +732,7 @@ DO WHILE (ASSOCIATED(current))
            write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
          
            Cb_Total_Veff = 0.0_dbl
-           fluids_Veff = 0_lng
+           fluids_Veff = 0.0_dbl
 
            DO i= NEP_x(1),NEP_x(2) 
               DO j= NEP_y(1),NEP_y(2)
