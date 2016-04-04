@@ -128,7 +128,7 @@ SUBROUTINE Particle_Track_fine
   
   !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
 !  CALL Calc_Scalar_Release_fine					! Updates particle radius, calculates new drug conc release rate delNB. 
-!  CALL Interp_ParToNodes_Conc_Fine 					! distributes released drug concentration to neightbouring nodes 
+  CALL Interp_ParToNodes_Conc_Fine 					! distributes released drug concentration to neightbouring nodes 
   !drug molecules released by the particle at this new position
   
   
@@ -960,12 +960,16 @@ REAL(dbl)                 :: N_d         				! Modeling parameter to extend the 
 REAL(dbl)                 :: R_P, Sh_P, delta_P
 REAL(dbl)                 :: R_influence_P, L_influence_P
 REAL(dbl),DIMENSION(2)    :: VIB_x, VIB_y, VIB_z 			! Volume of Influence's Borders
+REAL(dbl),DIMENSION(2)    :: VIB_zc 			! Volume of Influence's Borders on coarse mesh
+REAL(dbl),DIMENSION(2)    :: VIB_zf 			! Volume of Influence's Borders on fine mesh
 REAL(dbl),DIMENSION(2)    :: NVB_x, NVB_y, NVB_z			! Node Volume's Borders
 INTEGER  ,DIMENSION(2)    :: LN_x,  LN_y,  LN_z				! Lattice Nodes Surronding the particle
 INTEGER  ,DIMENSION(2)    :: NEP_x, NEP_y, NEP_z                        ! Lattice Nodes Surronding the particle
-REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_coarse, Overlap_sum_fine, checkEffVolumeOverlapFineMesh
+REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine, checkEffVolumeOverlapFineMesh
+REAL(dbl)                 :: overlapCoarseProc, overlapFineProc
 TYPE(ParRecord), POINTER  :: current
 TYPE(ParRecord), POINTER  :: next
+INTEGER(lng)  		  :: mpierr
 
 
 delta_mesh = 1.0_dbl
@@ -1004,13 +1008,54 @@ DO WHILE (ASSOCIATED(current))
         write(31,*) 'VIB_x(1) = ', VIB_x(1), 'VIB_x(2) = ', VIB_x(2)
         write(31,*) 'VIB_y(1) = ', VIB_y(1), 'VIB_y(2) = ', VIB_y(2)
         write(31,*) 'VIB_z(1) = ', VIB_z(1), 'VIB_z(2) = ', VIB_z(2)
+
+        !Check if Volume of Influence Border overlaps with the current processor domain
+
+        if (MAX ( MIN(VIB_z(2)+L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)+L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+
+           VIB_zc(1) = VIB_z(1)+L
+           VIB_zc(2) = VIB_z(2)+L
+           
+        else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+
+           VIB_zc(1) = VIB_z(1)+L
+           VIB_zc(2) = VIB_z(2)+L
+
+        end if
+        
+        overlapCoarseProc = MAX ( MIN(VIB_x(2), iMaxDomain(mySub)*xcf ) - MAX(VIB_x(1), (iMinDomain(mySub)-1)*xcf), 0.0_dbl)  * &
+             MAX ( MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf) , 0.0_dbl) * &
+             MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
+
+        if (MAX ( MIN(VIB_z(2)+L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
+
+           VIB_zf(1) = VIB_z(1)+L
+           VIB_zf(2) = VIB_z(2)+L
+           
+        else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+
+           VIB_zf(1) = VIB_z(1)+L
+           VIB_zf(2) = VIB_z(2)+L
+
+        end if
+        
+        overlapFineProc = MAX ( MIN(VIB_x(2), iMaxDomain(mySub)*xcf ) - MAX(VIB_x(1), (iMinDomain(mySub)-1)*xcf), 0.0_dbl)  * &
+             MAX ( MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf) , 0.0_dbl) * &
+             MAX ( MIN(VIB_zf(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zf(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
+        
+
+        Overlap_sum_coarse = 0.0_dbl
+        Overlap_sum_fine = 0.0_dbl
+        Overlap_sum_l = 0.0_dbl
+        Overlap_sum = 0.0_dbl
         
         !If volume of influence extends into coarse mesh, also calculate scalar release for coarse mesh
         checkEffVolumeOverlapFineMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
              ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P ) - 0.99
         write(31,*) 'checkEffVolumeOverlapFineMesh = ', checkEffVolumeOverlapFineMesh
+
+        if (overlapCoarseProc .gt. 0) then
         
-        Overlap_sum_coarse = 0.0_dbl
         if (checkEffVolumeOverlapFineMesh .lt. 0) then
 
            write(31,*) 'Particle also overlaps with coarse mesh'
@@ -1044,7 +1089,7 @@ DO WHILE (ASSOCIATED(current))
                     
                     tmp = MAX ( MIN(VIB_x(2),NVB_x(2)) - MAX(VIB_x(1),NVB_x(1)), 0.0_dbl) * &
                          MAX ( MIN(VIB_y(2),NVB_y(2)) - MAX(VIB_y(1),NVB_y(1)), 0.0_dbl) * &
-                         MAX ( MIN(VIB_z(2),NVB_z(2)) - MAX(VIB_z(1),NVB_z(1)), 0.0_dbl)
+                         MAX ( MIN(VIB_zc(2),NVB_z(2)) - MAX(VIB_zc(1),NVB_z(1)), 0.0_dbl)
                     
                     !---- Taking care of the periodic BC in Z-dir
                     kk = k 
@@ -1067,7 +1112,9 @@ DO WHILE (ASSOCIATED(current))
            write(31,*) 'Particle overlaps only with fine mesh and not with coarse mesh'
            
         end if
+     end if
         
+        if (overlapFineProc .gt. 0) then
         
 !------ Finding particle location in this processor
          xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
@@ -1102,7 +1149,7 @@ DO WHILE (ASSOCIATED(current))
 
 		 tmp = MAX ( MIN(VIB_x(2),NVB_x(2)) - MAX(VIB_x(1),NVB_x(1)), 0.0_dbl) * &
                        MAX ( MIN(VIB_y(2),NVB_y(2)) - MAX(VIB_y(1),NVB_y(1)), 0.0_dbl) * &
-                       MAX ( MIN(VIB_z(2),NVB_z(2)) - MAX(VIB_z(1),NVB_z(1)), 0.0_dbl)
+                       MAX ( MIN(VIB_zf(2),NVB_z(2)) - MAX(VIB_zf(1),NVB_z(1)), 0.0_dbl)
                 
 		!---- Taking care of the periodic BC in Z-dir
                 kk = k 
@@ -1121,8 +1168,18 @@ DO WHILE (ASSOCIATED(current))
            END DO
         END DO
 
-        Overlap_sum = Overlap_sum_coarse + Overlap_sum_fine !Add the overlap in the coarse and the fine meshes.
-        write(31,*) 'Overlaps t,c,f= ', Overlap_sum, Overlap_sum_coarse, Overlap_sum_fine        
+     end if
+
+     Overlap_sum_l = Overlap_sum_coarse + Overlap_sum_fine !Add the overlap in the coarse and the fine meshes.
+
+     CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
+     CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+     
+     
+     write(31,*) 'Overlaps t,c,f= ', Overlap_sum, Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine
+
+        if (overlapFineProc .gt. 0) then
+     
 !------ Computing particle release contribution to scalar field at each lattice node
         DO i= NEP_x(1),NEP_x(2)
            DO j= NEP_y(1),NEP_y(2)
@@ -1155,9 +1212,13 @@ DO WHILE (ASSOCIATED(current))
            END DO
         END DO
 
+     end if
+     
+     if (overlapFineProc .gt. 0) then
+        
         !Now the coarse mesh
         if (checkEffVolumeOverlapFineMesh .lt. 0) then
-
+           
            !------ Finding particle location in this processor
            xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
            yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
@@ -1203,7 +1264,10 @@ DO WHILE (ASSOCIATED(current))
 
         end if
 
-     END IF
+     end if
+  END IF
+     
+
 !------ point to next node in the list
 	current => next
 ENDDO
