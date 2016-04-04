@@ -54,190 +54,247 @@ END SUBROUTINE Particle_Setup_Fine
 
 !------------------------------------------------
 SUBROUTINE Particle_Track_fine
-!------------------------------------------------
-IMPLICIT NONE
-INTEGER(lng)   		 :: i,ipartition,ii,jj,kk, CaseNo
-REAL(dbl)      		 :: xpold(1:np),ypold(1:np),zpold(1:np) 	! old particle coordinates (working coordinates are stored in xp,yp,zp)
-REAL(dbl)      		 :: upold(1:np),vpold(1:np),wpold(1:np) 	! old particle velocity components (new vales are stored in up, vp, wp)
-REAL(dbl)                :: Cb_Domain, Cb_Local, Cb_Hybrid, V_eff_Ratio
-TYPE(ParRecord), POINTER :: current
-TYPE(ParRecord), POINTER :: next
-
-ParticleTransfer_fine = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
-delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
-delphi_particle_fine = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
-
-tausgs_particle_x_fine = 0.0_dbl
-tausgs_particle_y_fine = 0.0_dbl
-tausgs_particle_z_fine = 0.0_dbl
-	
-!--Second order interpolation in time
-!--Backup particle data from previous time step using a linked list of particle records
-
-   current => ParListHead%next
-   DO WHILE (ASSOCIATED(current))
-      next => current%next 						! copy pointer of next node
-
-      IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
-         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++
-            current%pardata%xpold = current%pardata%xp
-            current%pardata%ypold = current%pardata%yp
-            current%pardata%zpold = current%pardata%zp
-            
-            current%pardata%upold = current%pardata%up
-            current%pardata%vpold = current%pardata%vp
-            current%pardata%wpold = current%pardata%wp
-            
-            current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf_fine
-            current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf_fine
-            current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf_fine
-         END IF
-         
-      END IF
-	
-      current => next
-   ENDDO
-
-   CALL Interp_Parvel_fine
-
-!--Using a linked list of particle records
-   current => ParListHead%next
-   DO WHILE (ASSOCIATED(current))
-      next => current%next 						! copy pointer of next node
-
-      IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
-
-         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
-            current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf_fine
-            current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf_fine
-            current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf_fine
-            
-         END IF
-      END IF
-      current => next
-   ENDDO
-
-   CALL Interp_Parvel_fine						! interpolate final particle velocities after the final position is ascertained. 
-   
-!   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
-!   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
-   CALL Compute_Cb_fine(V_eff_Ratio,CaseNo,Cb_Hybrid)  
-   
-   open(172,file='Cb-history.dat',position='append')
-   write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
-
-!   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
-   CALL Calc_Scalar_Release_fine					! Updates particle radius, calculates new drug conc release rate delNB. 
-   CALL Interp_ParToNodes_Conc_Fine 					! distributes released drug concentration to neightbouring nodes 
-   !drug molecules released by the particle at this new position
-
-
-
-!---- Now update tausgs only for those cells that have non-zero values of tausgs
-DO kk=0,nzSub_fine+1
-   DO jj=0,nySub_fine+1
-      DO ii=0,nxSub_fine+1
-         if (tausgs_particle_x_fine(ii,jj,kk).ne.0.0_dbl) then
-            tausgs_particle_x_fine(ii,jj,kk) = u_fine(ii,jj,kk)*phi_fine(ii,jj,kk)
-	 endif
-	 if (tausgs_particle_y_fine(ii,jj,kk).ne.0.0_dbl) then
-            tausgs_particle_y_fine(ii,jj,kk) = v_fine(ii,jj,kk)*phi_fine(ii,jj,kk)
-	 endif
-	 if (tausgs_particle_z_fine(ii,jj,kk).ne.0.0_dbl) then
-            tausgs_particle_z_fine(ii,jj,kk) = w_fine(ii,jj,kk)*phi_fine(ii,jj,kk)
-	 endif
-      ENDDO
-   ENDDO
-ENDDO
-
-
-
-current => ParListHead%next
-DO WHILE (ASSOCIATED(current))
-	next => current%next ! copy pointer of next node
-	
- IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
-
-         !------- Wrappign around in z-direction for periodic BC in z
-        IF (current%pardata%zp.GE.REAL(L-zcf_fine,dbl)) THEN
-	   current%pardata%zp = current%pardata%zp - L !MOD(current%pardata%zp,REAL(L,dbl))
-	ELSE IF (current%pardata%zp .LE. (-1.0 * zcf_fine) ) THEN
-	   current%pardata%zp = current%pardata%zp+REAL(L,dbl)
-	ENDIF
-
-	!------- Estimate to which partition the updated position belongs to.
-        DO ipartition = 1_lng,NumSubsTotal
-    
-           IF (( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .GE. REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
-	      ( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .LT. (REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-	      ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .GE. REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-	      ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .LT. (REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-	      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .GE. REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-	      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .LT. (REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
-
-              current%pardata%new_part = ipartition
-              write(*,*) ipartition, kMinDomain(ipartition),kMaxDomain(ipartition)                            
-	    END IF
-
-	END DO
-	
-
-	IF ((.NOT.ParticleTransfer_fine).AND.(current%pardata%new_part .NE. current%pardata%cur_part)) THEN
-	   ParticleTransfer_fine = .TRUE.
-	END IF
+  !------------------------------------------------
+  IMPLICIT NONE
+  INTEGER(lng)   		 :: i,ipartition,ii,jj,kk, CaseNo
+  REAL(dbl)      		 :: xpold(1:np),ypold(1:np),zpold(1:np) 	! old particle coordinates (working coordinates are stored in xp,yp,zp)
+  REAL(dbl)      		 :: upold(1:np),vpold(1:np),wpold(1:np) 	! old particle velocity components (new vales are stored in up, vp, wp)
+  REAL(dbl)                :: Cb_Domain, Cb_Local, Cb_Hybrid, V_eff_Ratio
+  TYPE(ParRecord), POINTER :: current
+  TYPE(ParRecord), POINTER :: next
+  
+  ParticleTransfer_fine = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
+  delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
+  delphi_particle_fine = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens. 
+  
+  tausgs_particle_x_fine = 0.0_dbl
+  tausgs_particle_y_fine = 0.0_dbl
+  tausgs_particle_z_fine = 0.0_dbl
+  
+  !--Second order interpolation in time
+  !--Backup particle data from previous time step using a linked list of particle records
+  
+  current => ParListHead%next
+  DO WHILE (ASSOCIATED(current))
+     next => current%next 						! copy pointer of next node
+     
+     IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
+        IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++
+           current%pardata%xpold = current%pardata%xp
+           current%pardata%ypold = current%pardata%yp
+           current%pardata%zpold = current%pardata%zp
+           
+           current%pardata%upold = current%pardata%up
+           current%pardata%vpold = current%pardata%vp
+           current%pardata%wpold = current%pardata%wp
+           
+           current%pardata%xp=current%pardata%xpold+current%pardata%up * tcf_fine
+           current%pardata%yp=current%pardata%ypold+current%pardata%vp * tcf_fine
+           current%pardata%zp=current%pardata%zpold+current%pardata%wp * tcf_fine
+        END IF
+        
+     END IF
+     
+     current => next
+  ENDDO
+  
+  CALL Interp_Parvel_fine
+  
+  !--Using a linked list of particle records
+  current => ParListHead%next
+  DO WHILE (ASSOCIATED(current))
+     next => current%next 						! copy pointer of next node
+     
+     IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
+        
+        IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
+           current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf_fine
+           current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf_fine
+           current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf_fine
+           
+        END IF
+     END IF
+     current => next
+  ENDDO
+  
+  CALL Interp_Parvel_fine						! interpolate final particle velocities after the final position is ascertained. 
+  
+  !   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
+  !   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
+!  CALL Compute_Cb_fine(V_eff_Ratio,CaseNo,Cb_Hybrid)  
+  
+  open(172,file='Cb-history.dat',position='append')
+  write(172,*) iter, V_eff_Ratio, CaseNo, Cb_Local, Cb_Domain, Cb_Hybrid
+  
+  !   CALL Update_Sh 							! Update the Sherwood number for each particle depending on the shear rate at the particle location. 
+!  CALL Calc_Scalar_Release_fine					! Updates particle radius, calculates new drug conc release rate delNB. 
+!  CALL Interp_ParToNodes_Conc_Fine 					! distributes released drug concentration to neightbouring nodes 
+  !drug molecules released by the particle at this new position
+  
+  
+  
+  !---- Now update tausgs only for those cells that have non-zero values of tausgs
+  DO kk=0,nzSub_fine+1
+     DO jj=0,nySub_fine+1
+        DO ii=0,nxSub_fine+1
+           if (tausgs_particle_x_fine(ii,jj,kk).ne.0.0_dbl) then
+              tausgs_particle_x_fine(ii,jj,kk) = u_fine(ii,jj,kk)*phi_fine(ii,jj,kk)
+           endif
+           if (tausgs_particle_y_fine(ii,jj,kk).ne.0.0_dbl) then
+              tausgs_particle_y_fine(ii,jj,kk) = v_fine(ii,jj,kk)*phi_fine(ii,jj,kk)
+           endif
+           if (tausgs_particle_z_fine(ii,jj,kk).ne.0.0_dbl) then
+              tausgs_particle_z_fine(ii,jj,kk) = w_fine(ii,jj,kk)*phi_fine(ii,jj,kk)
+           endif
+        ENDDO
+     ENDDO
+  ENDDO
+  
+  CALL Particle_Transfer_fine
+  
+  current => ParListHead%next
+  DO WHILE (ASSOCIATED(current))
+     next => current%next ! copy pointer of next node
+     
+     IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
+        
 	
 	SELECT CASE(current%pardata%parid)
-	CASE(1_lng)
-      open(72,file='particle1-history.dat',position='append')
-      write(72,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(72)
-	CASE(3_lng)
-      open(73,file='particle3-history.dat',position='append')
-      write(73,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(73) 
-	CASE(5_lng)
-      open(74,file='particle5-history.dat',position='append')
-      write(74,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(74)
-	CASE(7_lng)
-      open(75,file='particle7-history.dat',position='append')
-      write(75,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(75)
-	CASE(9_lng)
-      open(76,file='particle9-history.dat',position='append')
-      write(76,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(76) 
-	CASE(10_lng)
-      open(77,file='particle10-history.dat',position='append')
-      write(77,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(77)
-	CASE(8_lng)
-      open(78,file='particle8-history.dat',position='append')
-      write(78,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(78)
-	CASE(6_lng)
-      open(79,file='particle6-history.dat',position='append')
-      write(79,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(79)
-	CASE(4_lng)
-      open(80,file='particle4-history.dat',position='append')
-      write(80,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(80)
-	CASE(2_lng)
-      open(81,file='particle2-history.dat',position='append')
-      write(81,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
-      close(81)
-     
-      END SELECT
-      
-   END IF
-   
-   current => next   				! point to next node in the list
+ CASE(1_lng)
+    open(72,file='particle1-history.dat',position='append')
+    write(72,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up*vcf,current%pardata%vp*vcf,current%pardata%wp*vcf,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(72)
+ CASE(3_lng)
+    open(73,file='particle3-history.dat',position='append')
+    write(73,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(73) 
+ CASE(5_lng)
+    open(74,file='particle5-history.dat',position='append')
+    write(74,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(74)
+ CASE(7_lng)
+    open(75,file='particle7-history.dat',position='append')
+    write(75,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(75)
+ CASE(9_lng)
+    open(76,file='particle9-history.dat',position='append')
+    write(76,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(76) 
+ CASE(10_lng)
+    open(77,file='particle10-history.dat',position='append')
+    write(77,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(77)
+ CASE(8_lng)
+    open(78,file='particle8-history.dat',position='append')
+    write(78,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(78)
+ CASE(6_lng)
+    open(79,file='particle6-history.dat',position='append')
+    write(79,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(79)
+ CASE(4_lng)
+    open(80,file='particle4-history.dat',position='append')
+    write(80,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(80)
+ CASE(2_lng)
+    open(81,file='particle2-history.dat',position='append')
+    write(81,*) iter,(iter-1)*tcf+subIter*tcf_fine,current%pardata%xp,current%pardata%yp,current%pardata%zp,current%pardata%up,current%pardata%vp,current%pardata%wp,current%pardata%sh,current%pardata%rp,current%pardata%bulk_conc,current%pardata%delNB,current%pardata%cur_part,current%pardata%new_part
+    close(81)
+    
+ END SELECT
+ 
+END IF
+
+current => next   				! point to next node in the list
 ENDDO
 
 !------------------------------------------------
 END SUBROUTINE Particle_Track_fine
 !------------------------------------------------
+
+
+!-----------------------------------------------!===================================================================================================
+SUBROUTINE Particle_Transfer_fine
+!===================================================================================================
+IMPLICIT NONE
+
+INTEGER(lng)   		 :: i,ipartition,ii,jj,kk
+INTEGER(dbl)             :: RANK
+INTEGER(lng)             :: mpierr
+TYPE(ParRecord), POINTER :: current
+TYPE(ParRecord), POINTER :: next
+
+current => ParListHead%next
+DO WHILE (ASSOCIATED(current))
+   next => current%next ! copy pointer of next node
+   IF (mySub .EQ.current%pardata%cur_part) THEN
+      
+      IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
+         
+         !------- Wrappign around in z-direction for periodic BC in z
+         IF (current%pardata%zp.GE.REAL(L-zcf_fine,dbl)) THEN
+            current%pardata%zp = current%pardata%zp - L !MOD(current%pardata%zp,REAL(L,dbl))
+         ELSE IF (current%pardata%zp .LE. (-1.0 * zcf_fine) ) THEN
+            current%pardata%zp = current%pardata%zp+REAL(L,dbl)
+         ENDIF
+         
+         !------- Estimate to which partition the updated position belongs to.
+         DO ipartition = 1_lng,NumSubsTotal
+            
+            IF (( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .GE. REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
+                 ( ((current%pardata%xp - xx_fine(1))/xcf_fine + 1) .LT. (REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                 ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .GE. REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                 ( ((current%pardata%yp - yy_fine(1))/ycf_fine + 1) .LT. (REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                 ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .GE. REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                 ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .LT. (REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
+               
+               current%pardata%new_part = ipartition
+               write(*,*) ipartition, kMinDomain(ipartition),kMaxDomain(ipartition)                            
+	    END IF
+     
+  END DO
+  
+END IF
+END IF
+current => next
+ENDDO
+
+!---- Parallel communication between all processors
+current => ParListHead%next
+DO WHILE (ASSOCIATED(current))
+   next => current%next 
+	RANK= current%pardata%cur_part - 1
+        current%pardata%cur_part = current%pardata%new_part 
+	CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
+	CALL MPI_BCast(current%pardata%xp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%yp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%zp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%up,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%vp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%wp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%rp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%sh,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%xpold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%ypold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%zpold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%upold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%vpold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%wpold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%rpold,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%delNB,     1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%par_conc,  1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%bulk_conc, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%gamma_cont,1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%Nbj,       1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%S,         1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%Sst,       1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+	CALL MPI_BCast(current%pardata%cur_part,  1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+        CALL MPI_BCast(current%pardata%new_part,  1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)
+   current => next  
+ENDDO
+!===================================================================================================
+END SUBROUTINE Particle_Transfer_fine
+!===================================================================================================
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE Equilibrium_fine		! calculate the equilibrium distribution function and set f to feq (initial condition)

@@ -138,7 +138,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
               !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.
               write(31,*) 'Calling Particle_Track_Fine'
               CALL Particle_Track_fine
-              CALL Particle_MPI_Transfer !The first time this is called, it should technically do the work for any particles in the coarse mesh that have to be transferred across processors as well.
+!              CALL Particle_MPI_Transfer !The first time this is called, it should technically do the work for any particles in the coarse mesh that have to be transferred across processors as well.
            ENDIF
            write(31,*) 'Calling Scalar_Fine'
            CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
