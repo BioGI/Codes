@@ -858,71 +858,81 @@ END SUBROUTINE Compute_Cb_fine
 
 !===================================================================================================
 SUBROUTINE Calc_Scalar_Release_fine! Calculate rate of scalar release at every time step  
-!===================================================================================================
-
-! Called by Particle_Track (LBM.f90) to get delNB, update particle radius,
-! Sh(t)- sherwood number
-
-IMPLICIT NONE
-INTEGER(lng)  :: numFluids,i,j,k
-REAL(dbl)     :: deltaR,bulkVolume,temp,cbt,zcf3,bulkconc
-TYPE(ParRecord), POINTER :: current
-TYPE(ParRecord), POINTER :: next
-
-
-!bulkVolume=xcf*ycf_fine*zcf_fine*Cb_numFluids/num_particles
-zcf3=xcf_fine*ycf_fine*zcf_fine
-
-!calculate delNB for each particle in the domain
-current => ParListHead%next
-DO WHILE (ASSOCIATED(current))
-	next => current%next ! copy pointer of next node
-
-      IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
-
-        !  current%pardata%rpold=current%pardata%rp
-         
-        !  bulkconc = current%pardata%bulk_conc
-         
-        !  temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
-        !  write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
-        !  write(31,*) 'current%pardata%sh = ', current%pardata%sh
-        !  write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
-        !  write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
-         
-        !  IF (temp.GE.0.0_dbl) THEN
-        !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-        !  ELSE
-        !     temp = 0.0_dbl
-        !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-        !  END IF
-
-        ! deltaR=current%pardata%rpold-current%pardata%rp
-         
-        ! current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
-        !      -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
-        !      /molarvol
-
-         write(*,*) 'Not allowing particle radius to change in the fine mesh'
-         current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
-         
-         write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
-         write(31,*) 'current%pardata%rp = ', current%pardata%rp         
-         write(31,*) 'current%pardata%delNB = ', current%pardata%delNB
-         write(31,*) 'molarvol, bulkVolume ', molarvol, bulkVolume
-         flush(31)
-         
-         IF (associated(current,ParListHead%next)) THEN
-            write(9,*) iter*tcf_fine,current%pardata%parid,current%pardata%rp,current%pardata%Sh,Cb_global*zcf3*Cb_numFluids,current%pardata%delNB,Cb_global,Cb_numFluids
-            CALL FLUSH(9)
-         ENDIF
-
-
-
-      END IF
-         ! point to next node in the list
-      current => next
-   ENDDO
+  !===================================================================================================
+  
+  ! Called by Particle_Track (LBM.f90) to get delNB, update particle radius,
+  ! Sh(t)- sherwood number
+  
+  IMPLICIT NONE
+  INTEGER(lng)  :: numFluids,i,j,k
+  REAL(dbl)     :: deltaR,bulkVolume,temp,cbt,zcf3,bulkconc
+  TYPE(ParRecord), POINTER :: current
+  TYPE(ParRecord), POINTER :: next
+  INTEGER(lng)  :: RANK,mpierr  
+  
+  
+  !bulkVolume=xcf*ycf_fine*zcf_fine*Cb_numFluids/num_particles
+  zcf3=xcf_fine*ycf_fine*zcf_fine
+  
+  !calculate delNB for each particle in the domain
+  current => ParListHead%next
+  DO WHILE (ASSOCIATED(current))
+     next => current%next ! copy pointer of next node
+     
+     IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
+        
+        IF (mySub .EQ.current%pardata%cur_part) THEN 
+           
+           !  current%pardata%rpold=current%pardata%rp
+           
+           !  bulkconc = current%pardata%bulk_conc
+           
+           !  temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+           !  write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+           !  write(31,*) 'current%pardata%sh = ', current%pardata%sh
+           !  write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+           !  write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+           
+           !  IF (temp.GE.0.0_dbl) THEN
+           !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+           !  ELSE
+           !     temp = 0.0_dbl
+           !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+           !  END IF
+           
+           ! deltaR=current%pardata%rpold-current%pardata%rp
+           
+           ! current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+           !      -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+           !      /molarvol
+           
+           write(*,*) 'Not allowing particle radius to change in the fine mesh'
+           current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
+           
+           write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
+           write(31,*) 'current%pardata%rp = ', current%pardata%rp         
+           write(31,*) 'current%pardata%delNB = ', current%pardata%delNB
+           write(31,*) 'molarvol, bulkVolume ', molarvol, bulkVolume
+           flush(31)
+           
+           IF (associated(current,ParListHead%next)) THEN
+              write(9,*) iter*tcf_fine,current%pardata%parid,current%pardata%rp,current%pardata%Sh,Cb_global*zcf3*Cb_numFluids,current%pardata%delNB,Cb_global,Cb_numFluids
+              CALL FLUSH(9)
+           ENDIF
+           
+           
+        END IF
+        
+     END IF
+     ! point to next node in the list
+     
+     CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
+     RANK= current%pardata%cur_part - 1
+     CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+     CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)     
+     
+     current => next
+  ENDDO
 
 
 IF (myid .EQ. 0) THEN
