@@ -195,7 +195,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
      ! CALL PrintVolume			! print the volume in the system (TEST)
 
      !     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
-     write(31,*) 'sum phi_fine = ', sum(phi_fine(:,:,:))
      CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
 !     CALL PrintMass_fine		! print the total mass in the system (TEST)
 !     CALL PrintVolume_fine		! print the volume in the system (TEST)
