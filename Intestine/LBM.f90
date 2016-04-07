@@ -563,9 +563,7 @@ DO WHILE (ASSOCIATED(current))
             
          end if
          
-         overlapCoarseProc = MAX ( MIN(VIB_x(2), iMaxDomain(mySub)*xcf ) - MAX(VIB_x(1), (iMinDomain(mySub)-1)*xcf), 0.0_dbl)  * &
-              MAX ( MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf) , 0.0_dbl) * &
-              MAX ( MIN(VIB_z(2),kMaxDomain(mySub)*zcf) - MAX(VIB_z(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
+         overlapCoarseProc = MAX ( MIN(VIB_z(2),kMaxDomain(mySub)*zcf) - MAX(VIB_z(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
          
          
          Cb_Total_Veff = 0
@@ -781,9 +779,7 @@ DO WHILE (ASSOCIATED(current))
          end if
 
          
-         overlapCoarseProc = MAX ( MIN(VIB_x(2), iMaxDomain(mySub)*xcf ) - MAX(VIB_x(1), (iMinDomain(mySub)-1)*xcf), 0.0_dbl)  * &
-              MAX ( MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf) , 0.0_dbl) * &
-              MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
+         overlapCoarseProc = MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
 
          write(31,*) 'overlapCoarseProc = ', overlapCoarseProc
          
@@ -804,9 +800,7 @@ DO WHILE (ASSOCIATED(current))
             
          end if
          
-         overlapFineProc = MAX ( MIN(VIB_x(2), iMaxDomain_fine(mySub)*xcf_fine ) - MAX(VIB_x(1), (iMinDomain_fine(mySub)-1)*xcf_fine), 0.0_dbl)  * &
-              MAX ( MIN(VIB_y(2),jMaxDomain_fine(mySub)*ycf_fine ) - MAX(VIB_y(1),(jMinDomain_fine(mySub)-1)*ycf_fine) , 0.0_dbl) * &
-              MAX ( MIN(VIB_zf(2),kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
+         overlapFineProc = MAX ( MIN(VIB_zf(2),kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
          
          
          if (overlapCoarseProc .gt. 0) then
@@ -1204,8 +1198,8 @@ DO WHILE (ASSOCIATED(current))
            
         else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
 
-           VIB_zc(1) = VIB_z(1)+L
-           VIB_zc(2) = VIB_z(2)+L
+           VIB_zc(1) = VIB_z(1)-L
+           VIB_zc(2) = VIB_z(2)-L
 
         else
            
@@ -1214,9 +1208,9 @@ DO WHILE (ASSOCIATED(current))
            
         end if
         
-        overlapCoarseProc = MAX ( MIN(VIB_x(2), iMaxDomain(mySub)*xcf ) - MAX(VIB_x(1), (iMinDomain(mySub)-1)*xcf), 0.0_dbl)  * &
-             MAX ( MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf) , 0.0_dbl) * &
-             MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
+        overlapCoarseProc = MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
+        write(31,*) 'overlapCoarseProc = ', overlapCoarseProc
+        flush(31)
 
         if (MAX ( MIN(VIB_z(2)+L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
 
@@ -1225,8 +1219,8 @@ DO WHILE (ASSOCIATED(current))
            
         else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)-L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
 
-           VIB_zf(1) = VIB_z(1)+L
-           VIB_zf(2) = VIB_z(2)+L
+           VIB_zf(1) = VIB_z(1)-L
+           VIB_zf(2) = VIB_z(2)-L
 
         else
 
@@ -1235,9 +1229,9 @@ DO WHILE (ASSOCIATED(current))
            
         end if
         
-        overlapFineProc = MAX ( MIN(VIB_x(2), iMaxDomain_fine(mySub)*xcf_fine ) - MAX(VIB_x(1), (iMinDomain_fine(mySub)-1)*xcf_fine), 0.0_dbl)  * &
-             MAX ( MIN(VIB_y(2),jMaxDomain_fine(mySub)*ycf_fine ) - MAX(VIB_y(1),(jMinDomain_fine(mySub)-1)*ycf_fine) , 0.0_dbl) * &
-             MAX ( MIN(VIB_zf(2),kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
+        overlapFineProc = MAX ( MIN(VIB_zf(2),kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
+        write(31,*) 'overlapFineProc = ', overlapFineProc
+        flush(31)
         
 
         if (overlapFineProc .gt. 0) then
@@ -1307,12 +1301,12 @@ DO WHILE (ASSOCIATED(current))
         
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-        NEP_x(1)= MAX(iMin-1,FLOOR(xp - 0.5*L_influence_P/xcf ))
-        NEP_x(2)= MIN(iMax,CEILING(xp + 0.5*L_influence_P/xcf))
-        NEP_y(1)= MAX(jMin-1,FLOOR(yp - 0.5*L_influence_P/xcf ))
-        NEP_y(2)= MIN(jMax,CEILING(yp + 0.5*L_influence_P/ycf))
-        NEP_z(1)= MAX(kMin-1,FLOOR(zp - 0.5*L_influence_P/xcf ))
-        NEP_z(2)= MIN(kMax,CEILING(zp + 0.5*L_influence_P/zcf))
+        NEP_x(1)= MAX(1,FLOOR(xp - 0.5*L_influence_P/xcf ))
+        NEP_x(2)= MIN(nxSub,CEILING(xp + 0.5*L_influence_P/xcf))
+        NEP_y(1)= MAX(1,FLOOR(yp - 0.5*L_influence_P/xcf ))
+        NEP_y(2)= MIN(nySub,CEILING(yp + 0.5*L_influence_P/ycf))
+        NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf ))
+        NEP_z(2)= MIN(nzSub,CEILING(zp + 0.5*L_influence_P/zcf))
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
         Overlap= 0.0
@@ -1351,6 +1345,7 @@ DO WHILE (ASSOCIATED(current))
 
      Overlap_sum_l = Overlap_sum_coarse + Overlap_sum_fine
      
+     write(31,*) 'Overlaps local = ', Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine
      CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
      CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
      
@@ -1405,7 +1400,7 @@ DO WHILE (ASSOCIATED(current))
            NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
            NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
            NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
-           NEP_z(1)= MAX(0,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
+           NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
            NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
 
            !------ Computing particle release contribution to scalar field at each lattice node

@@ -57,9 +57,10 @@ ELSE															! clean start
       DO i=0,nxSub_fine+1_lng
 
         u_fine(i,j,k)   = 0.0_dbl							! x-velocity
-        v_fine(i,j,k)        = -0.1_dbl
+        v_fine(i,j,k)        = -0.0_dbl
         tmp = sqrt( x_fine(i) * x_fine(i) + y_fine(j)*y_fine(j) )
-        w_fine(i,j,k)        = 1.0 - tmp/r_fine(k) !Linear velocity profile such that the velocity goes to zero at the wall! z-velocity
+!        w_fine(i,j,k)        = 1.0 - tmp/r_fine(k) !Linear velocity profile such that the velocity goes to zero at the wall! z-velocity
+        w_fine(i,j,k) = 0.0
         rho_fine(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)
