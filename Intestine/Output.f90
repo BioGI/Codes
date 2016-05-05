@@ -7,6 +7,7 @@ USE Setup
 USE LBM
 USE PassiveScalar
 USE MPI			! [Intrinsic]
+USE HDF5
 
 IMPLICIT NONE 
 
@@ -268,6 +269,31 @@ IMPLICIT NONE
 INTEGER(lng)	:: i,j,k,ii,jj,kk,n		! index variables (local and global)
 CHARACTER(7)	:: iter_char				! iteration stored as a character
 
+
+! HDF5 write variables
+CHARACTER *40  writeFilename, readFileName
+
+CHARACTER(LEN=4), PARAMETER :: UxDsetname = "Ux"     ! Dataset name
+CHARACTER(LEN=4), PARAMETER :: UyDsetname = "Uy"     ! Dataset name
+CHARACTER(LEN=4), PARAMETER :: UzDsetname = "Uz"     ! Dataset name
+CHARACTER(LEN=4), PARAMETER :: pDsetname = "P"       ! Dataset name
+CHARACTER(LEN=4), PARAMETER :: phiDsetname = "phi"   ! Dataset name
+
+INTEGER(HID_T) :: file_id       ! File identifier
+INTEGER(HID_T) :: dset_id       ! Dataset identifier
+INTEGER(HID_T) :: dspace_id     ! Dataspace identifier
+
+INTEGER(HSIZE_T), DIMENSION(3) :: dims = (/1,1,1/) ! Dataset dimensions
+INTEGER     ::   rank = 3                        ! Dataset rank
+
+INTEGER, DIMENSION(10,11,12) :: dset_data, data_out ! Data buffers
+INTEGER(HSIZE_T), DIMENSION(3) :: data_dims
+
+integer(kind = 4) :: iErr = 0 !To store the output of each HDF5 command
+
+double precision :: temp !Temporary variable
+
+
 IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
                                                    .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN
 
@@ -278,6 +304,31 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
   filenum(fileCount) = iter
   fileCount = fileCount + 1_lng
 
+
+  ! Initialize HDF FORTRAN interface.
+  CALL h5open_f(iErr)
+  data_dims(1) = nxSub
+  data_dims(2) = nySub
+  data_dims(3) = nzSub
+  
+
+  ! Create a new file using default properties.
+  writeFilename = 'out-'//iter_char//'-'//sub//'.h5'
+  CALL h5fcreate_f(writeFilename, H5F_ACC_TRUNC_F, file_id, iErr)
+
+
+  !Write Ux
+  CALL h5screate_simple_f(rank, data_dims, dspace_id, iErr) ! Create the dataspace.
+  CALL h5dcreate_f(file_id, Uxdsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr) ! Create the dataset with default properties.
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, u(1:nxSub,1:nySub,1:nzSub), data_dims, iErr) ! Write the dataset.
+  CALL h5dclose_f(dset_id, iErr) ! Close the dataset.
+  
+  ! Close the HDF5 file.
+  CALL h5fclose_f(file_id, iErr)
+  ! Close HDF5 FORTRAN interface.
+  CALL h5close_f(iErr)
+
+  
   ! open the proper output file
   OPEN(60,FILE='out-'//iter_char//'-'//sub//'.dat')
   WRITE(60,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
