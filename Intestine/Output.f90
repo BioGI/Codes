@@ -278,10 +278,13 @@ CHARACTER(LEN=4), PARAMETER :: UyDsetname = "Uy"     ! Dataset name
 CHARACTER(LEN=4), PARAMETER :: UzDsetname = "Uz"     ! Dataset name
 CHARACTER(LEN=4), PARAMETER :: pDsetname = "P"       ! Dataset name
 CHARACTER(LEN=4), PARAMETER :: phiDsetname = "phi"   ! Dataset name
+CHARACTER(LEN=4), PARAMETER :: nodeDsetname = "node"   ! Dataset name
 
 INTEGER(HID_T) :: file_id       ! File identifier
 INTEGER(HID_T) :: dset_id       ! Dataset identifier
-INTEGER(HID_T) :: dspace_id     ! Dataspace identifier
+INTEGER(HID_T) :: dspace_id     ! Dataspace identifier in file
+INTEGER(HID_T) :: mspace_id     ! Dataspace identifier in memory
+INTEGER(HID_T) :: plist_id      ! Property list identifier
 
 INTEGER(HSIZE_T), DIMENSION(3) :: dims = (/1,1,1/) ! Dataset dimensions
 INTEGER     ::   rank = 3                        ! Dataset rank
@@ -292,6 +295,38 @@ INTEGER(HSIZE_T), DIMENSION(3) :: data_dims
 integer(kind = 4) :: iErr = 0 !To store the output of each HDF5 command
 
 double precision :: temp !Temporary variable
+
+INTEGER(HSIZE_T), DIMENSION(3) :: dimsf ! Dataset dimensions in the file.
+INTEGER(HSIZE_T), DIMENSION (3) :: dimsfi 
+INTEGER(HSIZE_T), DIMENSION(3) :: chunk_dims ! Chunks dimensions
+
+INTEGER(HSIZE_T),  DIMENSION(3) :: count
+INTEGER(HSSIZE_T), DIMENSION(3) :: offset
+INTEGER(HSIZE_T),  DIMENSION(3) :: stride
+INTEGER(HSIZE_T),  DIMENSION(3) :: block
+
+
+dimsf(1) = nx
+dimsf(2) = ny
+dimsf(3) = nz
+dimsfi(1) = nx
+dimsfi(2) = ny
+dimsfi(3) = nz
+chunk_dims(1) = (nx/NumSubsX)
+chunk_dims(2) = (ny/NumSubsY)
+chunk_dims(3) = (nz/NumSubsZ)
+block(1) = nxSub
+block(2) = nySub
+block(3) =  nzSub
+offset(1) = iMin-1
+offset(2) = jMin-1
+offset(3) = kMin-1
+stride(1) = 1
+stride(2) = 1
+stride(3) = 1
+count(1) = 1
+count(2) = 1
+count(3) = 1
 
 
 IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0)	&
@@ -304,53 +339,156 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
   filenum(fileCount) = iter
   fileCount = fileCount + 1_lng
 
+  
+  CALL h5open_f(iErr) ! Initialize HDF5 library and Fortran interfaces.
 
-  ! Initialize HDF FORTRAN interface.
-  CALL h5open_f(iErr)
-  data_dims(1) = nxSub
-  data_dims(2) = nySub
-  data_dims(3) = nzSub
+  CALL h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, iErr)   ! Setup file access property list with parallel I/O access.
+  CALL h5pset_fapl_mpio_f(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL, iErr)
+
+  writeFileName = 'out-'//iter_char//'.h5'
+  CALL h5fcreate_f(writeFileName, H5F_ACC_TRUNC_F, file_id, iErr, access_prp = plist_id)   ! Create the file collectively.
+  CALL h5pclose_f(plist_id, iErr)
+
+
+  ! Write Ux
+  CALL h5screate_simple_f(rank, dimsf, dspace_id, iErr)   ! Create the data space for the  dataset.
+  CALL h5screate_simple_f(rank, block, mspace_id, iErr)
+
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, iErr)   ! Create chunked dataset.
+  CALL h5pset_chunk_f(plist_id, rank, chunk_dims, iErr)
+  CALL h5dcreate_f(file_id, UxDsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr, plist_id)
+  CALL h5sclose_f(dspace_id, iErr)
+
+  CALL h5dget_space_f(dset_id, dspace_id, iErr)   ! Select hyperslab in the file.
+  CALL h5sselect_hyperslab_f (dspace_id, H5S_SELECT_SET_F, offset, count, iErr, stride, block)
+
+  CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, iErr)   ! Create property list for collective dataset write
+  CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, iErr)
+
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, u(1:nxSub,1:nySub,1:nzSub)*vcf, dimsfi, iErr, file_space_id = dspace_id, mem_space_id = mspace_id, xfer_prp = plist_id)   ! Write the dataset collectively.
+  CALL h5sclose_f(dspace_id, iErr)   ! Close dataspaces.
+  CALL h5sclose_f(mspace_id, iErr)
+  CALL h5dclose_f(dset_id, iErr)     ! Close the dataset.
+
+  CALL h5pclose_f(plist_id, iErr)    ! Close the property list.
+
+
+  ! Write Uy
+  CALL h5screate_simple_f(rank, dimsf, dspace_id, iErr)   ! Create the data space for the  dataset.
+  CALL h5screate_simple_f(rank, block, mspace_id, iErr)
+
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, iErr)   ! Create chunked dataset.
+  CALL h5pset_chunk_f(plist_id, rank, chunk_dims, iErr)
+  CALL h5dcreate_f(file_id, UyDsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr, plist_id)
+  CALL h5sclose_f(dspace_id, iErr)
+
+  CALL h5dget_space_f(dset_id, dspace_id, iErr)   ! Select hyperslab in the file.
+  CALL h5sselect_hyperslab_f (dspace_id, H5S_SELECT_SET_F, offset, count, iErr, stride, block)
+
+  CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, iErr)   ! Create property list for collective dataset write
+  CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, iErr)
+
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, v(1:nxSub,1:nySub,1:nzSub)*vcf, dimsfi, iErr, file_space_id = dspace_id, mem_space_id = mspace_id, xfer_prp = plist_id)   ! Write the dataset collectively.
+  CALL h5sclose_f(dspace_id, iErr)   ! Close dataspaces.
+  CALL h5sclose_f(mspace_id, iErr)
+  CALL h5dclose_f(dset_id, iErr)     ! Close the dataset.
+
+  CALL h5pclose_f(plist_id, iErr)    ! Close the property list.
+
+
+  ! Write Uz
+  CALL h5screate_simple_f(rank, dimsf, dspace_id, iErr)   ! Create the data space for the  dataset.
+  CALL h5screate_simple_f(rank, block, mspace_id, iErr)
+
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, iErr)   ! Create chunked dataset.
+  CALL h5pset_chunk_f(plist_id, rank, chunk_dims, iErr)
+  CALL h5dcreate_f(file_id, UzDsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr, plist_id)
+  CALL h5sclose_f(dspace_id, iErr)
+
+  CALL h5dget_space_f(dset_id, dspace_id, iErr)   ! Select hyperslab in the file.
+  CALL h5sselect_hyperslab_f (dspace_id, H5S_SELECT_SET_F, offset, count, iErr, stride, block)
+
+  CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, iErr)   ! Create property list for collective dataset write
+  CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, iErr)
+
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, w(1:nxSub,1:nySub,1:nzSub)*vcf, dimsfi, iErr, file_space_id = dspace_id, mem_space_id = mspace_id, xfer_prp = plist_id)   ! Write the dataset collectively.
+  CALL h5sclose_f(dspace_id, iErr)   ! Close dataspaces.
+  CALL h5sclose_f(mspace_id, iErr)
+  CALL h5dclose_f(dset_id, iErr)     ! Close the dataset.
+
+  CALL h5pclose_f(plist_id, iErr)    ! Close the property list.
+
+
+  ! Write P
+  CALL h5screate_simple_f(rank, dimsf, dspace_id, iErr)   ! Create the data space for the  dataset.
+  CALL h5screate_simple_f(rank, block, mspace_id, iErr)
+
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, iErr)   ! Create chunked dataset.
+  CALL h5pset_chunk_f(plist_id, rank, chunk_dims, iErr)
+  CALL h5dcreate_f(file_id, pDsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr, plist_id)
+  CALL h5sclose_f(dspace_id, iErr)
+
+  CALL h5dget_space_f(dset_id, dspace_id, iErr)   ! Select hyperslab in the file.
+  CALL h5sselect_hyperslab_f (dspace_id, H5S_SELECT_SET_F, offset, count, iErr, stride, block)
+
+  CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, iErr)   ! Create property list for collective dataset write
+  CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, iErr)
+
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, (rho(1:nxSub,1:nySub,1:nzSub)-denL)*dcf*pcf, dimsfi, iErr, file_space_id = dspace_id, mem_space_id = mspace_id, xfer_prp = plist_id)   ! Write the dataset collectively.
+  CALL h5sclose_f(dspace_id, iErr)   ! Close dataspaces.
+  CALL h5sclose_f(mspace_id, iErr)
+  CALL h5dclose_f(dset_id, iErr)     ! Close the dataset.
+
+  CALL h5pclose_f(plist_id, iErr)    ! Close the property list.
   
 
-  ! Create a new file using default properties.
-  writeFilename = 'out-'//iter_char//'-'//sub//'.h5'
-  CALL h5fcreate_f(writeFilename, H5F_ACC_TRUNC_F, file_id, iErr)
+  ! Write phi
+  CALL h5screate_simple_f(rank, dimsf, dspace_id, iErr)   ! Create the data space for the  dataset.
+  CALL h5screate_simple_f(rank, block, mspace_id, iErr)
+
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, iErr)   ! Create chunked dataset.
+  CALL h5pset_chunk_f(plist_id, rank, chunk_dims, iErr)
+  CALL h5dcreate_f(file_id, phiDsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr, plist_id)
+  CALL h5sclose_f(dspace_id, iErr)
+
+  CALL h5dget_space_f(dset_id, dspace_id, iErr)   ! Select hyperslab in the file.
+  CALL h5sselect_hyperslab_f (dspace_id, H5S_SELECT_SET_F, offset, count, iErr, stride, block)
+
+  CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, iErr)   ! Create property list for collective dataset write
+  CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, iErr)
+
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, phi(1:nxSub,1:nySub,1:nzSub), dimsfi, iErr, file_space_id = dspace_id, mem_space_id = mspace_id, xfer_prp = plist_id)   ! Write the dataset collectively.
+  CALL h5sclose_f(dspace_id, iErr)   ! Close dataspaces.
+  CALL h5sclose_f(mspace_id, iErr)
+  CALL h5dclose_f(dset_id, iErr)     ! Close the dataset.
+
+  CALL h5pclose_f(plist_id, iErr)    ! Close the property list.
 
 
-  !Write Ux
-  CALL h5screate_simple_f(rank, data_dims, dspace_id, iErr) ! Create the dataspace.
-  CALL h5dcreate_f(file_id, Uxdsetname, H5T_NATIVE_REAL, dspace_id, dset_id, iErr) ! Create the dataset with default properties.
-  CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, u(1:nxSub,1:nySub,1:nzSub), data_dims, iErr) ! Write the dataset.
-  CALL h5dclose_f(dset_id, iErr) ! Close the dataset.
+  ! Write node
+  CALL h5screate_simple_f(rank, dimsf, dspace_id, iErr)   ! Create the data space for the  dataset.
+  CALL h5screate_simple_f(rank, block, mspace_id, iErr)
+  CALL h5pcreate_f(H5P_DATASET_CREATE_F, plist_id, iErr)   ! Create chunked dataset.
+  CALL h5pset_chunk_f(plist_id, rank, chunk_dims, iErr)
+  CALL h5dcreate_f(file_id, nodeDsetname, H5T_NATIVE_INTEGER, dspace_id, dset_id, iErr, plist_id)
+  CALL h5sclose_f(dspace_id, iErr)
+
+  CALL h5dget_space_f(dset_id, dspace_id, iErr)   ! Select hyperslab in the file.
+  CALL h5sselect_hyperslab_f (dspace_id, H5S_SELECT_SET_F, offset, count, iErr, stride, block)
   
-  ! Close the HDF5 file.
-  CALL h5fclose_f(file_id, iErr)
-  ! Close HDF5 FORTRAN interface.
-  CALL h5close_f(iErr)
+  CALL h5pcreate_f(H5P_DATASET_XFER_F, plist_id, iErr)   ! Create property list for collective dataset write
+  CALL h5pset_dxpl_mpio_f(plist_id, H5FD_MPIO_COLLECTIVE_F, iErr)
+  CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, node(1:nxSub,1:nySub,1:nzSub), dimsfi, iErr, file_space_id = dspace_id, mem_space_id = mspace_id, xfer_prp = plist_id)   ! Write the dataset collectively.
+  CALL h5sclose_f(dspace_id, iErr)   ! Close dataspaces.
+  CALL h5sclose_f(mspace_id, iErr)
+  CALL h5dclose_f(dset_id, iErr)     ! Close the dataset.
+  CALL h5pclose_f(plist_id, iErr)    ! Close the property list.
+  
 
   
-  ! open the proper output file
-  OPEN(60,FILE='out-'//iter_char//'-'//sub//'.dat')
-  WRITE(60,*) 'VARIABLES = "x" "y" "z" "u" "v" "w" "P" "phi" "node"'
-  WRITE(60,'(A10,E15.5,A5,I4,A5,I4,A5,I4,A8)') 'ZONE T="',iter/(nt/nPers),'" I=',nxSub,' J=',nySub,' K=',nzSub,'F=POINT'
+  CALL h5fclose_f(file_id, iErr)     ! Close the file.
+  CALL h5close_f(iErr)               ! Close FORTRAN interfaces and HDF5 library.
 
-  DO k=1,nzSub
-    DO j=1,nySub
-      DO i=1,nxSub
-
-         ! convert local i,j,k, to global ii,jj,kk
-         ii = ((iMin - 1_lng) + i)
-         jj = ((jMin - 1_lng) + j)
-         kk = ((kMin - 1_lng) + k)
-
-         WRITE(60,'(8E15.5,I6)') x(i), y(j), z(k), u(i,j,k)*vcf, v(i,j,k)*vcf, w(i,j,k)*vcf, (rho(i,j,k)-denL)*dcf*pcf,	&
-                                     phi(i,j,k), node(i,j,k)
-
-      END DO
-    END DO
-  END DO
-
-  CLOSE(60)
 
 !  ! print villi locations
 !  IF(myid .EQ. master) THEN

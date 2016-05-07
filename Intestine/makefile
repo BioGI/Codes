@@ -20,11 +20,12 @@ FC = mpif90
 #FCFLAGS = -g -fbounds-check
 FCFLAGS = -O2 -ffree-line-length-none -ffree-form
 # flags forall (e.g. look for system .mod files, required in gfortran)
-FCFLAGS += -I/usr/include
-FCFLAGS += -I/opt/local/include
+FCFLAGS += -I/usr/include -I/usr/include/hdf5/openmpi/
+#FCFLAGS += -I/opt/local/include
 
 # libraries needed for linking, unused in the examples
-#LDFLAGS = -li_need_this_lib
+LDFLAGS = -L/usr/lib/x86_64-linux-gnu/hdf5/openmpi/ -lhdf5_fortran
+
 
 # List of executables to be built within the package
 #PROGRAMS = prog1 prog2 prog3 prog4
@@ -48,6 +49,10 @@ all:
 	@$(MAKE) $(MODULES)
 	@$(MAKE) Intestine3D.exe
 	@$(MAKE) genparticles
+	@$(MAKE) hyperslab
+
+hyperslab: hyperslab_by_chunk.f90
+	$(FC) -o hyperslab $(FCFLAGS) hyperslab_by_chunk.f90 $(LDFLAGS)
 
 genparticles: $(PARFILES)
 	      $(FC) -o genparticles $(FCFLAGS) $(PARFILES)
@@ -56,7 +61,7 @@ genparticles: $(PARFILES)
 
 
 Intestine3D.exe: $(OBJS)
-	     $(FC) -o Intestine3D.exe $(FCFLAGS) $(OBJS) $(MODULES)
+	     $(FC) -o Intestine3D.exe $(FCFLAGS) $(OBJS) $(MODULES) $(LDFLAGS)
 	     cp Intestine3D.exe ../
 
 $(OBJS): $(MODULES)
@@ -182,5 +187,7 @@ veryclean: clean
 #
 #clean:
 #	rm -f *.o *.mod Intestine3D.exe
+
+
 
 
