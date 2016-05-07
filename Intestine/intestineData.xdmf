@@ -1,0 +1,127 @@
+<Xdmf>
+  <Domain>
+    <Grid Name="FieldData" GridType="Collection" CollectionType="Temporal">
+
+      <Grid Name="mesh1" GridType="Uniform">
+        <Time Type="Single" Value="0" />
+        <Topology TopologyType="3DCoRectMesh" NumberOfElements="160 81 81 "/>
+        <Geometry GeometryType="ORIGIN_DXDYDZ">
+        <DataItem Dimensions="3" NumberType="Float" Precision="4" Format="XML">
+        0 0 0
+        </DataItem>
+        <DataItem Dimensions="3" NumberType="Float" Precision="4" Format="XML">
+        1.5e-4 1.5e-4 1.5e-4
+        </DataItem>
+        </Geometry>
+        <Attribute Name="U" AttributeType="Vector" Center="Cell">
+        <DataItem ItemType="Function"  Function="JOIN($0,$1,$2)" Dimensions="160 81 81 3">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000000.h5:/Ux
+        </DataItem>
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000000.h5:/Uy
+        </DataItem>
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000000.h5:/Uz
+        </DataItem>
+        </DataItem>
+        </Attribute>
+        <Attribute Name="node" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000000.h5:/node
+        </DataItem>
+        </Attribute>
+        <Attribute Name="phi" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000000.h5:/phi
+        </DataItem>
+        </Attribute>
+        <Attribute Name="P" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000000.h5:/P
+        </DataItem>
+        </Attribute>
+        </Grid>     
+      <Grid Name="mesh1" GridType="Uniform">
+        <Time Type="Single" Value="1" />
+        <Topology TopologyType="3DCoRectMesh" NumberOfElements="160 81 81 "/>
+        <Geometry GeometryType="ORIGIN_DXDYDZ">
+        <DataItem Dimensions="3" NumberType="Float" Precision="4" Format="XML">
+        0 0 0
+        </DataItem>
+        <DataItem Dimensions="3" NumberType="Float" Precision="4" Format="XML">
+        1.5e-4 1.5e-4 1.5e-4
+        </DataItem>
+        </Geometry>
+        <Attribute Name="U" AttributeType="Vector" Center="Cell">
+        <DataItem ItemType="Function"  Function="JOIN($0,$1,$2)" Dimensions="160 81 81 3">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000001.h5:/Ux
+        </DataItem>
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000001.h5:/Uy
+        </DataItem>
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000001.h5:/Uz
+        </DataItem>
+        </DataItem>
+        </Attribute>
+        <Attribute Name="node" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000001.h5:/node
+        </DataItem>
+        </Attribute>
+        <Attribute Name="phi" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000001.h5:/phi
+        </DataItem>
+        </Attribute>
+        <Attribute Name="P" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000001.h5:/P
+        </DataItem>
+        </Attribute>
+        </Grid>     
+      <Grid Name="mesh1" GridType="Uniform">
+        <Time Type="Single" Value="32" />
+        <Topology TopologyType="3DCoRectMesh" NumberOfElements="160 81 81 "/>
+        <Geometry GeometryType="ORIGIN_DXDYDZ">
+        <DataItem Dimensions="3" NumberType="Float" Precision="4" Format="XML">
+        0 0 0
+        </DataItem>
+        <DataItem Dimensions="3" NumberType="Float" Precision="4" Format="XML">
+        1.5e-4 1.5e-4 1.5e-4
+        </DataItem>
+        </Geometry>
+        <Attribute Name="U" AttributeType="Vector" Center="Cell">
+        <DataItem ItemType="Function"  Function="JOIN($0,$1,$2)" Dimensions="160 81 81 3">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000032.h5:/Ux
+        </DataItem>
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000032.h5:/Uy
+        </DataItem>
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000032.h5:/Uz
+        </DataItem>
+        </DataItem>
+        </Attribute>
+        <Attribute Name="node" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000032.h5:/node
+        </DataItem>
+        </Attribute>
+        <Attribute Name="phi" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000032.h5:/phi
+        </DataItem>
+        </Attribute>
+        <Attribute Name="P" AttributeType="Scalar" Center="Cell">
+        <DataItem Dimensions="160 81 81 " NumberType="Float" Precision="4" Format="HDF">
+        out-0000032.h5:/P
+        </DataItem>
+        </Attribute>
+        </Grid>     
+    </Grid>
+  </Domain>
+</Xdmf>
