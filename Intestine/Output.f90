@@ -1115,7 +1115,7 @@ REAL(dbl), INTENT(IN) 		:: vz(nx,ny,nz)				! w(:,:,:) (axial velocity)
 INTEGER(lng), INTENT(IN) 	:: nodeFlag(nx,ny,nz)		! node(:,:,:) (node flags)
 REAL(dbl), INTENT(OUT) 		:: sf(nz,nx)					! streamfunction
 REAL(dbl) 		:: vz2(nz,nx)									! plane velocity
-INTEGER(dbl) 	:: nodeFlag2(nz,nx)							! plane node flags
+INTEGER 	:: nodeFlag2(nz,nx)							! plane node flags
 INTEGER(lng)	:: i,k											! index variables
 
 ! initialize the streamfunction array

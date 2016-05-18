@@ -115,98 +115,105 @@ INTEGER(lng)   :: i, parid,particle_partition,ipartition
 REAL(dbl) :: xp,yp,zp,par_radius
 TYPE(ParRecord), POINTER	:: CurPar
 IF (restart) THEN
-	! Read particle number and position along with it's radius,concentration.
-	! Interpolate to calculate particle velocities.
-	! Interpolate particle concentration to nodes into delphi_particle.
-
+   ! Read particle number and position along with it's radius,concentration.
+   ! Interpolate to calculate particle velocities.
+   ! Interpolate particle concentration to nodes into delphi_particle.
+   
 ELSE
-	! Linked list approach
-	OPEN(60,FILE='particle.dat')
-	READ(60,*) np
-        num_particles = np
-        allocate(flagParticleCF(np))
-	! Initialize Header Pointer
-	
-	CALL list_init(ParListHead)
-	CurPar => ParListHead
-
-	! Recursively allocate all the particle records and build the linked list
-	DO i = 1, np
-		READ(60,*) parid,xp,yp,zp,par_radius ! read particle.dat file
-                ! Search the partition this particle belongs to
-  
-                IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
-                   flagParticleCF(parid) = .false.
-                   DO ipartition = 1_lng,NumSubsTotal 
-                      IF (( ((xp-xx(1))/xcf + 1) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
-                           ( ((xp-xx(1))/xcf + 1) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( ((yp-yy(1))/ycf + 1) .GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-                           ( ((yp-yy(1))/ycf + 1) .LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( ((zp-zz(1))/zcf + 1) .GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
-                           ( ((zp-zz(1))/zcf + 1) .LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
-                         
-                         particle_partition = ipartition
-                      END IF
-                      
-                   END DO
-                   
-                ELSE
-                   flagParticleCF(parid) = .true.
-                   
-                   DO ipartition = 1_lng,NumSubsTotal 
-                      IF (( ((xp-xx_fine(1))/xcf_fine + 1) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
-                           ( ((xp-xx_fine(1))/xcf_fine + 1) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( ((yp-yy_fine(1))/ycf_fine + 1) .GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-                           ( ((yp-yy_fine(1))/ycf_fine + 1) .LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
-                           ( ((zp-zz_fine(1))/zcf_fine + 1) .GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
-                           ( ((zp-zz_fine(1))/zcf_fine + 1) .LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
-                         
-                         particle_partition = ipartition
-                      END IF
-                      
-                   END DO
-                   
-                END IF
-                      
-		! Create a particle element in the linked list only if the particles belongs to this partition
-!		IF (particle_partition.EQ.mySub) THEN
-     
-			CALL list_init(CurPar%next)		
-			CurPar%next%prev => CurPar
-			CurPar%next%next => null()
-			CurPar%next%pardata%parid = parid
-			CurPar%next%pardata%xp = xp
-			CurPar%next%pardata%yp = yp
-			CurPar%next%pardata%zp = zp
-			CurPar%next%pardata%up = 0.0_dbl
-			CurPar%next%pardata%vp = 0.0_dbl
-			CurPar%next%pardata%wp = 0.0_dbl
-			CurPar%next%pardata%rp = par_radius!R0!0.005_dbl
-			CurPar%next%pardata%xpold = CurPar%next%pardata%xp
-			CurPar%next%pardata%ypold = CurPar%next%pardata%yp
-			CurPar%next%pardata%zpold = CurPar%next%pardata%zp
-			CurPar%next%pardata%upold = CurPar%next%pardata%up
-			CurPar%next%pardata%vpold = CurPar%next%pardata%vp
-			CurPar%next%pardata%wpold = CurPar%next%pardata%wp
-			CurPar%next%pardata%rpold = CurPar%next%pardata%rp
-			CurPar%next%pardata%par_conc = 1.0 !Cs_mol!3.14854e-6
-			CurPar%next%pardata%gamma_cont = 0.0000_dbl
-			CurPar%next%pardata%sh = 1.0000_dbl/(1.0_dbl-CurPar%next%pardata%gamma_cont)
-			CurPar%next%pardata%S = 0.0_dbl
-			CurPar%next%pardata%Sst = 0.0_dbl
-			CurPar%next%pardata%Veff = 0.0_dbl
-			CurPar%next%pardata%Nbj = 0.0_dbl
-			CurPar%next%pardata%bulk_conc = 0.0000_dbl
-			CurPar%next%pardata%delNB= 0.00000_dbl
-			CurPar%next%pardata%cur_part= particle_partition
-			CurPar%next%pardata%new_part= particle_partition
-!			!WRITE(*,*) "Particle Initializing ",i,xp(i),yp(i),zp(i)
-			! point to next node in the list
-			CurPar => CurPar%next
-!		END IF
-	END DO
-	
-	CLOSE(60)
+   ! Linked list approach
+   OPEN(60,FILE='particle.dat')
+   READ(60,*) np
+   num_particles = np
+   allocate(flagParticleCF(np))
+   ! Initialize Header Pointer
+   
+   CALL list_init(ParListHead)
+   CurPar => ParListHead
+   
+   ! Recursively allocate all the particle records and build the linked list
+   DO i = 1, np
+      READ(60,*) parid,xp,yp,zp,par_radius ! read particle.dat file
+      ! Search the partition this particle belongs to
+      
+      IF ( ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - xcf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 ) ) THEN  !Check if particle is in coarse mesh
+         
+         flagParticleCF(parid) = .false.
+         DO ipartition = 1_lng,NumSubsTotal 
+            IF (( ((xp-xx(1))/xcf + 1) .GE.REAL(iMinDomain(ipartition),dbl)-1.0_dbl).AND.&
+                 ( ((xp-xx(1))/xcf + 1) .LT.(REAL(iMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                 ( ((yp-yy(1))/ycf + 1) .GE.REAL(jMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                 ( ((yp-yy(1))/ycf + 1) .LT.(REAL(jMaxDomain(ipartition),dbl)+0.0_dbl)).AND. &
+                 ( ((zp-zz(1))/zcf + 1) .GE.REAL(kMinDomain(ipartition),dbl)-1.0_dbl).AND. &
+                 ( ((zp-zz(1))/zcf + 1) .LT.(REAL(kMaxDomain(ipartition),dbl)+0.0_dbl))) THEN
+               
+               particle_partition = ipartition
+            END IF
+            
+         END DO
+         
+      ELSE
+         flagParticleCF(parid) = .true.
+         
+         DO ipartition = 1_lng,NumSubsTotal
+            write(31,*) 'ipartition = ', ipartition
+            write(31,*) 'xp, i, xMinMax = ', xp, (xp-xx_fine(1))/xcf_fine + 1, REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl, REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl
+            write(31,*) 'yp, j, yMinMax = ', yp, (yp-yy_fine(1))/ycf_fine + 1, REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl, REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl
+            write(31,*) 'zp, k, zMinMax = ', zp, (zp-zz_fine(1))/zcf_fine + 1, REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl, REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl            
+            
+            IF (( ((xp-xx_fine(1))/xcf_fine + 1) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
+                 ( ((xp-xx_fine(1))/xcf_fine + 1) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                 ( ((yp-yy_fine(1))/ycf_fine + 1) .GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                 ( ((yp-yy_fine(1))/ycf_fine + 1) .LT.(REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
+                 ( ((zp-zz_fine(1))/zcf_fine + 1) .GE.REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
+                 ( ((zp-zz_fine(1))/zcf_fine + 1) .LT.(REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
+               
+               particle_partition = ipartition
+            END IF
+            write(31,*) 'particle_partition = ', particle_partition
+            
+         END DO
+         
+      END IF
+      
+      ! Create a particle element in the linked list only if the particles belongs to this partition
+      !		IF (particle_partition.EQ.mySub) THEN
+      
+      CALL list_init(CurPar%next)		
+      CurPar%next%prev => CurPar
+      CurPar%next%next => null()
+      CurPar%next%pardata%parid = parid
+      CurPar%next%pardata%xp = xp
+      CurPar%next%pardata%yp = yp
+      CurPar%next%pardata%zp = zp
+      CurPar%next%pardata%up = 0.0_dbl
+      CurPar%next%pardata%vp = 0.0_dbl
+      CurPar%next%pardata%wp = 0.0_dbl
+      CurPar%next%pardata%rp = par_radius!R0!0.005_dbl
+      CurPar%next%pardata%xpold = CurPar%next%pardata%xp
+      CurPar%next%pardata%ypold = CurPar%next%pardata%yp
+      CurPar%next%pardata%zpold = CurPar%next%pardata%zp
+      CurPar%next%pardata%upold = CurPar%next%pardata%up
+      CurPar%next%pardata%vpold = CurPar%next%pardata%vp
+      CurPar%next%pardata%wpold = CurPar%next%pardata%wp
+      CurPar%next%pardata%rpold = CurPar%next%pardata%rp
+      CurPar%next%pardata%par_conc = 1.0 !Cs_mol!3.14854e-6
+      CurPar%next%pardata%gamma_cont = 0.0000_dbl
+      CurPar%next%pardata%sh = 1.0000_dbl/(1.0_dbl-CurPar%next%pardata%gamma_cont)
+      CurPar%next%pardata%S = 0.0_dbl
+      CurPar%next%pardata%Sst = 0.0_dbl
+      CurPar%next%pardata%Veff = 0.0_dbl
+      CurPar%next%pardata%Nbj = 0.0_dbl
+      CurPar%next%pardata%bulk_conc = 0.0000_dbl
+      CurPar%next%pardata%delNB= 0.00000_dbl
+      CurPar%next%pardata%cur_part= particle_partition
+      CurPar%next%pardata%new_part= particle_partition
+      !			!WRITE(*,*) "Particle Initializing ",i,xp(i),yp(i),zp(i)
+      ! point to next node in the list
+      CurPar => CurPar%next
+      !		END IF
+   END DO
+   
+   CLOSE(60)
 ENDIF
 !------------------------------------------------
 END SUBROUTINE IniParticles

@@ -107,6 +107,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
     !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.
            write(31,*) 'Calling Particle_Track'
 	   CALL Particle_Track
+           write(31,*) 'Finished Particle_Track'
+           flush(31)
 !	   CALL Particle_MPI_Transfer
 	ENDIF
         

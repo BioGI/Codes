@@ -435,7 +435,7 @@ REAL(dbl)                       :: overlapCoarseProc, overlapFineProc
 LOGICAL                         :: hardCheckCoarseMesh                          ! Flag to ffigure out whether a given point is in the coarse or fine mesh
 TYPE(ParRecord), POINTER  	:: current
 TYPE(ParRecord), POINTER  	:: next
-INTEGER(lng)  		  :: mpierr
+INTEGER                         :: mpierr
 
 delta_mesh = 1.0_dbl
 
@@ -470,8 +470,8 @@ DO WHILE (ASSOCIATED(current))
       yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
       zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
       
-      write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
-      flush(31)
+!      write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
+!      flush(31)
       
       
       !----------------------------------------------------------------------------------------------------------------------
@@ -479,7 +479,7 @@ DO WHILE (ASSOCIATED(current))
       !----------------------------------------------------------------------------------------------------------------------
       IF (V_eff_Ratio .LE. 1.0) THEN 					
          CaseNo = 1
-         write(31,*) 'CaseNo = ', CaseNo
+!         write(31,*) 'CaseNo = ', CaseNo
          IF (mySub .EQ.current%pardata%cur_part) THEN
             ix0 =FLOOR(xp)
             ix1 =CEILING(xp)
@@ -510,13 +510,13 @@ DO WHILE (ASSOCIATED(current))
             
             !--------- Concentration Trilinear Iinterpolation
             !--------- Interpolation in x-direction
-            write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
-            write(31,*) 'ix1,ix1,iz1 = ', ix1, iy1, iz1
-            write(31,*) phi(ix0,iy0,iz0), phi(ix1,iy0,iz0)
-            write(31,*) phi(ix0,iy0,iz1), phi(ix1,iy0,iz1)
-            write(31,*) phi(ix0,iy1,iz0), phi(ix1,iy1,iz0)
-            write(31,*) phi(ix0,iy1,iz1), phi(ix1,iy1,iz1)
-            flush(31)
+!            write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
+!            write(31,*) 'ix1,ix1,iz1 = ', ix1, iy1, iz1
+!            write(31,*) phi(ix0,iy0,iz0), phi(ix1,iy0,iz0)
+!            write(31,*) phi(ix0,iy0,iz1), phi(ix1,iy0,iz1)
+!            write(31,*) phi(ix0,iy1,iz0), phi(ix1,iy1,iz0)
+!            write(31,*) phi(ix0,iy1,iz1), phi(ix1,iy1,iz1)
+!            flush(31)
             c00 = phi(ix0,iy0,iz0) * (1.0_dbl-xd) + phi(ix1,iy0,iz0) * xd
             c01 = phi(ix0,iy0,iz1) * (1.0_dbl-xd) + phi(ix1,iy0,iz1) * xd
             c10 = phi(ix0,iy1,iz0) * (1.0_dbl-xd) + phi(ix1,iy1,iz0) * xd
@@ -529,8 +529,8 @@ DO WHILE (ASSOCIATED(current))
             
             
             Cb_Hybrid= c
-            write(31,*) 'Cb_Hybrid = ', Cb_Hybrid
-            flush(31)
+!            write(31,*) 'Cb_Hybrid = ', Cb_Hybrid
+!            flush(31)
             
             
          END IF
@@ -540,7 +540,7 @@ DO WHILE (ASSOCIATED(current))
          !----------------------------------------------------------------------------------------------------------------------
       ELSE IF ( (V_eff_Ratio .GT. 1.0) .AND. (V_eff_Ratio .LT. 27.0 ) ) THEN		
          CaseNo = 2
-         write(31,*) 'CaseNo = ', CaseNo
+!         write(31,*) 'CaseNo = ', CaseNo
          VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
          VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
          VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
@@ -593,7 +593,7 @@ DO WHILE (ASSOCIATED(current))
                   hardCheckCoarseMesh = ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - ycf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 )
                   
                   if (hardCheckCoarseMesh) then
-                     write(31,*) 'Point in coarse mesh', xp, yp, zp
+!                     write(31,*) 'Point in coarse mesh', xp, yp, zp
                      if( (zp - kMaxDomain(mySub)*zcf) * (zp - (kMinDomain(mySub)-1)*zcf) .lt. 0)  then !If this point is in this processor
                         
                         !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
@@ -660,7 +660,7 @@ DO WHILE (ASSOCIATED(current))
                   else
                      
                      
-                     write(31,*) 'Point in fine mesh', xp, yp, zp
+!                     write(31,*) 'Point in fine mesh', xp, yp, zp
                      
                      if( (zp - kMaxDomain_fine(mySub)*zcf_fine) * (zp - (kMinDomain_fine(mySub)-1)*zcf_fine) .lt. 0)  then !If this point is in this processor                    
                         !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
@@ -745,7 +745,7 @@ DO WHILE (ASSOCIATED(current))
          !----------------------------------------------------------------------------------------------------------------------
       ELSE IF (V_eff_Ratio .GE. 27.0) THEN                             
          CaseNo = 3
-         write(31,*) 'CaseNo = ', CaseNo
+!         write(31,*) 'CaseNo = ', CaseNo
          VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
          VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
          VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
@@ -781,7 +781,7 @@ DO WHILE (ASSOCIATED(current))
          
          overlapCoarseProc = MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
 
-         write(31,*) 'overlapCoarseProc = ', overlapCoarseProc
+!         write(31,*) 'overlapCoarseProc = ', overlapCoarseProc
          
          if (MAX ( MIN(VIB_z(2)+L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
             
@@ -804,7 +804,7 @@ DO WHILE (ASSOCIATED(current))
          
          
          if (overlapCoarseProc .gt. 0) then
-            write(31,*) 'Finding particle location in this processor'
+!            write(31,*) 'Finding particle location in this processor'
             xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
             yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
             zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
@@ -816,10 +816,10 @@ DO WHILE (ASSOCIATED(current))
             NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf))
             NEP_z(2)= MIN(nzSub, CEILING(zp + 0.5*L_influence_P/zcf))
             
-            write(31,*) 'Coarse mesh'
-            write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-            write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-            write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+            ! write(31,*) 'Coarse mesh'
+            ! write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+            ! write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+            ! write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
             
             DO i= NEP_x(1),NEP_x(2) 
                DO j= NEP_y(1),NEP_y(2)
@@ -842,10 +842,10 @@ DO WHILE (ASSOCIATED(current))
             END DO
             
          end if
-         write(31,*) 'Bulk conc with just coarse mesh = ', Cb_Total_Veff_l, fluids_Veff_l
+!         write(31,*) 'Bulk conc with just coarse mesh = ', Cb_Total_Veff_l, fluids_Veff_l
          
          if (overlapFineProc .gt. 0) then
-            write(31,*) 'Particle Effe volume also overlaps with fine mesh'
+!            write(31,*) 'Particle Effe volume also overlaps with fine mesh'
             if (checkEffVolumeOverlapFineMesh .gt. 0.01) then
                !------ Finding particle location in this processor
                xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
@@ -859,10 +859,10 @@ DO WHILE (ASSOCIATED(current))
                NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
                NEP_z(2)= MIN(nzSub_fine, CEILING(zp + 0.5*L_influence_P/zcf_fine))
                
-               write(31,*) 'Fine mesh'
-               write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-               write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-               write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+!               write(31,*) 'Fine mesh'
+!               write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+!               write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+!               write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
                
                DO i= NEP_x(1),NEP_x(2) 
                   DO j= NEP_y(1),NEP_y(2)
@@ -887,7 +887,7 @@ DO WHILE (ASSOCIATED(current))
             end if
          end if
          
-         write(31,*) 'Bulk conc including fine mesh = ', Cb_Total_Veff_l, fluids_Veff_l
+!         write(31,*) 'Bulk conc including fine mesh = ', Cb_Total_Veff_l, fluids_Veff_l
          
          !----Communication with other processors for V_eff greater than 1
          CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
@@ -898,10 +898,11 @@ DO WHILE (ASSOCIATED(current))
       END IF
       
       current%pardata%bulk_conc = Cb_Hybrid
-      write(31,*) 'current%pardata%bulk_conc = ', current%pardata%bulk_conc
+!      write(31,*) 'current%pardata%bulk_conc = ', current%pardata%bulk_conc
       flush(31)
-      
+
    END IF
+   current%pardata%bulk_conc = 0.0   
    current => next
    
 END DO
@@ -928,7 +929,7 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
   REAL(dbl)     :: deltaR,bulkVolume,temp,cbt,zcf3,bulkconc
   TYPE(ParRecord), POINTER :: current
   TYPE(ParRecord), POINTER :: next
-  INTEGER(lng)  :: RANK,mpierr  
+  INTEGER       :: RANK,mpierr  
   
   !calculate delNB for each particle in the domain
   current => ParListHead%next
@@ -1132,7 +1133,8 @@ SUBROUTINE Interp_ParToNodes_Conc
 
 IMPLICIT NONE
 INTEGER(lng)  		  :: i,j,k,kk
-REAL(dbl)     		  :: xp,yp,zp
+REAL(dbl)     		  :: xp,yp,zp ! Local particle or node indices
+REAL(dbl)                 :: zp_fine, zp_coarse ! Local particle location after adjusting for periodicity
 REAL(dbl)		  :: delta_par,delta_mesh,zcf3,Nbj,Veff,bulkconc
 REAL(dbl)                 :: N_d         				! Modeling parameter to extend the volume of influence around 
 REAL(dbl)                 :: R_P, Sh_P, delta_P
@@ -1147,7 +1149,7 @@ REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_l, Overlap_sum_coarse, Overlap_sum
 REAL(dbl)                 :: overlapCoarseProc, overlapFineProc
 TYPE(ParRecord), POINTER  :: current
 TYPE(ParRecord), POINTER  :: next
-INTEGER(lng)  		  :: mpierr
+INTEGER  		  :: mpierr
 
 
 delta_mesh = 1.0_dbl
@@ -1170,9 +1172,13 @@ DO WHILE (ASSOCIATED(current))
 	Sh_P = current%pardata%sh
         delta_P = R_P / Sh_P
         R_influence_P = (R_P + N_d * delta_P)
+
+        write(31,*) 'R_P = ', R_P, ' R_influence_P = ', R_influence_P
         
 !------ Computing equivalent cubic mesh length scale
         L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
+        write(31,*) 'L_influence_P = ', L_influence_P
+        write(31,*) 'Particle location = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
  
 !------ NEW: Volume of Influence Border (VIB) for this particle
         VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
@@ -1191,39 +1197,44 @@ DO WHILE (ASSOCIATED(current))
         
         !Check if Volume of Influence Border overlaps with the current processor domain
 
-        if (MAX ( MIN(VIB_z(2)+L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)+L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+        if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_z(1)+L,(kMinDomain(mySub)-1.5)*zcf), 0.0_dbl) .gt. 0) then
 
+           zp_coarse = current%pardata%zp + L           
            VIB_zc(1) = VIB_z(1)+L
            VIB_zc(2) = VIB_z(2)+L
            
-        else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+        else  if (MAX ( MIN(VIB_z(2)-L,(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1.5)*zcf), 0.0_dbl) .gt. 0) then
 
+           zp_coarse = current%pardata%zp - L
            VIB_zc(1) = VIB_z(1)-L
            VIB_zc(2) = VIB_z(2)-L
 
         else
-           
+           zp_coarse = current%pardata%zp
            VIB_zc(1) = VIB_z(1)
            VIB_zc(2) = VIB_z(2)
            
         end if
-        
-        overlapCoarseProc = MAX ( MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
-        write(31,*) 'overlapCoarseProc = ', overlapCoarseProc
+
+        write(31,*) 'VIB_zc = ', VIB_zc(1), VIB_zc(2), ' zMinMax  = ', (kMaxDomain(mySub)-0.5)*zcf, (kMinDomain(mySub)-1.5)*zcf
+        overlapCoarseProc = MAX ( MIN(VIB_zc(2),(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1.5)*zcf) , 0.0_dbl)
+        write(31,*) 'overlapCoarseProc = ', overlapCoarseProc, ' Ratio = ', overlapCoarseProc/(VIB_zc(2)-VIB_zc(1))
         flush(31)
 
-        if (MAX ( MIN(VIB_z(2)+L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
+        if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1.5)*zcf_fine), 0.0_dbl) .gt. 0) then
 
+           zp_fine = current%pardata%zp + L           
            VIB_zf(1) = VIB_z(1)+L
            VIB_zf(2) = VIB_z(2)+L
            
-        else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)-L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
+        else  if (MAX ( MIN(VIB_z(2)-L,(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_z(1)-L,(kMinDomain_fine(mySub)-1.5)*zcf_fine), 0.0_dbl) .gt. 0) then
 
+           zp_fine = current%pardata%zp - L
            VIB_zf(1) = VIB_z(1)-L
            VIB_zf(2) = VIB_z(2)-L
 
         else
-
+           zp_fine = current%pardata%zp
            VIB_zf(1) = VIB_z(1)
            VIB_zf(2) = VIB_z(2)
            
@@ -1245,7 +1256,7 @@ DO WHILE (ASSOCIATED(current))
            !------ Finding particle location in this processor
            xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
            yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
-           zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
+           zp = (zp_fine-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
            
            !------ NEW: Finding the lattice "Nodes Effected by Particle" 
            NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
@@ -1275,11 +1286,11 @@ DO WHILE (ASSOCIATED(current))
                     
                     !---- Taking care of the periodic BC in Z-dir
                     kk = k 
-                    IF (k .gt. nz) THEN
-                       kk = k - (nz - 1)
-                    ELSE IF (k .lt. 1) THEN
-                       kk = k + (nz-1)
-                    END IF
+                    ! IF (k .gt. nz) THEN
+                    !    kk = k - (nz - 1)
+                    ! ELSE IF (k .lt. 1) THEN
+                    !    kk = k + (nz-1)
+                    ! END IF
                     
                     IF ((node_fine(i,j,kk) .EQ. FLUID) ) THEN                       
                        Overlap_fine(i,j,kk)= tmp 
@@ -1291,7 +1302,7 @@ DO WHILE (ASSOCIATED(current))
            
         end if
      end if
-
+     
         if (overlapCoarseProc .gt. 0) then
      
         !------ Finding particle location in this processor
@@ -1327,11 +1338,11 @@ DO WHILE (ASSOCIATED(current))
                 
 		!---- Taking care of the periodic BC in Z-dir
                 kk = k 
-      		IF (k .gt. nz) THEN
-                    kk = k - (nz - 1)
-                ELSE IF (k .lt. 1) THEN
-                    kk = k + (nz-1)
-                END IF
+      		! IF (k .gt. nz) THEN
+                !     kk = k - (nz - 1)
+                ! ELSE IF (k .lt. 1) THEN
+                !     kk = k + (nz-1)
+                ! END IF
 
                 IF (node(i,j,kk) .EQ. FLUID) THEN
                     Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk))
@@ -1344,11 +1355,14 @@ DO WHILE (ASSOCIATED(current))
      end if
 
      Overlap_sum_l = Overlap_sum_coarse + Overlap_sum_fine
-     
-     write(31,*) 'Overlaps local = ', Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine
+
+     write(31,*) 'Overlap_sum_coarse = ', Overlap_sum_coarse, ' Ratio = ', Overlap_sum_coarse/(L_influence_P * L_influence_P * L_influence_P)
+     write(31,*) 'Overlap_sum_fine = ', Overlap_sum_fine, ' Ratio = ', Overlap_sum_fine/(L_influence_P * L_influence_P * L_influence_P)
+!     write(31,*) 'Overlaps local = ', Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine
      CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
      CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
-     
+
+     write(31,*) 'Overlap = ', Overlap_sum, ' Ratio = ', Overlap_sum/(L_influence_P * L_influence_P * L_influence_P)
 
      if (overlapCoarseProc .gt. 0) then
         !------ Computing particle release contribution to scalar field at each lattice node
@@ -1358,11 +1372,11 @@ DO WHILE (ASSOCIATED(current))
                  
 		 !----- Taking care of the periodic BC in Z-dir
                  kk = k 
-                 IF (k .gt. nz) THEN
-                     kk = k - (nz-1)
-                 ELSE IF (k .lt. 1) THEN
-                     kk = k + (nz-1)
-                 END IF
+                 ! IF (k .gt. nz) THEN
+                 !     kk = k - (nz-1)
+                 ! ELSE IF (k .lt. 1) THEN
+                 !     kk = k + (nz-1)
+                 ! END IF
  
                  IF (node(i,j,kk) .EQ. FLUID) THEN                 
                  
@@ -1524,7 +1538,7 @@ SUBROUTINE Particle_Track
   LOGICAL                  :: hardCheckCoarseMesh, softCheckCoarseMesh, hardCheckCoarseMeshNF
   REAL(dbl)                :: ur, theta
   REAL(dbl)                :: xpNF, ypNF, zpNF !First order extrapolation of new particle location.
-  INTEGER(dbl)             :: mpierr
+  INTEGER                  :: mpierr
   
   ParticleTransfer = .FALSE. 						! AT this time we do not know if any particles need to be transferred.
   delphi_particle = 0.0_dbl 						! set delphi_particle to 0.0 before every time step, when the particle drug release happens.
@@ -1553,7 +1567,9 @@ SUBROUTINE Particle_Track
      flush(31)
      
      IF ( hardCheckCoarseMesh .or. (softCheckCoarseMesh .and. flagParticleCF(current%pardata%parid) .and. hardCheckCoarseMeshNF) ) THEN  !Check if particle is in coarse mesh. Also check if the particle is in the interface region and was previously in the fine mesh and is coming out of it.
-        
+
+        write(31,*) 'Particle in coarse mesh'
+        flush(31)
         flagParticleCF(current%pardata%parid) = .false.
         
         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++
@@ -1572,6 +1588,7 @@ SUBROUTINE Particle_Track
         
      ELSE
         write(31,*) 'Particle in fine mesh'
+        flush(31)
         flagParticleCF(current%pardata%parid) = .true.         
         
      END IF
@@ -1597,7 +1614,8 @@ SUBROUTINE Particle_Track
      current => next
   ENDDO
   
-  CALL Interp_Parvel 							! interpolate final particle velocities after the final position is ascertained. 
+  CALL Interp_Parvel 							! interpolate final particle velocities after the final position is ascertained.
+  CALL Particle_Transfer
   
   !   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
   !   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
@@ -1628,7 +1646,7 @@ SUBROUTINE Particle_Track
      ENDDO
   ENDDO
   
-  CALL Particle_Transfer
+!  CALL Particle_Transfer
   
   current => ParListHead%next
   DO WHILE (ASSOCIATED(current))
@@ -1694,8 +1712,8 @@ SUBROUTINE Particle_Transfer
 IMPLICIT NONE
 
 INTEGER(lng)   		 :: i,ipartition,ii,jj,kk
-INTEGER(dbl)             :: RANK
-INTEGER(lng)             :: mpierr
+INTEGER                  :: RANK
+INTEGER                  :: mpierr
 TYPE(ParRecord), POINTER :: current
 TYPE(ParRecord), POINTER :: next
 
@@ -1723,7 +1741,8 @@ DO WHILE (ASSOCIATED(current))
                
                current%pardata%new_part = ipartition
 	    END IF
-     !write(*,*) ipartition,kMinDomain(ipartition),kMaxDomain(ipartition)
+     write(31,*) ipartition,kMinDomain(ipartition),kMaxDomain(ipartition)
+     flush(31)
   END DO
   
 END IF
@@ -1736,7 +1755,9 @@ ENDDO
 current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
    next => current%next 
-	RANK= current%pardata%cur_part - 1
+   RANK= current%pardata%cur_part - 1
+   write(31,*) 'RANK = ', RANK, current%pardata%cur_part, ' mySub = ', mySub
+    flush(31)
         current%pardata%cur_part = current%pardata%new_part 
 	CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
 	CALL MPI_BCast(current%pardata%xp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD,mpierr)

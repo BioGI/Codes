@@ -60,7 +60,7 @@ ELSE															! clean start
         v_fine(i,j,k)        = -0.0_dbl
         tmp = sqrt( x_fine(i) * x_fine(i) + y_fine(j)*y_fine(j) )
 !        w_fine(i,j,k)        = 1.0 - tmp/r_fine(k) !Linear velocity profile such that the velocity goes to zero at the wall! z-velocity
-        w_fine(i,j,k) = 0.0
+        w_fine(i,j,k) = 1.0
         rho_fine(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)
@@ -577,7 +577,7 @@ IMPLICIT NONE
 
 INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1								! index variables
 REAL(dbl), INTENT(OUT) :: phiBC     											! scalar contribution from the boundary condition
-INTEGER(dbl) :: ip1,jp1,kp1 														! neighboring nodes (2 away from the wall)
+INTEGER :: ip1,jp1,kp1 														! neighboring nodes (2 away from the wall)
 REAL(dbl) :: q																			! distance ratio from the current node to the solid node
 REAL(dbl) :: rhoB,phiB																! values of density and at the boundary, and contribution of scalar from the boundary and solid nodes
 REAL(dbl) :: feq_m																	! equilibrium distribution function in the mth direction

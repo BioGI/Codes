@@ -249,8 +249,8 @@ REAL(dbl), PARAMETER :: R0 = 0.0026_dbl
 REAL(dbl), PARAMETER :: Cs_mol = 3.30000e-7 					! (mole/cm^3) or (micro M) or (micro g/ml)  drug properties
 REAL(dbl):: Cb_global								! (mole/cm^3) or (micro M) or (micro g/ml)  Global bulk scalar Concentration
 
-INTEGER(dbl):: Cb_numFluids							! Number of fluid nodes in the process for Global bulk scalar Concentration
-INTEGER(dbl):: num_particles							! Total number of particles in domain
+INTEGER:: Cb_numFluids							! Number of fluid nodes in the process for Global bulk scalar Concentration
+INTEGER:: num_particles							! Total number of particles in domain
 
 
 INTEGER(lng), ALLOCATABLE :: iMaxDomain(:),iMinDomain(:) 			! List of starting/enning i indices for each subdomain
