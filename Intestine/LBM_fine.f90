@@ -898,12 +898,12 @@ CONTAINS
                 zp = (zp_fine-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
                 
                 !Finding the lattice "Nodes Effected by Particle"
-                NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-                NEP_x(2)= MIN(nxSub_fine-1, CEILING(xp + 0.5*L_influence_P/xcf_fine))
-                NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/ycf_fine))
-                NEP_y(2)= MIN(nySub_fine-1, CEILING(yp + 0.5*L_influence_P/ycf_fine))
-                NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/zcf_fine))
-                NEP_z(2)= MIN(nzSub_fine, CEILING(zp + 0.5*L_influence_P/zcf_fine))
+                NEP_x(1)= MAX(2,NINT(xp - 0.5*L_influence_P/xcf_fine))
+                NEP_x(2)= MIN(nxSub_fine-1, NINT(xp + 0.5*L_influence_P/xcf_fine))
+                NEP_y(1)= MAX(2,NINT(yp - 0.5*L_influence_P/ycf_fine))
+                NEP_y(2)= MIN(nySub_fine-1, NINT(yp + 0.5*L_influence_P/ycf_fine))
+                NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/zcf_fine))
+                NEP_z(2)= MIN(nzSub_fine, NINT(zp + 0.5*L_influence_P/zcf_fine))
                 
                 write(31,*) 'Fine mesh'
                 write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
@@ -942,12 +942,12 @@ CONTAINS
                    yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
                    zp = (zp_fine-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
                    
-                   NEP_x(1)= MAX(1,FLOOR(xp - 0.5*L_influence_P/xcf))
-                   NEP_x(2)= MIN(nxSub, CEILING(xp + 0.5*L_influence_P/xcf))
-                   NEP_y(1)= MAX(1,FLOOR(yp - 0.5*L_influence_P/xcf))
-                   NEP_y(2)= MIN(nySub, CEILING(yp + 0.5*L_influence_P/ycf))
-                   NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf))
-                   NEP_z(2)= MIN(nzSub, CEILING(zp + 0.5*L_influence_P/zcf))
+                   NEP_x(1)= MAX(1,NINT(xp - 0.5*L_influence_P/xcf))
+                   NEP_x(2)= MIN(nxSub, NINT(xp + 0.5*L_influence_P/xcf))
+                   NEP_y(1)= MAX(1,NINT(yp - 0.5*L_influence_P/xcf))
+                   NEP_y(2)= MIN(nySub, NINT(yp + 0.5*L_influence_P/ycf))
+                   NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf))
+                   NEP_z(2)= MIN(nzSub, NINT(zp + 0.5*L_influence_P/zcf))
                    
 !                   write(31,*) 'Coarse mesh'
 !                   write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
@@ -1213,12 +1213,12 @@ CONTAINS
                 
                 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
                 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-                NEP_x(1)= MAX(1,FLOOR(xp - 0.5*L_influence_P/xcf))
-                NEP_x(2)= MIN(nxSub,CEILING(xp + 0.5*L_influence_P/xcf))
-                NEP_y(1)= MAX(1,FLOOR(yp - 0.5*L_influence_P/xcf))
-                NEP_y(2)= MIN(nySub,CEILING(yp + 0.5*L_influence_P/ycf))
-                NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf))
-                NEP_z(2)= MIN(nzSub,CEILING(zp + 0.5*L_influence_P/zcf))
+                NEP_x(1)= MAX(1,NINT(xp - 0.5*L_influence_P/xcf))
+                NEP_x(2)= MIN(nxSub,NINT(xp + 0.5*L_influence_P/xcf))
+                NEP_y(1)= MAX(1,NINT(yp - 0.5*L_influence_P/xcf))
+                NEP_y(2)= MIN(nySub,NINT(yp + 0.5*L_influence_P/ycf))
+                NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf))
+                NEP_z(2)= MIN(nzSub,NINT(zp + 0.5*L_influence_P/zcf))
                 
                 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
                 
@@ -1271,12 +1271,12 @@ CONTAINS
 !             write(31,*) 'xp, yp, zp = ', xp, yp, zp
              
              !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-             NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-             NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
-             NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
-             NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
-             NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
-             NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
+             NEP_x(1)= MAX(2,NINT(xp - 0.5*L_influence_P/xcf_fine))
+             NEP_x(2)= MIN(nxSub_fine-1,NINT(xp + 0.5*L_influence_P/xcf_fine))
+             NEP_y(1)= MAX(2,NINT(yp - 0.5*L_influence_P/xcf_fine))
+             NEP_y(2)= MIN(nySub_fine-1,NINT(yp + 0.5*L_influence_P/ycf_fine))
+             NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf_fine))
+             NEP_z(2)= MIN(nzSub_fine,NINT(zp + 0.5*L_influence_P/zcf_fine))
 !             write(31,*) 'NEP_x(1) = ', NEP_x(1), 'NEP_x(2) = ', NEP_x(2)
 !             write(31,*) 'NEP_y(1) = ', NEP_y(1), 'NEP_y(2) = ', NEP_y(2)
 !             write(31,*) 'NEP_z(1) = ', NEP_z(1), 'NEP_z(2) = ', NEP_z(2)
@@ -1375,12 +1375,12 @@ CONTAINS
                 
                 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
                 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-                NEP_x(1)= MAX(1,FLOOR(xp - 0.5*L_influence_P/xcf))
-                NEP_x(2)= MIN(nxSub,CEILING(xp + 0.5*L_influence_P/xcf))
-                NEP_y(1)= MAX(1,FLOOR(yp - 0.5*L_influence_P/xcf))
-                NEP_y(2)= MIN(nySub,CEILING(yp + 0.5*L_influence_P/ycf))
-                NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf))
-                NEP_z(2)= MIN(nzSub,CEILING(zp + 0.5*L_influence_P/zcf))
+                NEP_x(1)= MAX(1,NINT(xp - 0.5*L_influence_P/xcf))
+                NEP_x(2)= MIN(nxSub,NINT(xp + 0.5*L_influence_P/xcf))
+                NEP_y(1)= MAX(1,NINT(yp - 0.5*L_influence_P/xcf))
+                NEP_y(2)= MIN(nySub,NINT(yp + 0.5*L_influence_P/ycf))
+                NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf))
+                NEP_z(2)= MIN(nzSub,NINT(zp + 0.5*L_influence_P/zcf))
                 
                 !------ Computing particle release contribution to scalar field at each lattice node
                 DO i= NEP_x(1),NEP_x(2)
