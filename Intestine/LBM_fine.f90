@@ -898,12 +898,12 @@ CONTAINS
                 zp = (zp_fine-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
                 
                 !Finding the lattice "Nodes Effected by Particle"
-                NEP_x(1)= MAX(2,NINT(xp - 0.5*L_influence_P/xcf_fine))
-                NEP_x(2)= MIN(nxSub_fine-1, NINT(xp + 0.5*L_influence_P/xcf_fine))
-                NEP_y(1)= MAX(2,NINT(yp - 0.5*L_influence_P/ycf_fine))
-                NEP_y(2)= MIN(nySub_fine-1, NINT(yp + 0.5*L_influence_P/ycf_fine))
-                NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/zcf_fine))
-                NEP_z(2)= MIN(nzSub_fine, NINT(zp + 0.5*L_influence_P/zcf_fine))
+                NEP_x(1)= MAX(2,CEILING(xp - 0.5*L_influence_P/xcf_fine))
+                NEP_x(2)= MIN(nxSub_fine-1, FLOOR(xp + 0.5*L_influence_P/xcf_fine))
+                NEP_y(1)= MAX(2,CEILING(yp - 0.5*L_influence_P/ycf_fine))
+                NEP_y(2)= MIN(nySub_fine-1, FLOOR(yp + 0.5*L_influence_P/ycf_fine))
+                NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf_fine))
+                NEP_z(2)= MIN(nzSub_fine, FLOOR(zp + 0.5*L_influence_P/zcf_fine))
                 
                 write(31,*) 'Fine mesh'
                 write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
@@ -942,17 +942,19 @@ CONTAINS
                    yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
                    zp = (zp_fine-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
                    
-                   NEP_x(1)= MAX(1,NINT(xp - 0.5*L_influence_P/xcf))
-                   NEP_x(2)= MIN(nxSub, NINT(xp + 0.5*L_influence_P/xcf))
-                   NEP_y(1)= MAX(1,NINT(yp - 0.5*L_influence_P/xcf))
-                   NEP_y(2)= MIN(nySub, NINT(yp + 0.5*L_influence_P/ycf))
-                   NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf))
-                   NEP_z(2)= MIN(nzSub, NINT(zp + 0.5*L_influence_P/zcf))
+                   NEP_x(1)= MAX(1,CEILING(xp - 0.5*L_influence_P/xcf))
+                   NEP_x(2)= MIN(nxSub, FLOOR(xp + 0.5*L_influence_P/xcf))
+                   NEP_y(1)= MAX(1,CEILING(yp - 0.5*L_influence_P/ycf))
+                   NEP_y(2)= MIN(nySub, FLOOR(yp + 0.5*L_influence_P/ycf))
+                   NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf))
+                   NEP_z(2)= MIN(nzSub, FLOOR(zp + 0.5*L_influence_P/zcf))
                    
-!                   write(31,*) 'Coarse mesh'
-!                   write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-!                   write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-!                   write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+                  write(31,*) 'Coarse mesh'
+                  write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+                  write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+                  write(31,*) 'zp = ', zp, ' zp - 0.5*L_influence_P/zcf = ', zp - 0.5*L_influence_P/zcf, ' zp + 0.5*L_influence_P/zcf = ', zp + 0.5*L_influence_P/zcf
+                  write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+
                    flush(31)                   
                    
                    DO i= NEP_x(1),NEP_x(2) 

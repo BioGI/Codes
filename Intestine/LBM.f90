@@ -541,7 +541,7 @@ DO WHILE (ASSOCIATED(current))
          !----------------------------------------------------------------------------------------------------------------------
       ELSE IF ( (V_eff_Ratio .GT. 1.0) .AND. (V_eff_Ratio .LT. 27.0 ) ) THEN		
          CaseNo = 2
-!         write(31,*) 'CaseNo = ', CaseNo
+         write(31,*) 'CaseNo = ', CaseNo
          VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
          VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
          VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
@@ -746,7 +746,7 @@ DO WHILE (ASSOCIATED(current))
          !----------------------------------------------------------------------------------------------------------------------
       ELSE IF (V_eff_Ratio .GE. 27.0) THEN                             
          CaseNo = 3
-!         write(31,*) 'CaseNo = ', CaseNo
+         write(31,*) 'CaseNo = ', CaseNo
          VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
          VIB_x(2)= current%pardata%xp + 0.5_dbl * L_influence_P
          VIB_y(1)= current%pardata%yp - 0.5_dbl * L_influence_P
@@ -822,17 +822,17 @@ DO WHILE (ASSOCIATED(current))
             yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
             zp = (zp_coarse-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
             
-            NEP_x(1)= MAX(1,FLOOR(xp - 0.5*L_influence_P/xcf))
-            NEP_x(2)= MIN(nxSub, CEILING(xp + 0.5*L_influence_P/xcf))
-            NEP_y(1)= MAX(1,FLOOR(yp - 0.5*L_influence_P/xcf))
-            NEP_y(2)= MIN(nySub, CEILING(yp + 0.5*L_influence_P/ycf))
-            NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf))
-            NEP_z(2)= MIN(nzSub, CEILING(zp + 0.5*L_influence_P/zcf))
+            NEP_x(1)= MAX(1,CEILING(xp - 0.5*L_influence_P/xcf))
+            NEP_x(2)= MIN(nxSub, FLOOR(xp + 0.5*L_influence_P/xcf))
+            NEP_y(1)= MAX(1,CEILING(yp - 0.5*L_influence_P/xcf))
+            NEP_y(2)= MIN(nySub, FLOOR(yp + 0.5*L_influence_P/ycf))
+            NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/xcf))
+            NEP_z(2)= MIN(nzSub, FLOOR(zp + 0.5*L_influence_P/zcf))
             
-            ! write(31,*) 'Coarse mesh'
-            ! write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-            ! write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-            ! write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+            write(31,*) 'Coarse mesh'
+            write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+            write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+            write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
             
             DO i= NEP_x(1),NEP_x(2) 
                DO j= NEP_y(1),NEP_y(2)
@@ -850,6 +850,7 @@ DO WHILE (ASSOCIATED(current))
             END DO
             
          end if
+         write(31,*) 'Moles inside averaging volume coarse mesh ', Cb_Total_Veff
          write(31,*) 'Overlap coarse mesh', fluids_Veff_l*xcf*xcf*xcf/(L_influence_P*L_influence_P*L_influence_P)             
          
          if (overlapFineProc .gt. 0) then
@@ -860,17 +861,17 @@ DO WHILE (ASSOCIATED(current))
                yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
                zp = (zp_fine-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
                
-               NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-               NEP_x(2)= MIN(nxSub_fine-1, CEILING(xp + 0.5*L_influence_P/xcf_fine))
-               NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
-               NEP_y(2)= MIN(nySub_fine-1, CEILING(yp + 0.5*L_influence_P/ycf_fine))
-               NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
-               NEP_z(2)= MIN(nzSub_fine, CEILING(zp + 0.5*L_influence_P/zcf_fine))
+               NEP_x(1)= MAX(2,CEILING(xp - 0.5*L_influence_P/xcf_fine))
+               NEP_x(2)= MIN(nxSub_fine-1, FLOOR(xp + 0.5*L_influence_P/xcf_fine))
+               NEP_y(1)= MAX(2,CEILING(yp - 0.5*L_influence_P/xcf_fine))
+               NEP_y(2)= MIN(nySub_fine-1, FLOOR(yp + 0.5*L_influence_P/ycf_fine))
+               NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/xcf_fine))
+               NEP_z(2)= MIN(nzSub_fine, FLOOR(zp + 0.5*L_influence_P/zcf_fine))
                
-!               write(31,*) 'Fine mesh'
-!               write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-!               write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-!               write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+              write(31,*) 'Fine mesh'
+              write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+              write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+              write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
                
                DO i= NEP_x(1),NEP_x(2) 
                   DO j= NEP_y(1),NEP_y(2)
@@ -878,11 +879,6 @@ DO WHILE (ASSOCIATED(current))
                         
                         !---- Taking care of the periodic BC in Z-dir
                         kk = k
-                        IF (k .gt. nz) THEN
-                           kk = k - (nz - 1)  
-                        ELSE IF (k .lt. 1) THEN
-                           kk = k + (nz-1)
-                        END IF
                         
                         IF (node_fine(i,j,kk) .EQ. FLUID) THEN
                            Cb_Total_Veff_l  = Cb_Total_Veff_l  + phi_fine(i,j,kk) * fineMeshVol
@@ -894,12 +890,15 @@ DO WHILE (ASSOCIATED(current))
                
             end if
          end if
+         write(31,*) 'Moles inside averaging volume coarse+fine mesh ', Cb_Total_Veff
          write(31,*) 'Overlap coarse+fine mesh', fluids_Veff_l*xcf*xcf*xcf/(L_influence_P*L_influence_P*L_influence_P)             
          
          !----Communication with other processors for V_eff greater than 1
          CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
          CALL MPI_ALLREDUCE(Cb_Total_Veff_l , Cb_Total_Veff , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
          CALL MPI_ALLREDUCE(fluids_Veff_l, fluids_Veff, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+         write(31,*) 'Total moles inside averaging volume = ', Cb_Total_Veff
+         write(31,*) 'Total overlap = ', fluids_Veff*xcf*xcf*xcf/(L_influence_P*L_influence_P*L_influence_P)             
          Cb_Hybrid= Cb_Total_Veff / fluids_Veff
          
       END IF
@@ -1179,12 +1178,12 @@ DO WHILE (ASSOCIATED(current))
         delta_P = R_P / Sh_P
         R_influence_P = (R_P + N_d * delta_P)
 
-        write(31,*) 'R_P = ', R_P, ' R_influence_P = ', R_influence_P
+!        write(31,*) 'R_P = ', R_P, ' R_influence_P = ', R_influence_P
         
 !------ Computing equivalent cubic mesh length scale
         L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
-        write(31,*) 'L_influence_P = ', L_influence_P
-        write(31,*) 'Particle location = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
+!        write(31,*) 'L_influence_P = ', L_influence_P
+!        write(31,*) 'Particle location = ', current%pardata%xp, current%pardata%yp, current%pardata%zp
  
 !------ NEW: Volume of Influence Border (VIB) for this particle
         VIB_x(1)= current%pardata%xp - 0.5_dbl * L_influence_P 
@@ -1222,10 +1221,10 @@ DO WHILE (ASSOCIATED(current))
            
         end if
 
-        write(31,*) 'VIB_zc = ', VIB_zc(1), VIB_zc(2), ' zMinMax  = ', (kMaxDomain(mySub)-0.5)*zcf, (kMinDomain(mySub)-1.5)*zcf
+!        write(31,*) 'VIB_zc = ', VIB_zc(1), VIB_zc(2), ' zMinMax  = ', (kMaxDomain(mySub)-0.5)*zcf, (kMinDomain(mySub)-1.5)*zcf
         overlapCoarseProc = MAX ( MIN(VIB_zc(2),(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1.5)*zcf) , 0.0_dbl)
-        write(31,*) 'overlapCoarseProc = ', overlapCoarseProc, ' Ratio = ', overlapCoarseProc/(VIB_zc(2)-VIB_zc(1))
-        flush(31)
+!        write(31,*) 'overlapCoarseProc = ', overlapCoarseProc, ' Ratio = ', overlapCoarseProc/(VIB_zc(2)-VIB_zc(1))
+!        flush(31)
 
         if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1.5)*zcf_fine), 0.0_dbl) .gt. 0) then
 
@@ -1247,8 +1246,8 @@ DO WHILE (ASSOCIATED(current))
         end if
         
         overlapFineProc = MAX ( MIN(VIB_zf(2),kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
-        write(31,*) 'overlapFineProc = ', overlapFineProc
-        flush(31)
+!        write(31,*) 'overlapFineProc = ', overlapFineProc
+!        flush(31)
         
 
         if (overlapFineProc .gt. 0) then
@@ -1265,12 +1264,12 @@ DO WHILE (ASSOCIATED(current))
            zp = (zp_fine-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
            
            !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-           NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-           NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
-           NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
-           NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
-           NEP_z(1)= MAX(0,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
-           NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
+           NEP_x(1)= MAX(2,NINT(xp - 0.5*L_influence_P/xcf_fine))
+           NEP_x(2)= MIN(nxSub_fine-1,NINT(xp + 0.5*L_influence_P/xcf_fine))
+           NEP_y(1)= MAX(2,NINT(yp - 0.5*L_influence_P/xcf_fine))
+           NEP_y(2)= MIN(nySub_fine-1,NINT(yp + 0.5*L_influence_P/ycf_fine))
+           NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf_fine))
+           NEP_z(2)= MIN(nzSub_fine,NINT(zp + 0.5*L_influence_P/zcf_fine))
            
            !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
            Overlap_fine= 0.0
@@ -1314,16 +1313,16 @@ DO WHILE (ASSOCIATED(current))
         !------ Finding particle location in this processor
         xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
         yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
-        zp = (current%pardata%zp-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
+        zp = (zp_coarse-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
         
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
 !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-        NEP_x(1)= MAX(1,FLOOR(xp - 0.5*L_influence_P/xcf ))
-        NEP_x(2)= MIN(nxSub,CEILING(xp + 0.5*L_influence_P/xcf))
-        NEP_y(1)= MAX(1,FLOOR(yp - 0.5*L_influence_P/xcf ))
-        NEP_y(2)= MIN(nySub,CEILING(yp + 0.5*L_influence_P/ycf))
-        NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf ))
-        NEP_z(2)= MIN(nzSub,CEILING(zp + 0.5*L_influence_P/zcf))
+        NEP_x(1)= MAX(1,NINT(xp - 0.5*L_influence_P/xcf ))
+        NEP_x(2)= MIN(nxSub,NINT(xp + 0.5*L_influence_P/xcf))
+        NEP_y(1)= MAX(1,NINT(yp - 0.5*L_influence_P/xcf ))
+        NEP_y(2)= MIN(nySub,NINT(yp + 0.5*L_influence_P/ycf))
+        NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf ))
+        NEP_z(2)= MIN(nzSub,NINT(zp + 0.5*L_influence_P/zcf))
 
 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
         Overlap= 0.0
@@ -1362,13 +1361,13 @@ DO WHILE (ASSOCIATED(current))
 
      Overlap_sum_l = Overlap_sum_coarse + Overlap_sum_fine
 
-     write(31,*) 'Overlap_sum_coarse = ', Overlap_sum_coarse, ' Ratio = ', Overlap_sum_coarse/(L_influence_P * L_influence_P * L_influence_P)
-     write(31,*) 'Overlap_sum_fine = ', Overlap_sum_fine, ' Ratio = ', Overlap_sum_fine/(L_influence_P * L_influence_P * L_influence_P)
+!     write(31,*) 'Overlap_sum_coarse = ', Overlap_sum_coarse, ' Ratio = ', Overlap_sum_coarse/(L_influence_P * L_influence_P * L_influence_P)
+!     write(31,*) 'Overlap_sum_fine = ', Overlap_sum_fine, ' Ratio = ', Overlap_sum_fine/(L_influence_P * L_influence_P * L_influence_P)
 !     write(31,*) 'Overlaps local = ', Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine
      CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
      CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
-     write(31,*) 'Overlap = ', Overlap_sum, ' Ratio = ', Overlap_sum/(L_influence_P * L_influence_P * L_influence_P)
+     write(31,*) 'Interp_ParToNodes Overlap = ', Overlap_sum, ' Ratio = ', Overlap_sum/(L_influence_P * L_influence_P * L_influence_P)
 
      if (overlapCoarseProc .gt. 0) then
         !------ Computing particle release contribution to scalar field at each lattice node
@@ -1378,11 +1377,6 @@ DO WHILE (ASSOCIATED(current))
                  
 		 !----- Taking care of the periodic BC in Z-dir
                  kk = k 
-                 ! IF (k .gt. nz) THEN
-                 !     kk = k - (nz-1)
-                 ! ELSE IF (k .lt. 1) THEN
-                 !     kk = k + (nz-1)
-                 ! END IF
  
                  IF (node(i,j,kk) .EQ. FLUID) THEN                 
                  
@@ -1413,15 +1407,15 @@ DO WHILE (ASSOCIATED(current))
            !------ Finding particle location in this processor
            xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
            yp = (current%pardata%yp-yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
-           zp = (current%pardata%zp-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
+           zp = (zp_fine-zz_fine(1))/zcf_fine + 1 - REAL(kMin_fine-1_lng,dbl)
            
            !------ NEW: Finding the lattice "Nodes Effected by Particle" 
-           NEP_x(1)= MAX(2,FLOOR(xp - 0.5*L_influence_P/xcf_fine))
-           NEP_x(2)= MIN(nxSub_fine-1,CEILING(xp + 0.5*L_influence_P/xcf_fine))
-           NEP_y(1)= MAX(2,FLOOR(yp - 0.5*L_influence_P/xcf_fine))
-           NEP_y(2)= MIN(nySub_fine-1,CEILING(yp + 0.5*L_influence_P/ycf_fine))
-           NEP_z(1)= MAX(1,FLOOR(zp - 0.5*L_influence_P/xcf_fine))
-           NEP_z(2)= MIN(nzSub_fine,CEILING(zp + 0.5*L_influence_P/zcf_fine))
+           NEP_x(1)= MAX(2,NINT(xp - 0.5*L_influence_P/xcf_fine))
+           NEP_x(2)= MIN(nxSub_fine-1,NINT(xp + 0.5*L_influence_P/xcf_fine))
+           NEP_y(1)= MAX(2,NINT(yp - 0.5*L_influence_P/xcf_fine))
+           NEP_y(2)= MIN(nySub_fine-1,NINT(yp + 0.5*L_influence_P/ycf_fine))
+           NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf_fine))
+           NEP_z(2)= MIN(nzSub_fine,NINT(zp + 0.5*L_influence_P/zcf_fine))
 
            !------ Computing particle release contribution to scalar field at each lattice node
            DO i= NEP_x(1),NEP_x(2)
@@ -1430,11 +1424,6 @@ DO WHILE (ASSOCIATED(current))
                     
                     !----- Taking care of the periodic BC in Z-dir
                     kk = k 
-                    IF (k .gt. nz) THEN
-                       kk = k - (nz-1)
-                    ELSE IF (k .lt. 1) THEN
-                       kk = k + (nz-1)
-                    END IF
                     
                     IF (node_fine(i,j,kk) .EQ. FLUID) THEN                 
                        

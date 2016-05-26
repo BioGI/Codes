@@ -75,7 +75,7 @@ ELSE															! clean start
         v(i,j,k) = -0.0_dbl
         tmp = sqrt( x(i) * x(i) + y(j)*y(j) )
 !        w(i,j,k)   = 1.0 - tmp/r(k) !Linear velocity profile such that the velocity goes to zero at the wall! z-velocity
-        w(i,j,k) = 0.0
+        w(i,j,k) = 1.0
         rho(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)
