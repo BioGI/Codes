@@ -306,6 +306,9 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
          jj = ((jMin - 1_lng) + j)
          kk = ((kMin - 1_lng) + k)
 
+         IF (phi(i,j,k) .LT. 1.0e-18) THEN
+            phi(i,j,k)=0.0_lng
+         END IF
          WRITE(60,'(8E15.5,I6)') x(i), y(j), z(k), u(i,j,k)*vcf, v(i,j,k)*vcf, w(i,j,k)*vcf, (rho(i,j,k)-denL)*dcf*pcf,	&
                                      phi(i,j,k), node(i,j,k)
 

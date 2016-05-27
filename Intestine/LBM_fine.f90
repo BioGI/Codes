@@ -98,7 +98,7 @@ CONTAINS
        current => next
     ENDDO
 
-    write(31,*) 'Calling Interp_Parvel_fine'
+!    write(31,*) 'Calling Interp_Parvel_fine'
     CALL Interp_Parvel_fine
     
     !--Using a linked list of particle records
@@ -118,7 +118,7 @@ CONTAINS
        current => next
     ENDDO
 
-    write(31,*) 'Calling Interp_Parvel_fine for the second time'    
+!    write(31,*) 'Calling Interp_Parvel_fine for the second time'    
     CALL Interp_Parvel_fine						! interpolate final particle velocities after the final position is ascertained. 
     CALL Particle_Transfer_fine
     
@@ -253,7 +253,6 @@ CONTAINS
                      ( ((current%pardata%zp - zz_fine(1))/zcf_fine + 1) .LT. (REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl))) THEN
                    
                    current%pardata%new_part = ipartition
-                   write(*,*) ipartition, kMinDomain(ipartition),kMaxDomain(ipartition)                            
                 END IF
                 
              END DO
@@ -426,6 +425,21 @@ CONTAINS
              
              ! w-interpolation
              ! Do first level linear interpolation in x-direction
+
+             if( (w_fine(ix0,iy0,iz0) .lt. 1e-18) .or. (w_fine(ix1,iy0,iz0) .lt. 1e-18) .or. (w_fine(ix0,iy1,iz0) .lt. 1e-18) .or. (w_fine(ix0,iy1,iz0) .lt. 1e-18) .or. (w_fine(ix0,iy0,iz1) .lt. 1e-18) .or. (w_fine(ix1,iy0,iz1) .lt. 1e-18) .or. (w_fine(ix0,iy1,iz1) .lt. 1e-18) .or. (w_fine(ix0,iy1,iz1) .lt. 1e-18) ) then
+                
+                write(31,*) 'parid = ', current%pardata%parid
+                write(31,*) 'ix0,iy0,iz0 = ', ix0, iy0, iz0
+                write(31,*) 'w_fine(ix0,iy0,iz0) = ',w_fine(ix0,iy0,iz0)
+                write(31,*) 'w_fine(ix1,iy0,iz0) = ',w_fine(ix1,iy0,iz0)
+                write(31,*) 'w_fine(ix0,iy1,iz0) = ',w_fine(ix0,iy1,iz0)
+                write(31,*) 'w_fine(ix1,iy1,iz0) = ',w_fine(ix1,iy1,iz0)            
+                write(31,*) 'w_fine(ix0,iy0,iz1) = ',w_fine(ix0,iy0,iz1)
+                write(31,*) 'w_fine(ix1,iy0,iz1) = ',w_fine(ix1,iy0,iz1)
+                write(31,*) 'w_fine(ix0,iy1,iz1) = ',w_fine(ix0,iy1,iz1)
+                write(31,*) 'w_fine(ix1,iy1,iz1) = ',w_fine(ix1,iy1,iz1)
+             end if
+             
              c00 = w_fine(ix0,iy0,iz0)*(1.0_dbl-xd)+w_fine(ix1,iy0,iz0)*xd	
              c01 = w_fine(ix0,iy0,iz1)*(1.0_dbl-xd)+w_fine(ix1,iy0,iz1)*xd	
              c10 = w_fine(ix0,iy1,iz0)*(1.0_dbl-xd)+w_fine(ix1,iy1,iz0)*xd	
@@ -512,10 +526,10 @@ CONTAINS
           L_influence_P = ( (4.0_dbl*PI/3.0_dbl)**(1.0_dbl/3.0_dbl) ) * R_influence_P
           V_influence_P= (4.0_dbl/3.0_dbl) * PI * R_influence_P**3.0_dbl
           V_eff_Ratio = (L_influence_P / zcf_fine)**3 					! Ratio of the effective volume to cell size
-          write(31,*) 'L_influence_P = ', L_influence_P, ' in fine mesh units = ', L_influence_P/xcf_fine
+!          write(31,*) 'L_influence_P = ', L_influence_P, ' in fine mesh units = ', L_influence_P/xcf_fine
           
 !          write(31,*) 'V_eff_Ratio = ', V_eff_Ratio
-          flush(31)
+!          flush(31)
           
           !------ Finding particle location in this processor
           xp = (current%pardata%xp-xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
@@ -853,10 +867,10 @@ CONTAINS
 !             write(31,*) 'MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf) = ', MIN(VIB_y(2),jMaxDomain(mySub)*ycf ) - MAX(VIB_y(1),(jMinDomain(mySub)-1)*ycf)
 !             write(31,*) 'MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf) = ', MIN(VIB_zc(2),kMaxDomain(mySub)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1)*zcf)
 
-             write(31,*) 'VIB_zc = ', VIB_zc(1), VIB_zc(2), ' zMinMax  = ', (kMaxDomain(mySub)-0.5)*zcf, (kMinDomain(mySub)-1.5)*zcf
+!             write(31,*) 'VIB_zc = ', VIB_zc(1), VIB_zc(2), ' zMinMax  = ', (kMaxDomain(mySub)-0.5)*zcf, (kMinDomain(mySub)-1.5)*zcf
              overlapCoarseProc = MAX ( MIN(VIB_zc(2),(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1.5)*zcf) , 0.0_dbl)
-             write(31,*) 'overlapCoarseProc = ', overlapCoarseProc, ' Ratio = ', overlapCoarseProc/(VIB_zc(2)-VIB_zc(1))
-             flush(31)
+!             write(31,*) 'overlapCoarseProc = ', overlapCoarseProc, ' Ratio = ', overlapCoarseProc/(VIB_zc(2)-VIB_zc(1))
+!             flush(31)
              
              if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1.5)*zcf_fine), 0.0_dbl) .gt. 0) then
                 
@@ -878,12 +892,12 @@ CONTAINS
                 
              end if
 
-             write(31,*) 'VIB_zf = ', VIB_zf(1), VIB_zf(2)
-             write(31,*) 'zMinMax = ', (kMinDomain_fine(mySub)-1.5)*zcf_fine, (kMaxDomain_fine(mySub)-0.5)*zcf_fine
+!             write(31,*) 'VIB_zf = ', VIB_zf(1), VIB_zf(2)
+!             write(31,*) 'zMinMax = ', (kMinDomain_fine(mySub)-1.5)*zcf_fine, (kMaxDomain_fine(mySub)-0.5)*zcf_fine
              
              overlapFineProc = MAX ( MIN(VIB_zf(2),(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1.5)*zcf_fine) , 0.0_dbl)
-             write(31,*) 'overlapFineProc = ', overlapFineProc, 'Ratio = ', overlapFineProc/(VIB_zf(2)-VIB_zf(1))
-             flush(31)
+!             write(31,*) 'overlapFineProc = ', overlapFineProc, 'Ratio = ', overlapFineProc/(VIB_zf(2)-VIB_zf(1))
+!             flush(31)
              
              Cb_Total_Veff = 0.0_dbl
              fluids_Veff = 0.0_dbl
@@ -905,14 +919,14 @@ CONTAINS
                 NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf_fine))
                 NEP_z(2)= MIN(nzSub_fine, FLOOR(zp + 0.5*L_influence_P/zcf_fine))
                 
-                write(31,*) 'Fine mesh'
-                write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-                write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-                write(31,*) 'zp, NEP_z = ', zp, NEP_z(1), NEP_z(2)
-                write(31,*) 'estimate of fluids_Veff_l = ', (NEP_x(2)-NEP_x(1)+1)*(NEP_y(2)-NEP_y(1)+1)*(NEP_z(2)-NEP_z(1)+1)
-                flush(31)
+                ! write(31,*) 'Fine mesh'
+                ! write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+                ! write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+                ! write(31,*) 'zp, NEP_z = ', zp, NEP_z(1), NEP_z(2)
+                ! write(31,*) 'estimate of fluids_Veff_l = ', (NEP_x(2)-NEP_x(1)+1)*(NEP_y(2)-NEP_y(1)+1)*(NEP_z(2)-NEP_z(1)+1)
+                ! flush(31)
 
-                write(31,*) 'fluids_Veff_l before = ', fluids_Veff_l
+                ! write(31,*) 'fluids_Veff_l before = ', fluids_Veff_l
 
                 DO i= NEP_x(1),NEP_x(2) 
                    DO j= NEP_y(1),NEP_y(2)
@@ -930,9 +944,9 @@ CONTAINS
                 END DO
                 
              end if
-             write(31,*) 'fluids_Veff_l = ', fluids_Veff_l
-             write(31,*) 'Overlap fine mesh', fluids_Veff_l*xcf_fine*xcf_fine*xcf_fine/(L_influence_P*L_influence_P*L_influence_P)
-             flush(31)
+!             write(31,*) 'fluids_Veff_l = ', fluids_Veff_l
+!             write(31,*) 'Overlap fine mesh', fluids_Veff_l*xcf_fine*xcf_fine*xcf_fine/(L_influence_P*L_influence_P*L_influence_P)
+!             flush(31)
              
              if (overlapCoarseProc .gt. 0) then
                 if (checkEffVolumeOverlapFineMesh .lt. 0) then
@@ -949,13 +963,13 @@ CONTAINS
                    NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf))
                    NEP_z(2)= MIN(nzSub, FLOOR(zp + 0.5*L_influence_P/zcf))
                    
-                  write(31,*) 'Coarse mesh'
-                  write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
-                  write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
-                  write(31,*) 'zp = ', zp, ' zp - 0.5*L_influence_P/zcf = ', zp - 0.5*L_influence_P/zcf, ' zp + 0.5*L_influence_P/zcf = ', zp + 0.5*L_influence_P/zcf
-                  write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
+                  ! write(31,*) 'Coarse mesh'
+                  ! write(31,*) 'NEP_x = ', NEP_x(1), NEP_x(2)
+                  ! write(31,*) 'NEP_y = ', NEP_y(1), NEP_y(2)
+                  ! write(31,*) 'zp = ', zp, ' zp - 0.5*L_influence_P/zcf = ', zp - 0.5*L_influence_P/zcf, ' zp + 0.5*L_influence_P/zcf = ', zp + 0.5*L_influence_P/zcf
+                  ! write(31,*) 'NEP_z = ', NEP_z(1), NEP_z(2)
 
-                   flush(31)                   
+                  !  flush(31)                   
                    
                    DO i= NEP_x(1),NEP_x(2) 
                       DO j= NEP_y(1),NEP_y(2)
@@ -973,7 +987,7 @@ CONTAINS
                    END DO
                 end if
              end if
-             write(31,*) 'Overlap fine+coarse mesh', fluids_Veff_l*xcf_fine*xcf_fine*xcf_fine/(L_influence_P*L_influence_P*L_influence_P)             
+!             write(31,*) 'Overlap fine+coarse mesh', fluids_Veff_l*xcf_fine*xcf_fine*xcf_fine/(L_influence_P*L_influence_P*L_influence_P)             
              
 !             write(31,*) 'Bulk conc calculation coarse mesh ', Cb_Total_Veff_l, fluids_Veff_l
              !----Communication with other processors for V_eff greater than 1
@@ -982,11 +996,11 @@ CONTAINS
              CALL MPI_ALLREDUCE(fluids_Veff_l, fluids_Veff, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
              Cb_Hybrid= Cb_Total_Veff / fluids_Veff
 
-             write(31,*) 'Overlap total', fluids_Veff*xcf_fine*xcf_fine*xcf_fine/(L_influence_P*L_influence_P*L_influence_P)             
+!             write(31,*) 'Overlap total', fluids_Veff*xcf_fine*xcf_fine*xcf_fine/(L_influence_P*L_influence_P*L_influence_P)             
              
              current%pardata%bulk_conc = Cb_Hybrid
 !             write(31,*) 'current%pardata%bulk_conc = ', current%pardata%bulk_conc
-             flush(31)
+!             flush(31)
              
           END IF
        END IF
@@ -1025,31 +1039,31 @@ CONTAINS
           
           IF (mySub .EQ.current%pardata%cur_part) THEN 
              
-             !  current%pardata%rpold=current%pardata%rp
+              current%pardata%rpold=current%pardata%rp
              
-             !  bulkconc = current%pardata%bulk_conc
+              bulkconc = current%pardata%bulk_conc
              
-             !  temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
-             !  write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
-             !  write(31,*) 'current%pardata%sh = ', current%pardata%sh
-             !  write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
-             !  write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
+              temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
+              ! write(31,*) '4.0_dbl*tcf*molarvol*diffm = ', 4.0_dbl*tcf*molarvol*diffm
+              ! write(31,*) 'current%pardata%sh = ', current%pardata%sh
+              ! write(31,*) 'max((current%pardata%par_conc-bulkconc),0.0_dbl) = ', max((current%pardata%par_conc-bulkconc),0.0_dbl)
+              ! write(31,*) 'current%pardata%par_conc, bulkconc', current%pardata%par_conc, bulkconc
              
-             !  IF (temp.GE.0.0_dbl) THEN
-             !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-             !  ELSE
-             !     temp = 0.0_dbl
-             !     current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
-             !  END IF
+              IF (temp.GE.0.0_dbl) THEN
+                 current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+              ELSE
+                 temp = 0.0_dbl
+                 current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+              END IF
              
-             ! deltaR=current%pardata%rpold-current%pardata%rp
+             deltaR=current%pardata%rpold-current%pardata%rp
              
-             ! current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
-             !      -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
-             !      /molarvol
+             current%pardata%delNB=(4.0_dbl/3.0_dbl)*PI*(current%pardata%rpold*current%pardata%rpold*current%pardata%rpold &
+                  -current%pardata%rp*current%pardata%rp*current%pardata%rp) &
+                  /molarvol
              
 !             write(*,*) 'Not allowing particle radius to change in the fine mesh'
-             current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
+!             current%pardata%delNB= (4.0* PI* current%pardata%rp) * current%pardata%sh* diffm * max((current%pardata%par_conc-current%pardata%bulk_conc) , 0.0_dbl) * tcf_fine
              
 !             write(31,*) 'current%pardata%rpold = ', current%pardata%rpold
 !             write(31,*) 'current%pardata%rp = ', current%pardata%rp         

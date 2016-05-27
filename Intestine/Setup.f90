@@ -246,7 +246,7 @@ LOGICAL, ALLOCATABLE :: flagParticleCF(:)                                       
 REAL(dbl), PARAMETER :: molarvol = 268.000_dbl					! (cm^3/mole) drug's molar volume
 REAL(dbl), PARAMETER :: diffm = 7.5000000e-6					! (cm2/s) drug's diffusivity	
 REAL(dbl), PARAMETER :: R0 = 0.0026_dbl		
-REAL(dbl), PARAMETER :: Cs_mol = 3.30000e-7 					! (mole/cm^3) or (micro M) or (micro g/ml)  drug properties
+REAL(dbl), PARAMETER :: Cs_mol = 3.10000e-6 					! (mole/cm^3) or (micro M) or (micro g/ml)  drug properties
 REAL(dbl):: Cb_global								! (mole/cm^3) or (micro M) or (micro g/ml)  Global bulk scalar Concentration
 
 INTEGER:: Cb_numFluids							! Number of fluid nodes in the process for Global bulk scalar Concentration

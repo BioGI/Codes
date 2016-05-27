@@ -60,7 +60,8 @@ ELSE															! clean start
         v_fine(i,j,k)        = -0.0_dbl
         tmp = sqrt( x_fine(i) * x_fine(i) + y_fine(j)*y_fine(j) )
 !        w_fine(i,j,k)        = 1.0 - tmp/r_fine(k) !Linear velocity profile such that the velocity goes to zero at the wall! z-velocity
-        w_fine(i,j,k) = 1.0
+        !        w_fine(i,j,k) = 1.0
+        w_fine(i,j,k) = 0.0
         rho_fine(i,j,k) = denL								! density
 	! Balaji added
 	! distribution functions (set to equilibrium)

@@ -98,7 +98,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
          write(31,*) 'iter = ', iter, ' phiStart = ', phiStart
          CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
-         fPlus = f
+!         fPlus = f
         CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]
         CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
 
@@ -131,7 +131,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         DO subiter=1,gridRatio
            CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
            CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-           fPlus_fine = f_fine
+!           fPlus_fine = f_fine
            CALL Stream_Fine            ! Stream fine grid
            CALL Macro_Fine             ! Calculate Macro properties on fine grid
            
@@ -188,9 +188,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 	ENDIF
 
      ! CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
-!     IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
-!        CALL PrintParticles						! output the particle velocity, radius, position and con. [MODULE: Output]
-!     ENDIF
+     IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
+        CALL PrintParticles						! output the particle velocity, radius, position and con. [MODULE: Output]
+     ENDIF
 
      CALL PrintScalar			! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
      ! CALL PrintMass			! print the total mass in the system (TEST)

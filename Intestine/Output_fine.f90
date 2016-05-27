@@ -253,6 +253,9 @@ IF((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) .OR. (iter .EQ. iter0-1_lng) 
          jj = ((jMin_fine - 1_lng) + j)
          kk = ((kMin_fine - 1_lng) + k)
 
+         IF (phi_fine(i,j,k) .LT. 1.0e-18) THEN
+            phi_fine(i,j,k)=0.0_lng
+         END IF
          WRITE(61,'(8E15.5,I6)') x_fine(i), y_fine(j), z_fine(k), u_fine(i,j,k)*vcf_fine, v_fine(i,j,k)*vcf_fine, w_fine(i,j,k)*vcf_fine, (rho_fine(i,j,k)-denL)*dcf_fine*pcf_fine,	&
                                      phi_fine(i,j,k), node_fine(i,j,k)
 

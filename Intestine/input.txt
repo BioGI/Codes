@@ -36,7 +36,7 @@
 0.0				! period at which to start the scalar calculation				(phiPer)
 0.0				! maximum value of scalar distribution                               	        (phiIC)
 5.0				! number of time periods							(nPers)
-150				! approximate number of output files						(numOuts)
+1500				! approximate number of output files						(numOuts)
 .FALSE.				! restart flag, .TRUE. or .FALSE						(restart)
 1				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
 0                               ! A flag to indicate if we're doing a straight tube test
