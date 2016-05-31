@@ -1034,18 +1034,6 @@ DO iComm=5,6
 
 END DO
 
-CALL SetNodesVilli																					!  set the villi node flags
-
-!CALL SymmetryBC																						!	ensure symmetric node placement
-!!CALL SymmetryBC_NODE																				!	ensure symmetric node placement
-
-! Balaji added to make domain full 3D
-IF(domaintype .EQ. 0) THEN  ! only needed when planes of symmetry exist
-	CALL SymmetryBC																						!	ensure symmetric node placement
-	!CALL SymmetryBC_NODE																				!	ensure symmetric node placement
-ENDIF
-
-
 !! Write the node flags to file
 !IF(iter .EQ. 0) THEN
 !  OPEN(699,FILE='flag-'//sub//'.dat')
@@ -1072,120 +1060,6 @@ ENDIF
 
 !------------------------------------------------
 END SUBROUTINE SetNodes
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE SetNodesVilli					! defines the geometry of the villi via the "node" array of flags
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE 
-
-INTEGER(lng)	:: n,i,j,k					! index variables
-INTEGER(lng)	:: ii,jj,kk					! index variables
-INTEGER(lng)   :: nvz,nvt					! index variables
-INTEGER(lng)	:: iminV,imaxV				! i-indices of the current block to be checked
-INTEGER(lng)	:: jminV,jmaxV				! j-indices of the current block to be checked
-INTEGER(lng)	:: kminV,kmaxV				! k-indices of the current block to be checked
-REAL(dbl)		:: villiVec(3)				! vector from each villus base to the top of the villus cylinder
-REAL(dbl)		:: pointVec(3)				! vector from each villus base to the current point
-REAL(dbl)		:: dotProd, crossProd	! dot and cross products between the current point and the current villus
-REAL(dbl)		:: sinTheta, cosTheta	! sine and cosine of the angles between the two vectors
-REAL(dbl)		:: magVilli, magPoint	! magnitudes of the two vectors
-REAL(dbl)		:: dist						! distance from the current point to the villus
-REAL(dbl)		:: Cx,Cy,Cz					! vector between villous base and point on the villus closest to the current point
-REAL(dbl)		:: uV,vV,wV					! velocity used at the uncovered nodes
-
-DO nvz=1,numVilliZ
-
-  IF((MOD(nvz,(numVilliZ/numVilliGroups)) .NE. 0) .OR. (numVilliGroups .EQ. 1)) THEN		! skip a row of villi between groups (unless only 1 group)
-
-    DO nvt=1,numVilliTheta
-
-      n = (nvz-1_lng)*numVilliTheta + nvt										! villus number
-
-      iminV = MIN(villiLoc(n,1)/xcf, villiLoc(n,6)/xcf) - INT(ANINT(1.5_dbl*Rv/xcf))
-      imaxV = MAX(villiLoc(n,1)/xcf, villiLoc(n,6)/xcf) + INT(ANINT(1.5_dbl*Rv/xcf))
-      jminV = MIN(villiLoc(n,2)/ycf, villiLoc(n,7)/ycf) - INT(ANINT(1.5_dbl*Rv/ycf))
-      jmaxV = MAX(villiLoc(n,2)/ycf, villiLoc(n,7)/ycf) + INT(ANINT(1.5_dbl*Rv/ycf))
-      kminV = MIN((villiLoc(n,3)/zcf+0.5_dbl), (villiLoc(n,8)/zcf+0.5_dbl)) - INT(ANINT(1.5_dbl*Rv/zcf))
-      kmaxV = MAX((villiLoc(n,3)/zcf+0.5_dbl), (villiLoc(n,8)/zcf+0.5_dbl)) + INT(ANINT(1.5_dbl*Rv/zcf))
-
-      DO kk=kminV,kmaxV
-        DO jj=jminV,jmaxV
-          DO ii=iminV,imaxV
-
-            ! check to if the point is in the subdomain
-            IF(((ii .GE. iMin-1_lng) .AND. (ii .LE. iMax+1_lng)) .AND.	&
-               ((jj .GE. jMin-1_lng) .AND. (jj .LE. jMax+1_lng)) .AND.	&
-               ((kk .GE. kMin-1_lng) .AND. (kk .LE. kMax+1_lng))) THEN
-
-              ! transform into local subdomain coordinates
-              i = ii - (iMin - 1_lng)
-              j = jj - (jMin - 1_lng)
-              k = kk - (kMin - 1_lng)
-
-              ! ignore the solid nodes
-              IF(node(i,j,k) .NE. SOLID) THEN
-
-                ! define a vector between the villus base and the current point
-                pointVec(1) = (xx(ii)-villiLoc(n,1))					! x-coordinate
-                pointVec(2) = (yy(jj)-villiLoc(n,2))					! y-coordinate
-                pointVec(3) = (zz(kk)-villiLoc(n,3))					! z-coordinate
-
-                ! define a vector between the villus base and the top of the villus cylinder
-                villiVec(1) = (villiLoc(n,6)-villiLoc(n,1))			! x-coordinate
-                villiVec(2) = (villiLoc(n,7)-villiLoc(n,2))			! y-coordinate
-                villiVec(3) = (villiLoc(n,8)-villiLoc(n,3))			! z-coordinate
-
-                ! compute the dot product of villiVec and pointVec
-                dotProd = villiVec(1)*pointVec(1) + villiVec(2)*pointVec(2) + villiVec(3)*pointVec(3)
-          
-                ! calculate the magnitudes of villiVec and pointVec
-                magVilli = SQRT(villiVec(1)*villiVec(1) + villiVec(2)*villiVec(2) + villiVec(3)*villiVec(3))
-                magPoint = SQRT(pointVec(1)*pointVec(1) + pointVec(2)*pointVec(2) + pointVec(3)*pointVec(3))
-
-                ! get the cosine of the angle between the two vectors
-                cosTheta = dotProd/(magVilli*magPoint)
-
-                ! check to see if the point is above or below the top of the villus cylinder and calculate the proper distance between the point and the villus
-                IF(magPoint*cosTheta .LE. magVilli) THEN				! below
-                  ! calcualte the shortest distance between the point and the centerline of the villus cylinder
-                  sinTheta = SQRT(1.0_dbl-cosTheta*cosTheta)		! sine of the angle between the two vectors
-                  dist = magPoint*sinTheta								! distance between the point and the CL
-                ELSE																! above
-                  ! calculate the distance between the current point and the top of the villus cylinder (base of hemisphere)
-                  dist = SQRT((xx(ii)-villiLoc(n,6))**2 + (yy(jj)-villiLoc(n,7))**2 + (zz(kk)-villiLoc(n,8))**2)
-                END IF
-
-                ! check to see if the villus is covering the node
-                IF(dist .LE. Rv) THEN				! covers
-                  node(i,j,k) = -n					! flag the node as being covered by the nth villus (-n)
-                ELSE
-                  IF(node(i,j,k) .EQ. -n) THEN
-                    ! find the influence of villous velocity on the current point
-                    CALL CalcC(i,j,k,n,Cx,Cy,Cz)
-                    CALL VilliVelocity(n,Cx,Cy,Cz,uV,vV,wV)
-!                    CALL NeighborVelocity(i,j,k,uV,vV,wV)
-                    CALL SetProperties(i,j,k,uV,vV,wV)
-                    node(i,j,k) = FLUID				! fluid node that was covered last time step
-                  END IF
-                END IF
-
-              END IF
- 
-            END IF
-
-          END DO
-        END DO
-      END DO
-
-    END DO 
-
-  END IF
-
-END DO
-
-!------------------------------------------------
-END SUBROUTINE SetNodesVilli
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------

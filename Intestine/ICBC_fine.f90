@@ -322,126 +322,130 @@ kp2 = k + 2_lng*ez(m)											! k location of 2nd neighbor in the m direction
 
 IF((node_fine(ip1,jp1,kp1) .EQ. FLUID) .AND. (node_fine(ip2,jp2,kp2) .EQ. FLUID)) THEN		! continue with 2nd order BB if the two positive neighbors are in the fluid (most cases)
 
-!*****************************************************************************
-		 ! Initial fluid node guess
-                 x1=x_fine(i)
-                 y1=y_fine(j)
-                 z1=z_fine(k)
-                
-		 ! Initial solid node guess
-                 x2=x_fine(im1)
-                 y2=y_fine(jm1)
-                 z2=z_fine(km1)
-                 
-	 IF (k.NE.km1) THEN
-                 DO it=1,10
-		   ! guess of boundary location 
-                   xt=(x1+x2)/2.0_dbl
-                   yt=(y1+y2)/2.0_dbl
-                   zt=(z1+z2)/2.0_dbl
+   CALL qCalc_iter_fine(m,i,j,k,im1,jm1,km1,xt,yt,zt,rt,q)
 
-      		   rt = SQRT(xt*xt + yt*yt)
-		   !Write(*,*) 'test'
-		   !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-		   ht = ((zt-z_fine(k))*r_fine(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
-		   !ht = (r(km1)+r(k))/2.0_dbl
+   cosTheta= xt/rt
+   sinTheta= yt/rt
+   IF (k.NE.km1) THEN
+      vt = ((zt-z_fine(k))*vel_fine(km1)+(z_fine(km1)-zt)*vel_fine(k))/(z_fine(km1)-z_fine(k))
+   ELSE
+      vt = (vel_fine(k)+vel_fine(km1))*0.5_dbl
+   ENDIF
+   ub = vt* cosTheta						! x-component of the velocity at i,j,k
+   vb = vt* sinTheta						! y-component of the velocity at i,j,k
+   wb = 0.0_dbl							! no z-component in this case)
 
-                   IF(rt.GT.ht) then
-                     x2=xt
-                     y2=yt
-                     z2=zt
-                   ELSE
-                     x1=xt
-                     y1=yt
-                     z1=zt
-                   END IF
-				   
-                 END DO
-		 x1=x_fine(i)
-                 y1=y_fine(j)
-                 z1=z_fine(k)
-                 
-                 x2=x_fine(im1)
-                 y2=y_fine(jm1)
-                 z2=z_fine(km1)
- 
-                 q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
-		 !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-	 ELSE
-		  DO it=1,10
-		   ! guess of boundary location 
-                   xt=(x1+x2)/2.0_dbl
-                   yt=(y1+y2)/2.0_dbl
-                   zt=(z1+z2)/2.0_dbl
-
-      		   rt = SQRT(xt*xt + yt*yt)
-		   !Write(*,*) 'test'
-		   !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-		   !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
-		   ht = (r_fine(km1)+r_fine(k))/2.0_dbl
-
-                   IF(rt.GT.ht) then
-                     x2=xt
-                     y2=yt
-                     z2=zt
-                   ELSE
-                     x1=xt
-                     y1=yt
-                     z1=zt
-                   END IF
-				   
-                 END DO
-		 x1=x_fine(i)
-                 y1=y_fine(j)
-                 z1=z_fine(k)
-                 
-                 x2=x_fine(im1)
-                 y2=y_fine(jm1)
-                 z2=z_fine(km1)
- 
-                 q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
-		 !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-	 ENDIF
-		 cosTheta=xt/rt
-		 sinTheta=yt/rt
-	 IF (k.NE.km1) THEN
-		 !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
-		 vt = ((zt-z_fine(k))*vel_fine(km1)+(z_fine(km1)-zt)*vel_fine(k))/(z_fine(km1)-z_fine(k))
-	 ELSE
-		 vt = (vel_fine(k)+vel_fine(km1))*0.5_dbl
-	 ENDIF
-		 ub = vt*cosTheta										! x-component of the velocity at i,j,k
-		 vb = vt*sinTheta										! y-component of the velocity at i,j,k
-		 wb = 0.0_dbl											! no z-component in this case)
-
-  ! bounced back distribution function with added momentum
-  IF((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN
-    fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus_fine(bb(m),i,j,k) 															&
-        + (1.0_dbl - 4.0_dbl*q*q)*fplus_fine(bb(m),ip1,jp1,kp1) 													& 
-        - q*(1.0_dbl - 2.0_dbl*q)*fplus_fine(bb(m),ip2,jp2,kp2) 													&
-        + 6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))
-  ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
-    fbb = fplus_fine(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
-        + ((2.0_dbl*q - 1.0_dbl)*fplus_fine(m,i,j,k))/q																&
-        - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus_fine(m,ip1,jp1,kp1)							&
-        + (6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
-  ELSE
-    OPEN(1000,FILE='error-'//sub//'.txt')
-    WRITE(1000,*) "Error in BounceBack2() in ICBC.f90 (line 137): q is not (0<=q<=1)...? Aborting."
-    WRITE(1000,*) "q=",q,"(i,j,k):",i,j,k
-    CLOSE(1000)
-    STOP
-  END IF
-
+   !------ bounced back distribution function with added momentum
+   IF ((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN	! use rho = 1.0
+      fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus_fine(bb(m),i,j,k) 							&
+          +   (1.0_dbl - 4.0_dbl*q*q)*fplus_fine(bb(m),ip1,jp1,kp1) 						& 
+          - q*(1.0_dbl - 2.0_dbl*q)*fplus_fine(bb(m),ip2,jp2,kp2) 						&
+          + 6.0_dbl*wt(m)*1.0_dbl*(ub*ex(m) + vb*ey(m) + wb*ez(m)) 
+      fmovingsum = fmovingsum + (6.0_dbl*wt(m)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))
+      fmovingrhosum = fmovingrhosum + (6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))
+   ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN ! Use rho = 1.0 
+      fbb = fplus_fine(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 						&
+          + ((2.0_dbl*q - 1.0_dbl)*fplus_fine(m,i,j,k))/q							&
+          - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus_fine(m,ip1,jp1,kp1)				&
+          + (6.0_dbl*wt(m)*1.0_dbl*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))		
+      fmovingsum = fmovingsum + (6.0_dbl*wt(m)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
+      fmovingrhosum = fmovingrhosum + (6.0_dbl*wt(m)*rho_fine(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
+   ELSE
+      OPEN(1000,FILE='error-'//sub//'.txt')
+      WRITE(1000,*) "Error in BounceBack2: q is not between 0 and 1. Aborting."
+      WRITE(1000,*) "q=",q,"(i,j,k):",i,j,k
+      CLOSE(1000)
+      STOP
+   END IF
 ELSE
 
   CALL BounceBackL_fine(m,i,j,k,im1,jm1,km1,fbb)
 
 END IF
 
+
 !------------------------------------------------
 END SUBROUTINE BounceBack2New_Fine
 !------------------------------------------------
+
+!==================================================================================================
+SUBROUTINE qCalc_iter_fine(m,i,j,k,im1,jm1,km1,xt,yt,zt,rt,q)	! calculates q itteratively
+!==================================================================================================
+IMPLICIT NONE
+
+INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1                 ! index variables
+REAL(dbl), INTENT(OUT)   :: q 	    				! ilocal wall distance ratio
+INTEGER(lng) :: ip1,jp1,kp1,ip2,jp2,kp2                         ! index variables
+INTEGER(lng) :: it                                              ! loop index variables
+REAL(dbl)    :: rijk                                            ! radius of current node
+REAL(dbl)    :: x1,y1,z1,x2,y2,z2,xt,yt,zt,ht,rt,vt             ! temporary coordinates to search for exact boundary coordinate 
+
+!----- Initial fluid node guess
+x1= x_fine(i)
+y1= y_fine(j)
+z1= z_fine(k)
+                
+!----- Initial solid node guess
+x2= x_fine(im1)
+y2= y_fine(jm1)
+z2= z_fine(km1)
+                 
+IF (k.NE.km1) THEN
+    DO it=1,15
+       !----- guess of boundary location 
+       xt= (x1+x2)/2.0_dbl
+       yt= (y1+y2)/2.0_dbl
+       zt= (z1+z2)/2.0_dbl
+       rt= SQRT(xt*xt + yt*yt)
+       ht= ((zt-z_fine(k))*r(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
+       IF (rt .GT. ht) then
+          x2= xt
+          y2= yt
+          z2= zt
+       ELSE
+          x1= xt
+          y1= yt
+          z1= zt
+       END IF
+    END DO
+    x1= x_fine(i)
+    y1= y_fine(j)
+    z1= z_fine(k)
+    x2= x_fine(im1)
+    y2= y_fine(jm1)
+    z2= z_fine(km1)
+    q= sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+ ELSE
+    DO it=1,15
+       !----- guess of boundary location 
+       xt= (x1+x2)/2.0_dbl
+       yt= (y1+y2)/2.0_dbl
+       zt= (z1+z2)/2.0_dbl
+       rt = SQRT(xt*xt + yt*yt)
+       ht = (r_fine(km1)+r_fine(k))/2.0_dbl
+       IF (rt.GT.ht) then
+          x2= xt
+          y2= yt
+          z2= zt
+       ELSE
+          x1= xt
+          y1= yt
+          z1= zt
+       END IF
+    END DO
+    x1= x_fine(i)
+    y1= y_fine(j)
+    z1= z_fine(k)
+    x2= x_fine(im1)
+    y2= y_fine(jm1)
+    z2= z_fine(km1)
+    q= sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+END IF
+
+!==================================================================================================
+END SUBROUTINE qCalc_iter_fine
+!==================================================================================================
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE qCalc_fine(m,i,j,k,im1,jm1,km1,q)			! calculates q (boundary distance ratio) using "ray tracing" - see wikipedia article
@@ -571,64 +575,131 @@ CHARACTER(7)	:: iter_char				! iteration stored as a character
 END SUBROUTINE PrintFieldsTEST_Fine
 !------------------------------------------------
 
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC)								! implements the scalar BCs 
-!--------------------------------------------------------------------------------------------------
+
+!===================================================================================================
+SUBROUTINE ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC)				! implements the scalar BCs 
+!===================================================================================================
 IMPLICIT NONE
 
-INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1								! index variables
-REAL(dbl), INTENT(OUT) :: phiBC     											! scalar contribution from the boundary condition
-INTEGER :: ip1,jp1,kp1 														! neighboring nodes (2 away from the wall)
-REAL(dbl) :: q																			! distance ratio from the current node to the solid node
-REAL(dbl) :: rhoB,phiB																! values of density and at the boundary, and contribution of scalar from the boundary and solid nodes
-REAL(dbl) :: feq_m																	! equilibrium distribution function in the mth direction
-REAL(dbl) :: phiijk_m																! contribution of scalar streamed in the mth direction to (ip1,jp1,kp1)
-REAL(dbl) :: cosTheta, sinTheta													! COS(theta), SIN(theta)
-REAL(dbl) :: ub, vb, wb																! wall velocity (x-, y-, z- components)
+INTEGER(lng), INTENT(IN) :: m,i,j,k,im1,jm1,km1				! index variables
+REAL(dbl),    INTENT(OUT):: phiBC     					! scalar contribution from the boundary condition
+INTEGER(lng) :: mm,ip1,jp1,kp1,iB,jB,kB    				! First neighboring node location
+REAL(dbl)    :: rhoAstar, phiAstar, feq_Astar,  PkAstar,PkA 		! density at boundary and contribution of scalar from boundary
+REAL(dbl)    :: rhoBstar, phiBstar, fPlusBstar, PkBstar 		! Values interpolated to Bstar location
+REAL(dbl)    :: cosTheta, sinTheta					! COS(theta), SIN(theta)
+REAL(dbl)    :: ub, vb, wb						! wall velocity (x-, y-, z- components)
+REAL(dbl)    :: rijk 							! radius of the solid node
+REAL(dbl)    :: Geom_norm_x,Geom_norm_y,Geom_norm_z
+REAL(dbl)    :: q, q1, n_prod, n_prod_max
+REAL(dbl)    :: xt,yt,zt,rt,vt						! Location of the boundary between i,j,k node and im1,jm1,km1 node
+!===========================================================================
+! HELP: How to set different boundary conditions
+! BC Scalar-zero:       coeffPhi=1      coeffGrad= 0    coeffConst= 0
+! BC Scalar-Non-zero:   coeffPhi=1      coeffGrad= 0    coeffConst= phi_BC
+! BC-Flux-zero:         coeffPhi=0      coeffGrad= 1    coeffConst= 0
+! BC-Flux-Non-zero:     coeffPhi=0      coeffGrad= 1    coeffConst= dphi/dn
+! BC-Permeability:      coeffPhi=Pw/Dm  coeffGrad=-1    coeffConst= 0
+!===========================================================================
 
-CALL qCalc_fine(m,i,j,k,im1,jm1,km1,q)												! calculate q	
+!CALL qCalc(m,i,j,k,im1,jm1,km1,q)
+!cosTheta = x(im1)/r(km1) 
+!sinTheta = y(jm1)/r(km1)  
+!ub = vel(km1)*cosTheta  		      			! x-component of the velocity at i,j,k
+!vb = vel(km1)*sinTheta        					! y-component of the velocity at i,j,k
+!wb = 0.0_dbl
 
-cosTheta = x_fine(im1)/r_fine(km1)															! COS(theta)
-sinTheta = y_fine(jm1)/r_fine(km1)															! SIN(theta)
+CALL qCalc_iter_fine(m,i,j,k,im1,jm1,km1,xt,yt,zt,rt,q)
 
-ub = vel_fine(km1)*cosTheta																! x-component of the velocity at i,j,k
-vb = vel_fine(km1)*sinTheta																! y-component of the velocity at i,j,k
-wb = 0.0_dbl	
+cosTheta= xt/rt
+sinTheta= yt/rt
 
-! neighboring node (fluid side)	
-ip1 = i + ex(m) 																		! i + 1
-jp1 = j + ey(m)																		! j + 1
-kp1 = k + ez(m)																		! k + 1
+IF (k.NE.km1) THEN
+   vt = ((zt-z_fine(k))*vel_fine(km1)+(z_fine(km1)-zt)*vel_fine(k))/(z_fine(km1)-z_fine(k))
+ELSE
+   vt = (vel_fine(k)+vel_fine(km1))*0.5_dbl
+ENDIF
 
-! if (ip1,jp1,kp1) is not in the fluid domain, use values from the current node as an approximation
+ub = vt* cosTheta						! x-component of the velocity at i,j,k
+vb = vt* sinTheta						! y-component of the velocity at i,j,k
+wb = 0.0_dbl							! no z-component in this case)
+
+!---------------------------------------------------------------------------------------------------
+!----- Computing phi at the wall in case of Dirichlet BC -------------------------------------------
+!---------------------------------------------------------------------------------------------------
+IF (coeffGrad .EQ. 0.0) then   
+   phiWall= coeffConst/coeffPhi
+END IF      
+
+!---------------------------------------------------------------------------------------------------
+!----- Estimating  phi at the wall in case of Neumann or Mixed BC ----------------------------------
+!----- Two Fluid nodes are needed for extrapolation ------------------------------------------------
+!----- 1st node; A, is adjacent to the boundary ----------------------------------------------------
+!----- 2nd node; B, is a fluid neighbor of A, in the direction closest to geometry-normal ----------
+!---------------------------------------------------------------------------------------------------
+IF (coeffGrad .NE. 0.0) then
+   Geom_norm_x= 1.0
+   Geom_norm_y= 0.0
+   Geom_norm_z= 0.0
+   n_prod_max= 0.0_dbl
+   !----- Finding the mth direction closest to normal vector
+   !----- Only one fluid neighboring node is needed for interpolation
+   DO mm=0,NumDistDirs
+      ip1= i+ ex(mm)
+      jp1= j+ ey(mm)
+      kp1= k+ ez(mm)
+      IF (node_fine(ip1,jp1,kp1) .EQ. FLUID) THEN
+         n_prod= abs( Geom_norm_x * (ip1-i) + Geom_norm_y * (jp1-j) + Geom_norm_z * (kp1-k))
+         IF (n_prod_max .LT. n_prod) THEN
+            n_prod_max= n_prod
+            iB= ip1
+            jB= jp1
+            kB= kp1
+         END IF
+      END IF
+   END DO
+   phiWall= ((phiTemp_fine(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) -    	&
+             (phiTemp_fine(iB,jB,kB)*q*q/(1.0+2.0*q)) -          	&
+             (q*(1+q)/(1+2.0*q))* (coeffConst/coeffGrad)    )  	&
+           /(1.0- (q*(1+q)/(1+2.0*q))*(coeffPhi/coeffGrad))
+END IF
+
+!----- neighboring node (fluid side) ---------------------------------------------------------------
+ip1 = i + ex(m)
+jp1 = j + ey(m)
+kp1 = k + ez(m)
+!------ This rarely happens (both neighboring nodes over a line are solid)
+!------  use values from the current node as an approximation
 IF(node_fine(ip1,jp1,kp1) .NE. FLUID) THEN
   ip1 = i
   jp1 = j
   kp1 = k
-END IF	
-
-! assign values to boundary (density, scalar, f)
-rhoB = (rho_fine(i,j,k) - rho_fine(ip1,jp1,kp1))*(1+q) + rho_fine(ip1,jp1,kp1)		! extrapolate the density
-CALL Equilibrium_LOCAL_fine(m,rhoB,ub,vb,wb,feq_m)			        ! calculate the equibrium distribution function in the mth direction
-
-!! Balaji added for sero flux BC. Otherwise set to constant value for Dirichlet BC
-!phiWall = (phi(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) - (phi(ip1,jp1,kp1)*q*q/(1.0+2.0*q)) 	! calculate phiWall for flux BC (eq. 28 in paper)
-
-! find the contribution of scalar streamed from the wall to the current node (i,j,k), and from the current node to the next neighboring node (ip1,jp1,kp1)
-phiB		= (feq_m/rhoB - wt(m)*Delta_fine)*phiWall								! contribution from the wall in the mth direction (zero if phiWall=0)
-phiijk_m	= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta_fine)*phiTemp_fine(i,j,k)	! contribution from the current node to the next node in the mth direction
-
-! if q is too small, the extrapolation to phiBC can create a large error...
-IF(q .LT. 0.25) THEN
-  q = 0.25_dbl  																		! approximate the distance ratio as 0.25
 END IF
 
-! extrapolate using phiB and phijk_m to obtain contribution from the solid node to the current node
-phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at the solid node, using q
+!----- Computing values at A* & the scalar streamed from A* (Chpter 3 paper) -----------------------
+rhoAstar= (rho_fine(i,j,k)-rho_fine(ip1,jp1,kp1))*(1+q)+ rho_fine(ip1,jp1,kp1)		! Extrapolate density
+CALL Equilibrium_LOCAL_fine(m,rhoAstar,ub,vb,wb,feq_Astar)    		! f_eq in mth direction
+phiAstar= phiWall							! phi at solid surface
+PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta)*phiAstar			! Contribution from A* to B*  
 
-!------------------------------------------------
+!----- Computing values at B* & the scalar streamed from B* (Chpter 3 paper) -----------------------
+!rhoBstar=   (1-q)*rho(ip1,jp1,kp1)     + q* rho(i,j,k)
+!phiBstar=   (1-q)*phiTemp(ip1,jp1,kp1) + q* phiTemp(i,j,k)
+!fPlusBstar= (1-q)*fplus(m,ip1,jp1,kp1) + q* fplus(m,i,j,k)
+!PkBstar=    (fplusBstar/rhoBstar - wt(m)*Delta)*phiBstar
+
+!----- Scalar contribution from wall to the node----------------------------------------------------
+!phiBC=      PkAstar+ (PkAstar- PkBstar)*(1-q)
+
+!----- Using only A and A* for interpolation (instead of A* and B*) 
+PkA= (fplus_fine(m,i,j,k)/rho_fine(i,j,k) - wt(m)*Delta)*phiTemp_fine(i,j,k)		! contribution from current node to next in the mth direction
+IF(q .LT. 0.25) THEN
+  q = 0.25_dbl
+END IF
+phiBC	= ((PkAstar - PkA)/q) + PkAstar	
+
+!===================================================================================================
 END SUBROUTINE ScalarBC_fine
-!------------------------------------------------
+!===================================================================================================
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE Equilibrium_LOCAL_fine(m,rhoijk,uijk,vijk,wijk,feq_m)		! calculate and store the equilibrium distribution function

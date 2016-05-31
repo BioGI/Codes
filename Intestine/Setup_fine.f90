@@ -337,6 +337,11 @@ READ(10,*) sclrIC				! initial/maintained scalar distribution (1=BLOB,2=LINE,3=I
 READ(10,*) phiPer				! period at which to start the scalar
 READ(10,*) phiIC				! maximum scalar concentration
 
+! Coefficients for the generalized scalar boundary condition (coeffPhi * phiWall + coeffGrad * dPhiDn_wall = coeffConst). 'n' is the direction from the wall into the fluid.
+READ(10,*) coeffPhi
+READ(10,*) coeffGrad
+READ(10,*) coeffConst
+
 READ(10,*) nPers				! total number of periods to run
 READ(10,*) numOuts			! number of output files (roughly)
 READ(10,*) restart			! use restart file? (0 if no, 1 if yes)
