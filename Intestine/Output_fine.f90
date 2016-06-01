@@ -426,21 +426,22 @@ END IF
 END SUBROUTINE PrintVolume_fine
 !------------------------------------------------
 
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintScalar_fine		! prints the total amount of scalar absorbed through the walls 
-!--------------------------------------------------------------------------------------------------
+!===================================================================================================
+SUBROUTINE PrintDrugConservation		! prints the total amount of scalar absorbed through the walls 
+!===================================================================================================
 IMPLICIT NONE
 
-INTEGER(lng) :: i,j,k		! index variables
-INTEGER(lng) :: numFluids	! number of fluid nodes in the domain
-REAL(dbl) :: phiDomain		! current amount of scalar in the domain
-REAL(dbl) :: phiAverage		! average scalar in the domain
-REAL(dbl) :: zcf3				! node volume in physical units
+INTEGER(lng) :: i,j,k					! index variables
+INTEGER(lng) :: numFluids				! number of fluid nodes in the domain
+REAL(dbl)    :: phiDomain, phiIC, Drug_Initial		! current amount of scalar in the domain
+REAL(dbl)    :: phiAverage				! average scalar in the domain
+REAL(dbl)    :: zcf3					! node volume in physical units
+TYPE(ParRecord), POINTER :: current
+TYPE(ParRecord), POINTER :: next
 
-! Calculate the amount of scalar that entered/left through the inlet/outlet
-CALL ScalarInOut_fine
+CALL ScalarInOut    	 				! Calculate the amount of scalar that entered/left through the inlet/outlet
 
-! Calculate the amount of scalar in the domain
+!----- Calculate the amount of scalar in the domain
 numFluids = 0_lng
 phiDomain = 0.0_dbl
 DO k=1,nzSub_fine
@@ -456,22 +457,58 @@ DO k=1,nzSub_fine
   END DO
 END DO
 
-IF(numFluids .GT. 1e-8) THEN
-  phiAverage = phiDomain/numFluids		! average scalar in the domain
+DO k=1,nzSub
+   DO j=1,nySub
+      DO i=1,nxSub
+         IF (node(i,j,k) .EQ. FLUID) THEN
+            phiDomain = phiDomain + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k) * gridRatio * gridRatio * gridRatio
+            numFluids = numFluids + (1.0-flagNodeIntersectFine(i,j,k)) * gridRatio * gridRatio * gridRatio
+         END IF
+      END DO
+   END DO
+END DO
+
+!------ average scalar in the domain
+IF (numFluids .GT. 1e-8) THEN
+   phiAverage = phiDomain/numFluids		
 ELSE
-  phiAverage = 0.0_dbl
+   phiAverage = 0.0_dbl
 END IF
 
-! node volume in physical units
-zcf3 = zcf_fine*zcf_fine*zcf_fine
 
-WRITE(2473,'(I8,6E25.15)') iter, phiAbsorbed_fine*zcf3, phiAbsorbedS_fine*zcf3, phiAbsorbedV_fine*zcf3,	&
-                           (phiTotal_fine-phiDomain)*zcf3, phiDomain*zcf3, (phiAbsorbed_fine+phiDomain)*zcf3
-CALL FLUSH(2473)
+!------ Computing the total drug released from particles      
+IF (ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN
+   current => ParListHead%next
+   DO WHILE (ASSOCIATED(current))
+      next => current%next
+      Drug_Released_Total = Drug_Released_Total + current%pardata%delNB
+      current => next
+   ENDDO
+END IF
 
-!------------------------------------------------
-END SUBROUTINE PrintScalar_fine
-!------------------------------------------------
+Drug_Initial =  0.0
+Drug_Absorbed = (phiAbsorbedS * gridRatio * gridRatio * gridRatio + phiAbsorbedS_fine) * zcf3
+Drug_Remained_in_Domain = phiDomain * zcf3
+Drug_Loss = (Drug_Released_Total + Drug_Initial) - (Drug_Absorbed + Drug_Remained_in_Domain)  
+Drug_Loss_Modified = (Drug_Released_Total+ Drug_Initial- Negative_phi_Total) - (Drug_Absorbed + Drug_Remained_in_Domain)
+
+IF (Drug_Released_Total .LT. 1e-20) THEN
+   Drug_Released_Total =1e-20
+END IF
+
+Drug_Loss_Percent = (Drug_Loss / (Drug_Released_Total+Drug_Initial)) * 100.0_lng
+Drug_Loss_Modified_Percent = (Drug_Loss_Modified / (Drug_Released_Total+Drug_Initial)) * 100.0_lng  
+
+IF (abs(Drug_Absorbed) .lt. 1.0e-40) THEN
+   Drug_Absorbed = 0.0_lng
+ENDIF
+
+WRITE(2472,'(I7, F9.3, 6E21.13)') iter, iter*tcf, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent 
+CALL FLUSH(2472)
+!===================================================================================================
+END SUBROUTINE PrintDrugConservation 
+!===================================================================================================
+
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintParams_fine	! prints the total amount of scalar absorbed through the walls 

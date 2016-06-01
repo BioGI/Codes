@@ -19,6 +19,8 @@ IMPLICIT NONE
 ! initialize arrays
 phi    		= 0.0_dbl					! scalar
 phiTemp		= 0.0_dbl					! temporary scalar
+Negative_phi_Counter= 0
+Negative_phi_Worst  = 0.0_dbl
 
 ! scalar parameters
 Dm   			= nuL/Sc				! binary molecular diffusivity (scalar in fluid)
@@ -50,9 +52,12 @@ IMPLICIT NONE
 
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC							! scalar contribution from boundary
+REAL(dbl) :: zcf3						! Cell volume
 
 flagNodeIntersectCoarse = 0_dbl
 CALL ScalarDistribution						! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
+
+zcf3 = zcf * zcf * zcf
 
 ! store the previous scalar values
 phiTemp = phi
@@ -81,7 +86,7 @@ DO k=1,nzSub
             CALL ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)															! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi(i,j,k) = phi(i,j,k) + phiBC     
             CALL FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
-            CALL AbsorbedScalarS(i,j,k,m,phiBC)	     ! measure the absorption rate
+            CALL AbsorbedScalarS(i,j,k,m,im1,jm1,km1,phiBC)	     ! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error.txt")
             WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node(im1,jm1,km1) is out of range"
@@ -103,6 +108,11 @@ DO k=1,nzSub
 
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi(i,j,k) .LT. 0.0_dbl) THEN
+           Negative_phi_Counter = Negative_phi_Counter + 1.0
+           Negative_phi_Total   = Negative_phi_Total + phi(i,j,k) * (1.0-flagNodeIntersectFine(i,j,k)) * zcf3 
+           IF (phi(i,j,k) .LT. Negative_phi_Worst) THEN
+              Negative_phi_Worst = phi(i,j,k)
+           ENDIF           
           phi(i,j,k) = 0.0_dbl
         END IF
 
@@ -120,41 +130,81 @@ END SUBROUTINE Scalar
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE AbsorbedScalarS(i,j,k,m,phiBC)		! measures the total absorbed scalar
+SUBROUTINE AbsorbedScalarS(i,j,k,m,im1,jm1,km1,phiBC)		! measures the total absorbed scalar
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng), INTENT(IN) :: i,j,k,m				! index variables
+INTEGER(lng), INTENT(IN) :: i,j,k,m,im1,jm1,km1			! index variables
 REAL(dbl), INTENT(IN) :: phiBC     				! scalar contribution from the boundary condition
+INTEGER(lng) :: ip1,jp1,kp1
 REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
 
-phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
-phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
+REAL(dbl)    :: feq_AO_u0
+REAL(dbl)    :: rhoAstar,phiAstar, PkAstar,feq_Astar,feq_Bstar
+REAL(dbl)    :: rhoA, PkA, feq_A
+REAL(dbl)    :: fPlusBstar, rhoBstar, phiBstar, PkBstar
+REAL(dbl)    :: ub,vb,wb, ubb,vbb,wbb
+REAL(dbl)    :: q
+REAL(dbl)    :: xt,yt,zt,rt			             	! boundary coordinate
 
-phiAbsorbedS = phiAbsorbedS + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
-!write(31,*) 'phiAbsorbedS = ', phiAbsorbedS, 'i,j,k,m,phiBC = ', i,j,k,m,phiBC
+CALL  qCalc_iter(m,i,j,k,im1,jm1,km1,xt,yt,zt,rt,q)
 
+ubb= 0.0_dbl
+vbb= 0.0_dbl
+wbb= 0.0_dbl
+
+!---------------------------------------------------------------------------------------------------
+!----- Computing phiOUT ----------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+CALL Equilibrium_LOCAL(bb(m),rho(i,j,k),ubb,vbb,wbb,feq_AO_u0)
+phiOUT= (feq_AO_u0/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)
+
+!---------------------------------------------------------------------------------------------------
+!---- Conmputing phiIN------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+!----- neighboring node (fluid side)	
+ip1 = i + ex(m) 			
+jp1 = j + ey(m)			
+kp1 = k + ez(m)		
+IF(node(ip1,jp1,kp1) .NE. FLUID) THEN
+  ip1 = i
+  jp1 = j
+  kp1 = k
+END IF	
+
+!----- Computing values at A* & scalar streamed from A* (Chpter 3 paper)
+rhoAstar= (rho(i,j,k)- rho(ip1,jp1,kp1))*(1+q)+ rho(ip1,jp1,kp1)	! extrapolate the density
+CALL Equilibrium_LOCAL(m,rhoAstar,ubb,vbb,wbb,feq_Astar)		! calculate the equibrium distribution function in the mth direction
+phiAstar= phiWall							! getting phi at the solid surface
+PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta)*phiAstar			! contribution from the wall in mth direction (0 if phiWall=0)
+
+!------ Computing values at B* & scalar streamed from B* (Chpter 3 paper)
+!rhoBstar=   (1-q)*rho(ip1,jp1,kp1)     + q*rho(i,j,k)
+!CALL Equilibrium_LOCAL(m,rhoBstar,ubb,vbb,wbb,feq_Bstar)
+!phiBstar=   (1-q)*phiTemp(ip1,jp1,kp1) + q*phiTemp(i,j,k)
+!PkBstar=    (feq_Bstar/rhoBstar - wt(m)*Delta)*phiBstar
+
+!phiIN= PkAstar+ (PkAstar- PkBstar)*(1-q)
+
+
+!---- Modification for moving boundary in case of using only A and A* for BC
+rhoA= rho(i,j,k)
+CALL Equilibrium_LOCAL(m,rhoA,ubb,vbb,wbb,feq_A) 
+PkA= (feq_A/rhoA - wt(m)*Delta)*phiTemp(i,j,k) 
+IF(q .LT. 0.25) THEN
+  q = 0.25_dbl
+END IF 
+phiIN   = ((PkAstar - PkA)/q) + PkAstar
+
+!--- No Modifications in book-keeping for moving boundaries
+!phiIN= phiBC                                                    	 ! contribution from wall to crrent node (in)
+!phiOUT= (fplus(bb(m),i,j,k)/rho(i,j,k)-wt(bb(m))*Delta)*phiTemp(i,j,k)
+
+phiAbsorbedS = phiAbsorbedS + (phiOUT-phiIN)				! scalar absorbed at current location in mth direction
+!===================================================================================================
 
 !------------------------------------------------
 END SUBROUTINE AbsorbedScalarS
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE AbsorbedScalarV(i,j,k,m,phiBC)		! measures the total absorbed scalar
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng), INTENT(IN) :: i,j,k,m				! index variables
-REAL(dbl), INTENT(IN) :: phiBC     				! scalar contribution from the boundary condition
-REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
-
-phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
-phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
-
-phiAbsorbedV = phiAbsorbedV + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
-
-!------------------------------------------------
-END SUBROUTINE AbsorbedScalarV
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------

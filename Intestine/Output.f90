@@ -78,9 +78,8 @@ WRITE(2458,*) 'ZONE F=POINT'
 CALL FLUSH(2458)
 
 ! Scalar
-OPEN(2472,FILE='scalar-'//sub//'.dat')
-WRITE(2472,'(A100)') 'VARIABLES = "iter", "phiA", "phiAS", "phiAV", "phiT-phiD", "phiD", "phA+phiD", "phiAverage"'
-WRITE(2472,*) 'ZONE F=POINT'
+OPEN(2472,FILE='Drug-Conservation-'//sub//'.dat')
+WRITE(2472,'(A120)') '#VARIABLES =iter,time, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent'
 CALL FLUSH(2472)
 
 !------------------------------------------------
@@ -631,53 +630,6 @@ END IF
 
 !------------------------------------------------
 END SUBROUTINE PrintVolume
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintScalar		! prints the total amount of scalar absorbed through the walls 
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng) :: i,j,k		! index variables
-INTEGER(lng) :: numFluids	! number of fluid nodes in the domain
-REAL(dbl) :: phiDomain		! current amount of scalar in the domain
-REAL(dbl) :: phiAverage		! average scalar in the domain
-REAL(dbl) :: zcf3				! node volume in physical units
-
-! Calculate the amount of scalar that entered/left through the inlet/outlet
-CALL ScalarInOut
-
-! Calculate the amount of scalar in the domain
-numFluids = 0_lng
-phiDomain = 0.0_dbl
-DO k=1,nzSub
-  DO j=1,nySub
-    DO i=1,nxSub
-
-      IF(node(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k)
-        numFluids = numFluids + 1_lng
-      END IF
-
-    END DO
-  END DO
-END DO
-
-IF(numFluids .GT. 1e-8) THEN
-  phiAverage = phiDomain/numFluids		! average scalar in the domain
-ELSE
-  phiAverage = 0.0_dbl
-END IF
-
-! node volume in physical units
-zcf3 = zcf*zcf*zcf
-
-WRITE(2472,'(I8,7E25.15)') iter, phiAbsorbed*zcf3, phiAbsorbedS*zcf3, phiAbsorbedV*zcf3,	&
-                           (phiTotal-phiDomain)*zcf3, phiDomain*zcf3, (phiAbsorbed+phiDomain)*zcf3, phiAverage*zcf3
-CALL FLUSH(2472)
-
-!------------------------------------------------
-END SUBROUTINE PrintScalar
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
