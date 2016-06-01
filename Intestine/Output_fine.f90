@@ -445,6 +445,9 @@ CALL ScalarInOut    	 				! Calculate the amount of scalar that entered/left thr
 !----- Calculate the amount of scalar in the domain
 numFluids = 0.0_dbl
 phiDomain = 0.0_dbl
+numFluids_l = 0.0_dbl
+phiDomain_l = 0.0_dbl
+
 DO k=1,nzSub_fine
   DO j=1,nySub_fine
     DO i=1,nxSub_fine
@@ -471,6 +474,7 @@ END DO
 
 write(31,*) 'phiDomain_l = ', phiDomain_l
 write(31,*) 'numFluids_l = ', numFluids_l
+flush(31)
 CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 CALL MPI_ALLREDUCE(numFluids_l , numFluids , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
