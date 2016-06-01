@@ -397,7 +397,7 @@ IF (k.NE.km1) THEN
        yt= (y1+y2)/2.0_dbl
        zt= (z1+z2)/2.0_dbl
        rt= SQRT(xt*xt + yt*yt)
-       ht= ((zt-z_fine(k))*r(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
+       ht= ((zt-z_fine(k))*r_fine(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
        IF (rt .GT. ht) then
           x2= xt
           y2= yt

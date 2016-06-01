@@ -432,25 +432,26 @@ SUBROUTINE PrintDrugConservation		! prints the total amount of scalar absorbed t
 IMPLICIT NONE
 
 INTEGER(lng) :: i,j,k					! index variables
-INTEGER(lng) :: numFluids				! number of fluid nodes in the domain
-REAL(dbl)    :: phiDomain, phiIC, Drug_Initial		! current amount of scalar in the domain
+REAL(dbl) :: numFluids, numFluids_l			! number of fluid nodes in the domain
+REAL(dbl)    :: phiDomain, phiDomain_l, phiIC, Drug_Initial		! current amount of scalar in the domain
 REAL(dbl)    :: phiAverage				! average scalar in the domain
 REAL(dbl)    :: zcf3					! node volume in physical units
 TYPE(ParRecord), POINTER :: current
 TYPE(ParRecord), POINTER :: next
+INTEGER                         :: mpierr
 
 CALL ScalarInOut    	 				! Calculate the amount of scalar that entered/left through the inlet/outlet
 
 !----- Calculate the amount of scalar in the domain
-numFluids = 0_lng
+numFluids = 0.0_dbl
 phiDomain = 0.0_dbl
 DO k=1,nzSub_fine
   DO j=1,nySub_fine
     DO i=1,nxSub_fine
 
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + phi_fine(i,j,k)
-        numFluids = numFluids + 1_lng
+        phiDomain_l = phiDomain_l + phi_fine(i,j,k)
+        numFluids_l = numFluids_l + 1.0_dbl
       END IF
 
     END DO
@@ -461,12 +462,18 @@ DO k=1,nzSub
    DO j=1,nySub
       DO i=1,nxSub
          IF (node(i,j,k) .EQ. FLUID) THEN
-            phiDomain = phiDomain + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k) * gridRatio * gridRatio * gridRatio
-            numFluids = numFluids + (1.0-flagNodeIntersectFine(i,j,k)) * gridRatio * gridRatio * gridRatio
+            phiDomain_l = phiDomain_l + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k) * gridRatio * gridRatio * gridRatio
+            numFluids_l = numFluids_l + (1.0-flagNodeIntersectFine(i,j,k)) * gridRatio * gridRatio * gridRatio
          END IF
       END DO
    END DO
 END DO
+
+write(31,*) 'phiDomain_l = ', phiDomain_l
+write(31,*) 'numFluids_l = ', numFluids_l
+CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+CALL MPI_ALLREDUCE(numFluids_l , numFluids , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+
 
 !------ average scalar in the domain
 IF (numFluids .GT. 1e-8) THEN
