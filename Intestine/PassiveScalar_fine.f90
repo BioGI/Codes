@@ -48,15 +48,17 @@ zcf3 = zcf_fine * zcf_fine * zcf_fine
 ! store the previous scalar values
 phiTemp_fine = phi_fine
 
+write(31,*) 'sum phi_fine before Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3 
+write(31,*) 'sum delphi_particle_fine inside Scalar_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3
 
 ! Stream the scalar
 DO k=1,nzSub_fine
   DO j=1,nySub_fine
     DO i=1,nxSub_fine
-      
+
       IF(node_fine(i,j,k) .EQ. FLUID) THEN
       
-        phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
+!        phi_fine(i,j,k) = Delta_fine*phiTemp_fine(i,j,k)
         phi_fine(i,j,k) = phi_fine(i,j,k) + delphi_particle_fine(i,j,k)
         
         DO m=0,NumDistDirs
@@ -67,12 +69,12 @@ DO k=1,nzSub_fine
           km1 = k - ez(m)
 
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+!            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+!            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
-            CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
-           phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
+!            CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
+!            phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
             CALL AbsorbedScalarS_fine(i,j,k,m,im1,jm1,km1,phiBC)	! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error_fine.txt")
@@ -91,17 +93,13 @@ DO k=1,nzSub_fine
 
         END DO
 
-!	phi_fine(i,j,k) = phi_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
-
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi_fine(i,j,k) .LT. 0.0_dbl) THEN
-
-           Negative_phi_Counter = Negative_phi_Counter + 1.0
-           Negative_phi_Total   = Negative_phi_Total + phi_fine(i,j,k) * zcf3 
+           Negative_phi_Counter_l = Negative_phi_Counter_l + 1.0
+           Negative_phi_Total_l   = Negative_phi_Total_l + phi_fine(i,j,k) * zcf3 
            IF (phi_fine(i,j,k) .LT. Negative_phi_Worst) THEN
-              Negative_phi_Worst = phi_fine(i,j,k)
+              Negative_phi_Worst_l = phi_fine(i,j,k)
            ENDIF
-           
            phi_fine(i,j,k) = 0.0_dbl
         END IF
 
@@ -110,6 +108,10 @@ DO k=1,nzSub_fine
     END DO
   END DO
 END DO
+
+
+!write(31,*) 'sum  phi_fine inside Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total, ' Error = ', (sum(phi_fine(:,:,:)) * zcf3 - Drug_Released_Total)/Drug_Released_Total
+!write(31,*) ' '
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
 phiAbsorbed_fine = phiAbsorbedS_fine + phiAbsorbedV_fine ! total amount of scalar absorbed up to current time

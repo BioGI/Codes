@@ -78,9 +78,11 @@ WRITE(2458,*) 'ZONE F=POINT'
 CALL FLUSH(2458)
 
 ! Scalar
-OPEN(2472,FILE='Drug-Conservation-'//sub//'.dat')
-WRITE(2472,'(A120)') '#VARIABLES =iter,time, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent'
-CALL FLUSH(2472)
+if (mySub .eq. 1) then
+   OPEN(2472,FILE='Drug-Conservation.dat')
+   WRITE(2472,'(A180)') '#VARIABLES =iter,time, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent'
+   CALL FLUSH(2472)
+end if
 
 !------------------------------------------------
 END SUBROUTINE OpenOutputFiles

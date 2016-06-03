@@ -19,8 +19,10 @@ IMPLICIT NONE
 ! initialize arrays
 phi    		= 0.0_dbl					! scalar
 phiTemp		= 0.0_dbl					! temporary scalar
-Negative_phi_Counter= 0
-Negative_phi_Worst  = 0.0_dbl
+Negative_phi_Counter_l = 0
+Negative_phi_Worst_l   = 0.0_dbl
+Negative_phi_Counter   = 0
+Negative_phi_Worst     = 0.0_dbl
 
 ! scalar parameters
 Dm   			= nuL/Sc				! binary molecular diffusivity (scalar in fluid)
@@ -69,8 +71,7 @@ DO k=1,nzSub
       
       IF(node(i,j,k) .EQ. FLUID) THEN
       
-!	phiTemp(i,j,k) = phiTemp(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
-        phi(i,j,k) = Delta*phiTemp(i,j,k)
+!        phi(i,j,k) = Delta*phiTemp(i,j,k)
 	phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
          DO m=0,NumDistDirs
@@ -81,10 +82,10 @@ DO k=1,nzSub
           km1 = k - ez(m)
 
           IF((node(im1,jm1,km1) .EQ. FLUID) .or. (node(im1,jm1,km1) .EQ. FINEMESH)) THEN 
-            phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
+!            phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN															! macro- boundary
             CALL ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)															! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
-            phi(i,j,k) = phi(i,j,k) + phiBC     
+!            phi(i,j,k) = phi(i,j,k) + phiBC     
             CALL FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
             CALL AbsorbedScalarS(i,j,k,m,im1,jm1,km1,phiBC)	     ! measure the absorption rate
           ELSE
@@ -104,14 +105,12 @@ DO k=1,nzSub
 
         END DO
 
-!	phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
-
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi(i,j,k) .LT. 0.0_dbl) THEN
-           Negative_phi_Counter = Negative_phi_Counter + 1.0
-           Negative_phi_Total   = Negative_phi_Total + phi(i,j,k) * (1.0-flagNodeIntersectFine(i,j,k)) * zcf3 
+           Negative_phi_Counter_l = Negative_phi_Counter_l + 1.0
+           Negative_phi_Total_l   = Negative_phi_Total_l + phi(i,j,k) * (1.0-flagNodeIntersectFine(i,j,k)) * zcf3 
            IF (phi(i,j,k) .LT. Negative_phi_Worst) THEN
-              Negative_phi_Worst = phi(i,j,k)
+              Negative_phi_Worst_l = phi(i,j,k)
            ENDIF           
           phi(i,j,k) = 0.0_dbl
         END IF

@@ -494,7 +494,7 @@ CONTAINS
        !------ Copy pointer of next node
        next => current%next
        
-       IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
+       IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
           !------ Calculate length scale for jth particle:  delta = R / Sh
           !------ Calculate effective radius: R_influence_P = R + (N_b *delta)
           !------ Note: need to convert this into Lattice units and not use the physical length units
@@ -561,7 +561,6 @@ CONTAINS
                 c   = c0 * (1.0_dbl-zd) + c1 * zd
                 
                 Cb_Hybrid= c 
-                flush(31)
                 
              END IF
              !----------------------------------------------------------------------------------------------------------------------
@@ -580,19 +579,24 @@ CONTAINS
              
              !Check if Volume of Influence Border overlaps with the current processor domain
              
-             if (MAX ( MIN(VIB_z(2)+L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
+             if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_z(1)+L,(kMinDomain_fine(mySub)-1.5)*zcf_fine), 0.0_dbl) .gt. 0) then
+                zp_fine = current%pardata%zp + L             
+                VIB_zf(1) = VIB_z(1)+L
+                VIB_zf(2) = VIB_z(2)+L
                 
-                VIB_z(1) = VIB_z(1)+L
-                VIB_z(2) = VIB_z(2)+L
+             else  if (MAX ( MIN(VIB_z(2)-L,(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_z(1)-L,(kMinDomain_fine(mySub)-1.5)*zcf_fine), 0.0_dbl) .gt. 0) then
+                zp_fine = current%pardata%zp - L             
+                VIB_zf(1) = VIB_z(1)-L
+                VIB_zf(2) = VIB_z(2)-L
                 
-             else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1)-L,(kMinDomain_fine(mySub)-1)*zcf_fine), 0.0_dbl) .gt. 0) then
-                
-                VIB_z(1) = VIB_z(1)-L
-                VIB_z(2) = VIB_z(2)-L
+             else
+                zp_fine = current%pardata%zp
+                VIB_zf(1) = VIB_z(1)
+                VIB_zf(2) = VIB_z(2)
                 
              end if
              
-             overlapFineProc = MAX ( MIN(VIB_z(2),kMaxDomain_fine(mySub)*zcf_fine) - MAX(VIB_z(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
+             overlapFineProc = MAX ( MIN(VIB_zf(2),(kMaxDomain_fine(mySub)-0.5)*zcf_fine) - MAX(VIB_zf(1),(kMinDomain_fine(mySub)-1)*zcf_fine) , 0.0_dbl)
              
              Cb_Total_Veff = 0
              fluids_Veff = 0
@@ -607,8 +611,7 @@ CONTAINS
                 !--------- Discretizing the volume of influence to  make sure at least 64 points are available
                 Delta_X = (VIB_x(2)-VIB_x(1)) / 3.0 
                 Delta_Y = (VIB_y(2)-VIB_y(1)) / 3.0
-                Delta_Z = (VIB_z(2)-VIB_z(1)) / 3.0 
-                
+                Delta_Z = (VIB_zf(2)-VIB_zf(1)) / 3.0 
                 
                 
                 !--------- Loop over discretized points and averaging the concentration
@@ -617,14 +620,12 @@ CONTAINS
                       DO k= 0, 3
                          xp = VIB_x(1) + (i * Delta_X) 
                          yp = VIB_y(1) + (j * Delta_Y)
-                         zp = VIB_z(1) + (k * Delta_Z)
-                         
+                         zp = VIB_zf(1) + (k * Delta_Z)
                          
                          hardCheckCoarseMesh = ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - ycf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 )
                          
                          if (hardCheckCoarseMesh) then
-                            if( (zp - kMaxDomain(mySub)*zcf) * (zp - (kMinDomain(mySub)-1)*zcf) .lt. 0)  then !If this point is in this processor
-                               
+                            if( (zp - (kMaxDomain(mySub)-0.5)*zcf) * (zp - (kMinDomain(mySub)-1.5)*zcf) .lt. 0)  then !If this point is in this processor
                                
                                !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
                                x_DP = (xp - xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
@@ -659,18 +660,7 @@ CONTAINS
                                
                                !------------------ Taking care of the periodic BC in Z-dir
                                iz00 = iz0
-                               IF (iz0 .gt. nz) THEN
-                                  iz00 = iz0 - (nz - 1)
-                               ELSE IF (iz0 .lt. 1) THEN
-                                  iz00 = iz0 + (nz-1)
-                               END IF
-                               
                                iz11 = iz1         
-                               IF (iz1 .gt. nz) THEN
-                                  iz11 = iz1 - (nz-1)
-                               ELSE IF (iz1 .lt. 1) THEN
-                                  iz11 = iz1 + (nz-1)
-                               END IF
                                
                                !------------------ Concentration Trilinear Iinterpolation
                                !------------------ Interpolation in x-direction
@@ -691,7 +681,6 @@ CONTAINS
                          else
                             
                             if( (zp - kMaxDomain_fine(mySub)*zcf_fine) * (zp - (kMinDomain_fine(mySub)-1)*zcf_fine) .lt. 0)  then !If this point is in this processor                    
-                               
                                
                                !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
                                x_DP = (xp - xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
@@ -727,19 +716,7 @@ CONTAINS
                                
                                !------------------ Taking care of the periodic BC in Z-dir
                                iz00 = iz0
-                               IF (iz0 .gt. nz_fine) THEN
-                                  iz00 = iz0 - (nz_fine - 1)
-                               ELSE IF (iz0 .lt. 1) THEN
-                                  iz00 = iz0 + (nz_fine-1)
-                               END IF
-                               
                                iz11 = iz1         
-                               IF (iz1 .gt. nz_fine) THEN
-                                  iz11 = iz1 - (nz_fine-1)
-                               ELSE IF (iz1 .lt. 1) THEN
-                                  iz11 = iz1 + (nz_fine-1)
-                               END IF
-                               
                                !------------------ Concentration Trilinear Iinterpolation
                                !------------------ Interpolation in x-direction
                                c00 = phi_fine(ix0,iy0,iz00) * (1.0_dbl-xd) + phi_fine(ix1,iy0,iz00) * xd
@@ -782,7 +759,13 @@ CONTAINS
              VIB_y(2)= current%pardata%yp + 0.5_dbl * L_influence_P
              VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
              VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
-             
+
+             write(31,*) 'L_influence_p = ', L_influence_P
+             write(31,*) 'VIBs'
+             write(31,*) 'x ', VIB_x(1), VIB_x(2)
+             write(31,*) 'y ', VIB_y(1), VIB_y(2)
+             write(31,*) 'z ', VIB_z(1), VIB_z(2)
+            
              checkEffVolumeOverlapFineMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
                   ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P ) - 0.99
              
@@ -851,6 +834,11 @@ CONTAINS
                 NEP_y(2)= MIN(nySub_fine-1, FLOOR(yp + 0.5*L_influence_P/ycf_fine))
                 NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf_fine))
                 NEP_z(2)= MIN(nzSub_fine, FLOOR(zp + 0.5*L_influence_P/zcf_fine))
+
+                write(31,*) 'NEPs fine mesh'                
+                write(31,*) 'x ', NEP_x(1), NEP_x(2), x_fine(NEP_x(1)), x_fine(NEP_x(2))
+                write(31,*) 'y ', NEP_y(1), NEP_y(2), y_fine(NEP_y(1)), y_fine(NEP_y(2))
+                write(31,*) 'z ', NEP_z(1), NEP_z(2), z_fine(NEP_z(1)), z_fine(NEP_z(2))                
                 
                 DO i= NEP_x(1),NEP_x(2) 
                    DO j= NEP_y(1),NEP_y(2)
@@ -883,6 +871,11 @@ CONTAINS
                    NEP_y(2)= MIN(nySub, FLOOR(yp + 0.5*L_influence_P/ycf))
                    NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf))
                    NEP_z(2)= MIN(nzSub, FLOOR(zp + 0.5*L_influence_P/zcf))
+
+                   write(31,*) 'NEPs coarse mesh'                
+                   write(31,*) 'x ', NEP_x(1), NEP_x(2), x(NEP_x(1)), x(NEP_x(2))
+                   write(31,*) 'y ', NEP_y(1), NEP_y(2), y(NEP_y(1)), y(NEP_y(2))
+                   write(31,*) 'z ', NEP_z(1), NEP_z(2), z(NEP_z(1)), z(NEP_z(2))                
                    
                    DO i= NEP_x(1),NEP_x(2) 
                       DO j= NEP_y(1),NEP_y(2)
@@ -894,6 +887,8 @@ CONTAINS
                             IF (node(i,j,kk) .EQ. FLUID) THEN
                                Cb_Total_Veff_l  = Cb_Total_Veff_l  + phi(i,j,kk) * (1.0 - flagNodeIntersectFine(i,j,kk)) * (gridRatio * gridRatio * gridRatio)
                                fluids_Veff_l = fluids_Veff_l + (1.0 - flagNodeIntersectFine(i,j,kk)) * (gridRatio * gridRatio * gridRatio)
+                            ELSE
+                               write(31,*) 'Node i,j,k ', i,j,kk, ' is not a fluid node'
                             END IF
                          END DO
                       END DO
@@ -907,9 +902,11 @@ CONTAINS
              CALL MPI_ALLREDUCE(fluids_Veff_l, fluids_Veff, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
              Cb_Hybrid= Cb_Total_Veff / fluids_Veff
 
-             current%pardata%bulk_conc = Cb_Hybrid
-             
+            
           END IF
+
+          current%pardata%bulk_conc = Cb_Hybrid
+          
        END IF
        current => next
        
@@ -949,7 +946,9 @@ CONTAINS
               current%pardata%rpold=current%pardata%rp
              
               bulkconc = current%pardata%bulk_conc
-             
+
+              write(31,*) 'bulk conc = ', bulkconc, ' Cs = ', current%pardata%par_conc, ' Driving Delta = ', current%pardata%par_conc-bulkconc
+              
               temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
              
               IF (temp.GE.0.0_dbl) THEN
@@ -979,8 +978,10 @@ CONTAINS
        CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
        RANK= current%pardata%cur_part - 1
        CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
-       CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)     
-       
+       CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+       IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh       
+          Drug_Released_Total = Drug_Released_Total + current%pardata%delNB
+       END IF
        current => next
     ENDDO
     
@@ -1039,7 +1040,7 @@ CONTAINS
           !------ Calculate effective radius: R_influence_P = R + (N_d *delta)
           !------ Note: need to convert this into Lattice units and not use the physical length units
           !------ Then compute equivalent cubic mesh length scale
-          N_d = 1.0
+          N_d = 1.5
           R_P  = current%pardata%rp
           Sh_P = current%pardata%sh
           delta_P = R_P / Sh_P
@@ -1055,6 +1056,14 @@ CONTAINS
           VIB_y(2)= current%pardata%yp + 0.5_dbl * L_influence_P
           VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
           VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
+
+          write(31,*) 'Interp_ParToNodes_Conc'
+          write(31,*) 'L_influence_p = ', L_influence_P
+          write(31,*) 'VIBs'
+          write(31,*) 'x ', VIB_x(1), VIB_x(2)
+          write(31,*) 'y ', VIB_y(1), VIB_y(2)
+          write(31,*) 'z ', VIB_z(1), VIB_z(2)
+          
           
           !Check if Volume of Influence Border overlaps with the current processor domain
           
@@ -1123,6 +1132,11 @@ CONTAINS
                 NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf))
                 NEP_z(2)= MIN(nzSub,NINT(zp + 0.5*L_influence_P/zcf))
                 
+                write(31,*) 'NEPs coarse mesh'                
+                write(31,*) 'x ', NEP_x(1), NEP_x(2), x(NEP_x(1)), x(NEP_x(2))
+                write(31,*) 'y ', NEP_y(1), NEP_y(2), y(NEP_y(1)), y(NEP_y(2))
+                write(31,*) 'z ', NEP_z(1), NEP_z(2), z(NEP_z(1)), z(NEP_z(2))                
+                
                 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
                 
                 Overlap= 0.0
@@ -1171,6 +1185,12 @@ CONTAINS
              NEP_y(2)= MIN(nySub_fine-1,NINT(yp + 0.5*L_influence_P/ycf_fine))
              NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf_fine))
              NEP_z(2)= MIN(nzSub_fine,NINT(zp + 0.5*L_influence_P/zcf_fine))
+
+             write(31,*) 'NEPs fine mesh'                
+             write(31,*) 'x ', NEP_x(1), NEP_x(2), x_fine(NEP_x(1)), x_fine(NEP_x(2))
+             write(31,*) 'y ', NEP_y(1), NEP_y(2), y_fine(NEP_y(1)), y_fine(NEP_y(2))
+             write(31,*) 'z ', NEP_z(1), NEP_z(2), z_fine(NEP_z(1)), z_fine(NEP_z(2))                
+             
              
              !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
              Overlap_sum_fine = 0.0_dbl
@@ -1208,6 +1228,8 @@ CONTAINS
           CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
           CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
+          write(31,*) 'Overlaps = ', Overlap_sum_coarse, Overlap_sum_fine, Overlap_sum_l, Overlap_sum
+
           if (overlapFineProc .gt. 0) then
              
              !------ Computing particle release contribution to scalar field at each lattice node
@@ -1232,7 +1254,7 @@ CONTAINS
                             Overlap_fine(i,j,kk) = 0.0
                          END IF
                          
-                         delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)/ zcf3
+                         delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)  / zcf3
                          
                       END IF
                    END DO
@@ -1240,8 +1262,12 @@ CONTAINS
              END DO
              
           end if
+
+          write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB, ' error = ', (sum(delphi_particle_fine(:,:,:)) * zcf3 - current%pardata%delNB)/current%pardata%delNB
           
           if (overlapCoarseProc .gt. 0) then
+
+             write(31,*) 'checkEffVolumeOverlapFineMesh = ', checkEffVolumeOverlapFineMesh
              
              !Now the coarse mesh
              if (checkEffVolumeOverlapFineMesh .lt. 0) then
@@ -1282,7 +1308,7 @@ CONTAINS
                                Overlap(i,j,kk) = 0.0
                             END IF
                             
-                            delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / (xcf * ycf * zcf * (1.0-flagNodeIntersectFine(i,j,k)) )
+                            delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk)  / (xcf * ycf * zcf * (1.0-flagNodeIntersectFine(i,j,k)) )
                          END IF
                       END DO
                    END DO

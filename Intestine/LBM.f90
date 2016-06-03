@@ -537,20 +537,28 @@ DO WHILE (ASSOCIATED(current))
          
          !Check if Volume of Influence Border overlaps with the current processor domain
          
-         if (MAX ( MIN(VIB_z(2)+L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)+L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+         if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_z(1)+L,(kMinDomain(mySub)-1.5)*zcf) , 0.0_dbl) .gt. 0) then
             
-            VIB_z(1) = VIB_z(1)+L
-            VIB_z(2) = VIB_z(2)+L
+            zp_coarse = current%pardata%zp + L           
+            VIB_zc(1) = VIB_z(1)+L
+            VIB_zc(2) = VIB_z(2)+L
             
-         else  if (MAX ( MIN(VIB_z(2)-L,kMaxDomain(mySub)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1)*zcf), 0.0_dbl) .gt. 0) then
+         else  if (MAX ( MIN(VIB_z(2)-L,(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_z(1)-L,(kMinDomain(mySub)-1.5)*zcf) , 0.0_dbl) .gt. 0) then
             
-            VIB_z(1) = VIB_z(1)-L
-            VIB_z(2) = VIB_z(2)-L
+            zp_coarse = current%pardata%zp - L
+            VIB_zc(1) = VIB_z(1)-L
+            VIB_zc(2) = VIB_z(2)-L
+            
+         else
+            
+            zp_coarse = current%pardata%zp                
+            VIB_zc(1) = VIB_z(1)
+            VIB_zc(2) = VIB_z(2)
             
          end if
          
-         overlapCoarseProc = MAX ( MIN(VIB_z(2),kMaxDomain(mySub)*zcf) - MAX(VIB_z(1),(kMinDomain(mySub)-1)*zcf) , 0.0_dbl)
          
+         overlapCoarseProc = MAX ( MIN(VIB_zc(2),(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_zc(1),(kMinDomain(mySub)-1.5)*zcf) , 0.0_dbl)
          
          Cb_Total_Veff = 0
          fluids_Veff = 0
@@ -574,12 +582,12 @@ DO WHILE (ASSOCIATED(current))
                DO k= 0, 3
                   xp = VIB_x(1) + (i * Delta_X)
                   yp = VIB_y(1) + (j * Delta_Y)
-                  zp = VIB_z(1) + (k * Delta_Z)
+                  zp = VIB_zc(1) + (k * Delta_Z)
                   
                   hardCheckCoarseMesh = ( (xp - fractionDfine * D * 0.5 - xcf) * (xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (yp - fractionDfine * D * 0.5 - ycf) * (yp + fractionDfine * D * 0.5 + ycf) > 0 )
                   
                   if (hardCheckCoarseMesh) then
-                     if( (zp - kMaxDomain(mySub)*zcf) * (zp - (kMinDomain(mySub)-1)*zcf) .lt. 0)  then !If this point is in this processor
+                     if( (zp - (kMaxDomain(mySub)-0.5)*zcf) * (zp - (kMinDomain(mySub)-1.5)*zcf) .lt. 0)  then !If this point is in this processor
                         
                         !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
                         x_DP = (xp - xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
@@ -614,18 +622,7 @@ DO WHILE (ASSOCIATED(current))
                         
                         !------------------ Taking care of the periodic BC in Z-dir
                         iz00 = iz0
-                        IF (iz0 .gt. nz) THEN
-                           iz00 = iz0 - (nz - 1)
-                        ELSE IF (iz0 .lt. 1) THEN
-                           iz00 = iz0 + (nz-1)
-                        END IF
-                        
                         iz11 = iz1         
-                        IF (iz1 .gt. nz) THEN
-                           iz11 = iz1 - (nz-1)
-                        ELSE IF (iz1 .lt. 1) THEN
-                           iz11 = iz1 + (nz-1)
-                        END IF
                         
                         !------------------ Concentration Trilinear Iinterpolation
                         !------------------ Interpolation in x-direction
@@ -642,11 +639,10 @@ DO WHILE (ASSOCIATED(current))
                         Cb_Total_Veff_l  = Cb_Total_Veff_l  + c
                         fluids_Veff_l = fluids_Veff_l + 1.0
                      end if
+
                   else
                      
-                     
-                     
-                     if( (zp - kMaxDomain_fine(mySub)*zcf_fine) * (zp - (kMinDomain_fine(mySub)-1)*zcf_fine) .lt. 0)  then !If this point is in this processor                    
+                     if( (zp - (kMaxDomain_fine(mySub)-0.5)*zcf_fine) * (zp - (kMinDomain_fine(mySub)-1.5)*zcf_fine) .lt. 0)  then !If this point is in this processor                    
                         !------------------ Finding Lattice nodes surrounding this point (This point is discretized and is not a lattice node))
                         x_DP = ( xp - xx_fine(1))/xcf_fine + 1 - REAL(iMin_fine-1_lng,dbl)
                         y_DP = ( yp - yy_fine(1))/ycf_fine + 1 - REAL(jMin_fine-1_lng,dbl)
@@ -680,18 +676,7 @@ DO WHILE (ASSOCIATED(current))
                         
                         !------------------ Taking care of the periodic BC in Z-dir
                         iz00 = iz0
-                        IF (iz0 .gt. nz_fine) THEN
-                           iz00 = iz0 - (nz_fine-1)
-                        ELSE IF (iz0 .lt. 1) THEN
-                           iz00 = iz0 + (nz_fine-1)
-                        END IF
-                        
                         iz11 = iz1         
-                        IF (iz1 .gt. nz_fine) THEN
-                           iz11 = iz1 - (nz_fine-1)
-                        ELSE IF (iz1 .lt. 1) THEN
-                           iz11 = iz1 + (nz_fine-1)
-                        END IF
                         
                         !------------------ Concentration Trilinear Iinterpolation
                         !------------------ Interpolation in x-direction
@@ -898,8 +883,9 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
      next => current%next ! copy pointer of next node
      
      IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh
+
+        IF (mySub .EQ.current%pardata%cur_part) THEN
         
-        IF (mySub .EQ.current%pardata%cur_part) THEN 
            current%pardata%rpold=current%pardata%rp
            
            bulkconc = current%pardata%bulk_conc
@@ -925,14 +911,21 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
            ENDIF
            
         END IF
+           
      END IF
 
      CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
      RANK= current%pardata%cur_part - 1
      CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
-     CALL MPI_BCast(current%pardata%rp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)     
-     
-     ! point to next node in the list     
+     CALL MPI_BCast(current%pardata%rp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+
+     IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh     
+        write(31,*) 'Modifying Drug_Released_Total in coarse mesh now '
+        write(31,*) 'Old value = ', Drug_Released_Total
+        Drug_Released_Total = Drug_Released_Total + current%pardata%delNB
+        write(31,*) 'New value = ', Drug_Released_Total
+        ! point to next node in the list
+     END IF
      current => next
   ENDDO
   
@@ -1110,7 +1103,7 @@ DO WHILE (ASSOCIATED(current))
 !------ Calculate effective radius: R_influence_P = R + (N_d *delta)
 !------ Note: need to convert this into Lattice units and not use the physical length units
 !------ Then compute equivalent cubic mesh length scale
-	N_d = 1.0
+	N_d = 1.5
         R_P  = current%pardata%rp
 	Sh_P = current%pardata%sh
         delta_P = R_P / Sh_P
@@ -1310,7 +1303,7 @@ DO WHILE (ASSOCIATED(current))
                        Overlap(i,j,kk) = 0.0
                     END IF
 
-                    delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk) / (zcf3 * (1.0-flagNodeIntersectFine(i,j,kk)) )
+                    delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk)  / (zcf3 * (1.0-flagNodeIntersectFine(i,j,kk)) )
 !                   tausgs_particle_x(i,j,k)= tausgs_particle_x(i,j,k)- current%pardata%up*Nbj   * (Overlap(i,j,k)/Overlap_sum)
 !                   tausgs_particle_y(i,j,k)= tausgs_particle_y(i,j,k)- current%pardata%up*Nbj   * (Overlap(i,j,k)/Overlap_sum)
 !                   tausgs_particle_z(i,j,k)= tausgs_particle_z(i,j,k)- current%pardata%up*Nbj   * (Overlap(i,j,k)/Overlap_sum)
@@ -1357,7 +1350,7 @@ DO WHILE (ASSOCIATED(current))
                           Overlap_fine(i,j,kk) = 0.0
                        END IF
 
-                          delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk) / (xcf_fine * ycf_fine * zcf_fine)
+                          delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)  / (xcf_fine * ycf_fine * zcf_fine)
                        
                     END IF
                  END DO
