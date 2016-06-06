@@ -1043,7 +1043,7 @@ CONTAINS
     TYPE(ParRecord), POINTER  :: current
     TYPE(ParRecord), POINTER  :: next
     INTEGER(lng)  		  :: mpierr
-    
+    INTEGER                   :: RANK
     
     delta_mesh = 1.0_dbl
     zcf3 = xcf_fine*ycf_fine*zcf_fine
@@ -1184,7 +1184,7 @@ CONTAINS
 
                          IF (node(i,j,kk) .EQ. FLUID) THEN
                             Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk)) 
-                            Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk)
+                            Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk) 
                          END IF
                       END DO
                    END DO
@@ -1253,6 +1253,8 @@ CONTAINS
           CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
           write(31,*) 'Overlaps = ', Overlap_sum_coarse, Overlap_sum_fine, Overlap_sum_l, Overlap_sum
+
+          if (Overlap_sum .gt. 1e-7) then
 
           if (overlapFineProc .gt. 0) then
              
@@ -1344,9 +1346,23 @@ CONTAINS
              end if
              
           end if
-       END IF
 
+       else
+
+          IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh       
+             Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
+          END IF
+          current%pardata%delNB = 0.0_dbl
+          current%pardata%rp = current%pardata%rpold
+          
+          RANK= current%pardata%cur_part - 1
+          CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+          CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+          
+       end if
     END IF
+
+ END IF
        
        !------ point to next node in the list
        current => next

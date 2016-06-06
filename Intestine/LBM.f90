@@ -1099,7 +1099,7 @@ REAL(dbl)                 :: overlapCoarseProc, overlapFineProc
 TYPE(ParRecord), POINTER  :: current
 TYPE(ParRecord), POINTER  :: next
 INTEGER  		  :: mpierr
-
+INTEGER                   :: RANK
 
 delta_mesh = 1.0_dbl
 zcf3 = xcf*ycf*zcf
@@ -1235,7 +1235,7 @@ DO WHILE (ASSOCIATED(current))
                     
                     IF ((node_fine(i,j,kk) .EQ. FLUID) ) THEN                       
                        Overlap_fine(i,j,kk)= tmp 
-                       Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk)
+                       Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk) * (max((Cs_mol-phi_fine(i,j,kk) ),0.0_dbl) / Cs_mol)
                     END IF
                  END DO
               END DO
@@ -1286,7 +1286,7 @@ DO WHILE (ASSOCIATED(current))
                 ! END IF
 
                 IF (node(i,j,kk) .EQ. FLUID) THEN
-                    Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk))
+                    Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk)) * (max((Cs_mol-phi(i,j,kk) ),0.0_dbl) / Cs_mol)
                     Overlap_sum_coarse= Overlap_sum_coarse + Overlap(i,j,kk)
                  END IF
               END DO
@@ -1299,6 +1299,8 @@ DO WHILE (ASSOCIATED(current))
 
      CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
      CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+
+     if (Overlap_sum .gt. 1e-7) then
 
      if (overlapCoarseProc .gt. 0) then
         !------ Computing particle release contribution to scalar field at each lattice node
@@ -1376,7 +1378,27 @@ DO WHILE (ASSOCIATED(current))
 
      end if
 
-  END IF
+  else
+
+     IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh     
+        write(31,*) 'Modifying Drug_Released_Total in coarse mesh now '
+        write(31,*) 'Old value = ', Drug_Released_Total
+        Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
+        write(31,*) 'New value = ', Drug_Released_Total
+        ! point to next node in the list
+     END IF
+     
+     current%pardata%delNB = 0.0_dbl
+     current%pardata%rp = current%pardata%rpold
+     RANK= current%pardata%cur_part - 1
+     CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+     CALL MPI_BCast(current%pardata%rp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+     
+     
+     
+  end if
+     
+END IF
 
 END IF
 !------ point to next node in the list
