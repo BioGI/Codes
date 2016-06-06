@@ -1096,6 +1096,7 @@ INTEGER  ,DIMENSION(2)    :: LN_x,  LN_y,  LN_z				! Lattice Nodes Surronding th
 INTEGER  ,DIMENSION(2)    :: NEP_x, NEP_y, NEP_z                        ! Lattice Nodes Surronding the particle
 REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine, checkEffVolumeOverlapFineMesh
 REAL(dbl)                 :: overlapCoarseProc, overlapFineProc
+REAL(dbl)                 :: overlapSumTest_l, overlapSumTest ! Test for sum of normalized overlaps. Has to be close to 1.0. If this number is considerably smaller than 0, then no drug could be released to surrounding nodes.
 TYPE(ParRecord), POINTER  :: current
 TYPE(ParRecord), POINTER  :: next
 INTEGER  		  :: mpierr
@@ -1296,11 +1297,14 @@ DO WHILE (ASSOCIATED(current))
      end if
 
      Overlap_sum_l = Overlap_sum_coarse + Overlap_sum_fine
-
+     
      CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
      CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
-     if (Overlap_sum .gt. 1e-7) then
+     OverlapSumTest_l = 0.0_dbl
+     OverlapSumTest = 0.0_dbl
+     
+     if (Overlap_sum .gt. 1e-40) then
 
      if (overlapCoarseProc .gt. 0) then
         !------ Computing particle release contribution to scalar field at each lattice node
@@ -1314,12 +1318,8 @@ DO WHILE (ASSOCIATED(current))
                  IF (node(i,j,kk) .EQ. FLUID) THEN                 
                  
 		    !----- Overlap_sum going to zero when the particle is disapearing
-		    IF (Overlap_sum .gt. 1e-40) THEN
-                       Overlap(i,j,kk) = Overlap(i,j,kk) / Overlap_sum
-                    ELSE
-                       Overlap(i,j,kk) = 0.0
-                    END IF
-
+                    Overlap(i,j,kk) = Overlap(i,j,kk) / Overlap_sum
+                    OverlapSumTest_l = OverlapSumTest_l + Overlap(i,j,kk)
                     delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk)  / (zcf3 * (1.0-flagNodeIntersectFine(i,j,kk)) )
 !                   tausgs_particle_x(i,j,k)= tausgs_particle_x(i,j,k)- current%pardata%up*Nbj   * (Overlap(i,j,k)/Overlap_sum)
 !                   tausgs_particle_y(i,j,k)= tausgs_particle_y(i,j,k)- current%pardata%up*Nbj   * (Overlap(i,j,k)/Overlap_sum)
@@ -1361,13 +1361,9 @@ DO WHILE (ASSOCIATED(current))
                     IF (node_fine(i,j,kk) .EQ. FLUID) THEN                 
                        
                        !----- Overlap_sum going to zero when the particle is disapearing
-                       IF (Overlap_sum .gt. 1e-40) THEN
-                          Overlap_fine(i,j,kk) = Overlap_fine(i,j,kk) / Overlap_sum
-                       ELSE
-                          Overlap_fine(i,j,kk) = 0.0
-                       END IF
-
-                          delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)  / (xcf_fine * ycf_fine * zcf_fine)
+                       Overlap_fine(i,j,kk) = Overlap_fine(i,j,kk) / Overlap_sum
+                       delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)  / (xcf_fine * ycf_fine * zcf_fine)
+                       OverlapSumTest_l = OverlapSumTest_l + Overlap_fine(i,j,kk)
                        
                     END IF
                  END DO
@@ -1378,23 +1374,24 @@ DO WHILE (ASSOCIATED(current))
 
      end if
 
-  else
+     CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+     
+  end if
 
-     IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh     
-        write(31,*) 'Modifying Drug_Released_Total in coarse mesh now '
-        write(31,*) 'Old value = ', Drug_Released_Total
-        Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
-        write(31,*) 'New value = ', Drug_Released_Total
-        ! point to next node in the list
-     END IF
+  if (overlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
+
+     
+     write(31,*) 'Modifying Drug_Released_Total in coarse mesh now '
+     write(31,*) 'Old value = ', Drug_Released_Total
+     Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
+     write(31,*) 'New value = ', Drug_Released_Total
+     ! point to next node in the list
      
      current%pardata%delNB = 0.0_dbl
      current%pardata%rp = current%pardata%rpold
      RANK= current%pardata%cur_part - 1
      CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
      CALL MPI_BCast(current%pardata%rp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
-     
-     
      
   end if
      
@@ -1548,18 +1545,18 @@ SUBROUTINE Particle_Track
   current => ParListHead%next
   DO WHILE (ASSOCIATED(current))
      next => current%next 						! copy pointer of next node
-
-     IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
      
-     IF ( flagParticleCF(current%pardata%parid) .eqv. .false. ) THEN  !Ideally, I want to check if particle is in coarse mesh, if not skip this step and just let the first order time-stepping remain. But that doesn't seem to work. Hence doing a soft check for the coarse mesh.
-        IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
-           current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
-           current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf
-           current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf
-        END IF
+     IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
         
+        IF ( flagParticleCF(current%pardata%parid) .eqv. .false. ) THEN  !Ideally, I want to check if particle is in coarse mesh, if not skip this step and just let the first order time-stepping remain. But that doesn't seem to work. Hence doing a soft check for the coarse mesh.
+           IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
+              current%pardata%xp=current%pardata%xpold+0.5*(current%pardata%up+current%pardata%upold) * tcf
+              current%pardata%yp=current%pardata%ypold+0.5*(current%pardata%vp+current%pardata%vpold) * tcf
+              current%pardata%zp=current%pardata%zpold+0.5*(current%pardata%wp+current%pardata%wpold) * tcf
+           END IF
+           
+        END IF
      END IF
-  END IF
      current => next
   ENDDO
   
