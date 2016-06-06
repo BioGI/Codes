@@ -262,6 +262,7 @@ REAL(dbl):: Cb_global								! (milli-mole/cm^3) or (micro M) or (micro g/ml)  G
 
 INTEGER:: Cb_numFluids							! Number of fluid nodes in the process for Global bulk scalar Concentration
 INTEGER:: num_particles							! Total number of particles in domain
+REAL(dbl) :: Min_R_Acceptable=1e-7                                      ! Minimum radius below which a particle is not tracked 
 
 
 INTEGER(lng), ALLOCATABLE :: iMaxDomain(:),iMinDomain(:) 			! List of starting/enning i indices for each subdomain
