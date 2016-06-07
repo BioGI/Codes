@@ -75,7 +75,7 @@ DO k=1,nzSub
       
       IF(node(i,j,k) .EQ. FLUID) THEN
       
-!        phi(i,j,k) = Delta*phiTemp(i,j,k)
+        phi(i,j,k) = Delta*phiTemp(i,j,k)
 	phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
          DO m=0,NumDistDirs
@@ -86,10 +86,10 @@ DO k=1,nzSub
           km1 = k - ez(m)
 
           IF((node(im1,jm1,km1) .EQ. FLUID) .or. (node(im1,jm1,km1) .EQ. FINEMESH)) THEN 
-!            phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
+            phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN															! macro- boundary
             CALL ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)															! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
-!            phi(i,j,k) = phi(i,j,k) + phiBC     
+            phi(i,j,k) = phi(i,j,k) + phiBC     
             CALL FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
             CALL AbsorbedScalarS(i,j,k,m,im1,jm1,km1,phiBC)	     ! measure the absorption rate
           ELSE
