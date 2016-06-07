@@ -190,7 +190,7 @@ time	= (iter-1)*tcf + subIter*tcf_fine
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz_fine-1
 
-  h1(i) 	= amp1*(COS(kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
+  h1(i) 	= amp1*(COS(PI + kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
 
 END DO
 
@@ -313,7 +313,7 @@ time = (iter-1)*tcf + subIter*tcf_fine
 !DO i=1,nz
 DO i=0,nz_fine-1 ! Balaji added to ensure periodicity just like in h1. 
 
-  v1(i)	= kw1*s1*amp1*(SIN(kw1*(zz_fine(i) - (s1*time))))
+  v1(i)	= kw1*s1*amp1*(SIN(PI + kw1*(zz_fine(i) - (s1*time))))
 
 END DO
 

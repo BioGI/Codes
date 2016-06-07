@@ -310,7 +310,7 @@ time	= iter*tcf
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz-1
 
-  h1(i) 	= amp1*(COS(kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
+  h1(i) 	= amp1*(COS(PI + kw1*(zz(i) - (s1*time)))) + (0.5_dbl*D - amp1)
 !! Yanxing's expression
 !  h1(i)         = amp1*sin(2.0_dbl*PI*((real(i,dbl)-0.5_dbl)/real(nz,dbl)-0.1_dbl*iter/real(nz,dbl))+pi/2.0_dbl)+ (0.5_dbl*D - amp1)
 
@@ -734,7 +734,7 @@ time = iter*tcf
 !DO i=1,nz
 DO i=0,nz-1 ! Balaji added to ensure periodicity just like in h1. 
 
-  v1(i)	= kw1*s1*amp1*(SIN(kw1*(zz(i) - (s1*time))))
+  v1(i)	= kw1*s1*amp1*(PI + SIN(kw1*(zz(i) - (s1*time))))
   !v1(i)	= -kw1*s1*amp1*(SIN(kw1*(zz(i) - (s1*time))))
 !! Yanxing's expression
 !  v1(i)         = -kw1*s1*amp1*cos(2.0_dbl*PI*((real(i,dbl)-0.5_dbl)/real(nz,dbl)-0.1_dbl*iter/real(nz,dbl))+pi/2.0_dbl)
