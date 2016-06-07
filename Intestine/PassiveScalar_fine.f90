@@ -95,12 +95,22 @@ DO k=1,nzSub_fine
 
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi_fine(i,j,k) .LT. 0.0_dbl) THEN
-           Negative_phi_Counter_l = Negative_phi_Counter_l + 1.0
-           Negative_phi_Total_l   = Negative_phi_Total_l + phi_fine(i,j,k) * zcf3 
-           IF (phi_fine(i,j,k) .LT. Negative_phi_Worst) THEN
-              Negative_phi_Worst_l = phi_fine(i,j,k)
-           ENDIF
+           if(subIter .eq. gridRatio) then
+              Negative_phi_Counter_l = Negative_phi_Counter_l + 1
+              Negative_phi_Total_l   = Negative_phi_Total_l + phi_fine(i,j,k) * zcf3 
+              IF (phi_fine(i,j,k) .LT. Negative_phi_Worst) THEN
+                 Negative_phi_Worst_l = phi_fine(i,j,k)
+              ENDIF
+           end if
            phi_fine(i,j,k) = 0.0_dbl
+           
+        ELSE IF (phi(i,j,k) .gt. Cs_mol) THEN
+           if(subIter .eq. gridRatio) then
+              Over_Sat_Counter_l = Over_Sat_Counter_l + 1
+              IF (phi_fine(i,j,k) .GT. Largest_Phi_l) THEN
+                 Largest_Phi_l = phi_fine(i,j,k)
+              ENDIF
+           end if
         END IF
 
       END IF

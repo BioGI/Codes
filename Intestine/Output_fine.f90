@@ -63,18 +63,6 @@ IF(myid .EQ. master) THEN
 
 END IF
 
-! Mass
-OPEN(2459,FILE='mass_fine-'//sub//'.dat')
-WRITE(2459,*) 'VARIABLES = "period", "mass_actual", "mass_theoretical"'
-WRITE(2459,*) 'ZONE F=POINT'
-CALL FLUSH(2459)
-
-! Scalar
-OPEN(2473,FILE='scalar_fine-'//sub//'.dat')
-WRITE(2473,'(A100)') 'VARIABLES = "iter", "phiA", "phiAS", "phiAV", "phiT-phiD", "phiD", "phA+phiD"'
-WRITE(2473,*) 'ZONE F=POINT'
-CALL FLUSH(2473)
-
 !------------------------------------------------
 END SUBROUTINE OpenOutputFiles_fine
 !------------------------------------------------
@@ -356,48 +344,6 @@ END SUBROUTINE CheckVariables_fine
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintMass_fine					! checks the total mass in the system 
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng) :: i,j,k				! index variables
-REAL(dbl) :: mass_actual			! mass in the system (per unit volume)
-REAL(dbl) :: mass_theoretical		! mass in the system (per unit volume)
-REAL(dbl) :: volume, node_volume	! total volume and volume of a sincle node (cell)
-
-! calculate the node volume
-node_volume = xcf_fine*ycf_fine*zcf_fine
-
-! initialize the mass and node count to 0
-mass_actual = 0.0_dbl
-volume = 0.0_dbl
-
-! calculate the mass in the system based on the density and the number of fluid nodes
-DO k=1,nzSub_fine
-  DO j=1,nySub_fine
-    DO i=1,nxSub_fine
-
-      IF(node_fine(i,j,k) .EQ. FLUID) THEN
-        mass_actual = mass_actual + (rho_fine(i,j,k)*dcf_fine)*(node_volume)
-        volume = volume + (node_volume)
-      END IF 
-
-    END DO
-  END DO
-END DO
-
-! calcuate the theoretical amount of mass in the system
-mass_theoretical = den*volume
-
-! print the mass to a file(s)
-WRITE(2459,'(I8,2E15.5)') iter, mass_actual, mass_theoretical
-CALL FLUSH(2459)  
-
-!------------------------------------------------
-END SUBROUTINE PrintMass_fine
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintVolume_fine				! prints the volume as a function of time
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
@@ -426,8 +372,76 @@ END IF
 END SUBROUTINE PrintVolume_fine
 !------------------------------------------------
 
+!--------------------------------------------------------------------------------------------------
+SUBROUTINE PrintMass					! checks the total mass in the system 
+!--------------------------------------------------------------------------------------------------
+IMPLICIT NONE
+
+INTEGER(lng) :: i,j,k				! index variables
+REAL(dbl) :: mass_actual_l, mass_actual		! mass in the system (per unit volume)
+REAL(dbl) :: mass_theoretical		! mass in the system (per unit volume)
+REAL(dbl) :: volume_l, volume, node_volume	! total volume and volume of a sincle node (cell)
+REAL(dbl) :: fineMeshVol
+INTEGER   :: mpierr
+
+! calculate the node volume
+node_volume = xcf*ycf*zcf
+fineMeshVol = 1.0/(gridRatio * gridRatio * gridRatio)
+! initialize the mass and node count to 0
+mass_actual_l = 0.0_dbl
+volume_l = 0.0_dbl
+
+mass_actual = 0.0_dbl
+volume = 0.0_dbl
+
+! calculate the mass in the system based on the density and the number of fluid nodes
+DO k=1,nzSub
+  DO j=1,nySub
+    DO i=1,nxSub
+
+      IF(node(i,j,k) .EQ. FLUID) THEN
+        mass_actual_l = mass_actual_l + (rho(i,j,k)*dcf) * (1.0-flagNodeIntersectFine(i,j,k))
+        volume_l = volume_l + (1.0-flagNodeIntersectFine(i,j,k))
+      END IF 
+
+    END DO
+  END DO
+END DO
+
+DO k=1,nzSub_fine
+  DO j=2,nySub_fine
+    DO i=2,nxSub_fine
+
+      IF(node_fine(i,j,k) .EQ. FLUID) THEN
+        mass_actual_l = mass_actual_l + (rho_fine(i,j,k)*dcf) * fineMeshVol
+        volume = volume + fineMeshVol 
+      END IF 
+
+    END DO
+  END DO
+END DO
+
+CALL MPI_ALLREDUCE(mass_actual_l , mass_actual , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+CALL MPI_ALLREDUCE(volume_l , volume, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+
+
+mass_actual  = mass_actual * volume * node_volume 
+! calcuate the theoretical amount of mass in the system
+mass_theoretical = den * volume * node_volume
+
+
+! print the mass to a file(s)
+if (mySub .eq. 1) then
+   WRITE(2458,'(I8,2E15.5)') iter, mass_actual, mass_theoretical   
+   CALL FLUSH(2458)
+end if
+
+!------------------------------------------------
+END SUBROUTINE PrintMass
+!------------------------------------------------
+
 !===================================================================================================
-SUBROUTINE PrintDrugConservation		! prints the total amount of scalar absorbed through the walls 
+SUBROUTINE PrintDrugConservation	
 !===================================================================================================
 IMPLICIT NONE
 
@@ -512,6 +526,23 @@ if(mySub .eq. 1) then
    WRITE(2472,'(I7, F9.3, 6E21.13)') iter, iter*tcf, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent 
    CALL FLUSH(2472)
 end if
+
+
+
+CALL MPI_ALLREDUCE(Negative_phi_Counter_l , Negative_phi_Counter, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
+CALL MPI_ALLREDUCE(Negative_phi_Worst_l , Negative_phi_Worst, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
+
+write(2118,*) iter, Negative_phi_Counter, Negative_phi_Total, Negative_phi_Worst, Negative_phi_Total/Negative_phi_Counter
+call flush(2118)
+
+CALL MPI_ALLREDUCE(Over_Sat_Counter_l , Over_Sat_Counter, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
+CALL MPI_ALLREDUCE(Largest_Phi_l , Largest_Phi, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi 
+
+!----- Monitoring the Over Saturation problem
+write(2119,*) iter, Over_Sat_Counter, Largest_phi/Cs_mol
+CALL FLUSH(2119)
+
+
 !===================================================================================================
 END SUBROUTINE PrintDrugConservation 
 !===================================================================================================

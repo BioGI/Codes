@@ -72,10 +72,11 @@ END IF
 OPEN(31,FILE='interpolation-'//sub//'.dat')
 
 ! Mass
-OPEN(2458,FILE='mass-'//sub//'.dat')
-WRITE(2458,*) 'VARIABLES = "period", "mass_actual", "mass_theoretical"'
-WRITE(2458,*) 'ZONE F=POINT'
-CALL FLUSH(2458)
+if (mySub .eq. 1) then
+   OPEN(2458,FILE='mass.dat')
+   WRITE(2458,*) 'VARIABLES = "period", "mass_actual", "mass_theoretical"'
+   CALL FLUSH(2458)
+end if
 
 ! Scalar
 if (mySub .eq. 1) then
@@ -83,6 +84,15 @@ if (mySub .eq. 1) then
    WRITE(2472,'(A180)') '#VARIABLES =iter,time, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent'
    CALL FLUSH(2472)
 end if
+
+!----- Monitoring over saturation
+OPEN(2118,FILE='Negative-phi.dat',POSITION='APPEND')
+WRITE(2118,'(A120)') 'VARIABLES = iter,  Number of Negative phi Nodes,  Total Sum of Negative phi,  Worst Negative phi,  Average of Negative phi'
+CALL FLUSH(2118)
+
+OPEN(2119,FILE='Over_Saturation.dat',POSITION='APPEND')
+WRITE(2119,'(A120)') 'VARIABLES = iter,  Number of OverSaturated Nodes,  Worst Oversaturation'
+CALL FLUSH(2119)
 
 !------------------------------------------------
 END SUBROUTINE OpenOutputFiles
@@ -557,48 +567,6 @@ END DO
 
 !------------------------------------------------
 END SUBROUTINE CheckVariables
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintMass					! checks the total mass in the system 
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng) :: i,j,k				! index variables
-REAL(dbl) :: mass_actual			! mass in the system (per unit volume)
-REAL(dbl) :: mass_theoretical		! mass in the system (per unit volume)
-REAL(dbl) :: volume, node_volume	! total volume and volume of a sincle node (cell)
-
-! calculate the node volume
-node_volume = xcf*ycf*zcf
-
-! initialize the mass and node count to 0
-mass_actual = 0.0_dbl
-volume = 0.0_dbl
-
-! calculate the mass in the system based on the density and the number of fluid nodes
-DO k=1,nzSub
-  DO j=1,nySub
-    DO i=1,nxSub
-
-      IF(node(i,j,k) .EQ. FLUID) THEN
-        mass_actual = mass_actual + (rho(i,j,k)*dcf)*(node_volume)
-        volume = volume + (node_volume)
-      END IF 
-
-    END DO
-  END DO
-END DO
-
-! calcuate the theoretical amount of mass in the system
-mass_theoretical = den*volume
-
-! print the mass to a file(s)
-WRITE(2458,'(I8,2E15.5)') iter, mass_actual, mass_theoretical
-CALL FLUSH(2458)  
-
-!------------------------------------------------
-END SUBROUTINE PrintMass
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------

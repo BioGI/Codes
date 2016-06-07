@@ -19,6 +19,10 @@ IMPLICIT NONE
 ! initialize arrays
 phi    		= 0.0_dbl					! scalar
 phiTemp		= 0.0_dbl					! temporary scalar
+Over_Sat_Counter_l = 0
+Over_Sat_Counter = 0
+Largest_phi_l = 0.0_dbl
+Largest_phi = 0.0_dbl
 Negative_phi_Counter_l = 0
 Negative_phi_Worst_l   = 0.0_dbl
 Negative_phi_Counter   = 0
@@ -107,12 +111,18 @@ DO k=1,nzSub
 
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi(i,j,k) .LT. 0.0_dbl) THEN
-           Negative_phi_Counter_l = Negative_phi_Counter_l + 1.0
+           Negative_phi_Counter_l = Negative_phi_Counter_l + 1
            Negative_phi_Total_l   = Negative_phi_Total_l + phi(i,j,k) * (1.0-flagNodeIntersectFine(i,j,k)) * zcf3 
            IF (phi(i,j,k) .LT. Negative_phi_Worst) THEN
               Negative_phi_Worst_l = phi(i,j,k)
            ENDIF           
-          phi(i,j,k) = 0.0_dbl
+           phi(i,j,k) = 0.0_dbl
+        ELSE IF (phi(i,j,k) .gt. Cs_mol) THEN
+           Over_Sat_Counter_l = Over_Sat_Counter_l + 1
+           IF (phi(i,j,k) .GT. Largest_Phi_l) THEN
+              Largest_Phi_l = phi(i,j,k)
+           ENDIF           
+           
         END IF
 
       END IF
