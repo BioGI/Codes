@@ -1235,8 +1235,8 @@ DO WHILE (ASSOCIATED(current))
                     ! END IF
                     
                     IF ((node_fine(i,j,kk) .EQ. FLUID) ) THEN                       
-                       Overlap_fine(i,j,kk)= tmp 
-                       Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk) * (max((Cs_mol-phi_fine(i,j,kk) ),0.0_dbl) / Cs_mol)
+                       Overlap_fine(i,j,kk)= tmp * (max((Cs_mol-phi_fine(i,j,kk) ),0.0_dbl) / Cs_mol)
+                       Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk) 
                     END IF
                  END DO
               END DO

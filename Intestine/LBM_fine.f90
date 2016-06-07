@@ -1184,8 +1184,8 @@ CONTAINS
                          kk = k 
 
                          IF (node(i,j,kk) .EQ. FLUID) THEN
-                            Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk)) 
-                            Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk) * (max((Cs_mol-phi(i,j,kk) ),0.0_dbl) / Cs_mol)
+                            Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk)) * (max((Cs_mol-phi(i,j,kk) ),0.0_dbl) / Cs_mol) 
+                            Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk) 
                          END IF
                       END DO
                    END DO
@@ -1239,8 +1239,8 @@ CONTAINS
                       kk = k 
 
                       IF (node_fine(i,j,kk) .EQ. FLUID) THEN
-                         Overlap_fine(i,j,kk)= tmp
-                         Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk) * (max((Cs_mol-phi_fine(i,j,kk) ),0.0_dbl) / Cs_mol)
+                         Overlap_fine(i,j,kk)= tmp * (max((Cs_mol-phi_fine(i,j,kk) ),0.0_dbl) / Cs_mol)
+                         Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk) 
                       END IF
                    END DO
                 END DO
@@ -1288,6 +1288,8 @@ CONTAINS
              END DO
              
           end if
+
+          write(31,*) 'OverlapSumTest_l, OverlapSumTest = ', OverlapSumTest_l, OverlapSumTest
 
           write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB
           if ( current%pardata%delNB .gt. 1e-25) then
