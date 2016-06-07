@@ -31,7 +31,8 @@ FCFLAGS += -I/opt/local/include
 #PROGRAMS = prog1 prog2 prog3 prog4
 #MODULES = setup.o algorithm.o output.o
 #SRCOBJS = 3d.o
-PARFILES = SetParticle.o
+PARFILES = GenParticleList.o
+PARDIST  = GenParticleDistribution.o 
 PROGRAMS = Intestine3D.exe
 #OBJS = SetPrecision.o Setup.o LBM.o PassiveScalar.o \
        Parallel.o Geometry.o ICBC.o Output.o \
@@ -48,12 +49,14 @@ OBJS= $(SRCOBJS)
 all: 	
 	@$(MAKE) $(MODULES)
 	@$(MAKE) Intestine3D.exe
-	@$(MAKE) genparticles
+	@$(MAKE) GenParticleList.exe
+	@$(MAKE) GenParticleDistribution.exe 
 
-genparticles: $(PARFILES)
-	      $(FC) -o genparticles $(FCFLAGS) $(PARFILES)
-	      cp genparticles ../
+GenParticleList.exe: $(PARFILES)
+	      $(FC) -o GenParticleList.exe $(FCFLAGS) $(PARFILES)
 
+GenParticleDistribution.exe: $(PARDIST)
+	      $(FC) -o GenParticleDistribution.exe $(FCFLAGS) $(PARDIST)
 
 
 Intestine3D.exe: $(OBJS)
