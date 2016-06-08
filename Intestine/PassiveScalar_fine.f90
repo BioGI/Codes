@@ -104,7 +104,7 @@ DO k=1,nzSub_fine
            end if
            phi_fine(i,j,k) = 0.0_dbl
            
-        ELSE IF (phi(i,j,k) .gt. Cs_mol) THEN
+        ELSE IF (phi_fine(i,j,k) .gt. Cs_mol) THEN
            if(subIter .eq. gridRatio) then
               Over_Sat_Counter_l = Over_Sat_Counter_l + 1
               IF (phi_fine(i,j,k) .GT. Largest_Phi_l) THEN

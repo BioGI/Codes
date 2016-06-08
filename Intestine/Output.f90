@@ -83,16 +83,17 @@ if (mySub .eq. 1) then
    OPEN(2472,FILE='Drug-Conservation.dat')
    WRITE(2472,'(A180)') '#VARIABLES =iter,time, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent'
    CALL FLUSH(2472)
+
+   !----- Monitoring over saturation
+   OPEN(2118,FILE='Negative-phi.dat',POSITION='APPEND')
+   WRITE(2118,'(A120)') 'VARIABLES = iter,  Number of Negative phi Nodes,  Total Sum of Negative phi,  Worst Negative phi,  Average of Negative phi'
+   CALL FLUSH(2118)
+   
+   OPEN(2119,FILE='Over_Saturation.dat',POSITION='APPEND')
+   WRITE(2119,'(A120)') 'VARIABLES = iter,  Number of OverSaturated Nodes,  Worst Oversaturation'
+   CALL FLUSH(2119)
 end if
 
-!----- Monitoring over saturation
-OPEN(2118,FILE='Negative-phi.dat',POSITION='APPEND')
-WRITE(2118,'(A120)') 'VARIABLES = iter,  Number of Negative phi Nodes,  Total Sum of Negative phi,  Worst Negative phi,  Average of Negative phi'
-CALL FLUSH(2118)
-
-OPEN(2119,FILE='Over_Saturation.dat',POSITION='APPEND')
-WRITE(2119,'(A120)') 'VARIABLES = iter,  Number of OverSaturated Nodes,  Worst Oversaturation'
-CALL FLUSH(2119)
 
 !------------------------------------------------
 END SUBROUTINE OpenOutputFiles

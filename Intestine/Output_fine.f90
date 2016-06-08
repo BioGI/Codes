@@ -532,16 +532,19 @@ end if
 CALL MPI_ALLREDUCE(Negative_phi_Counter_l , Negative_phi_Counter, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
 CALL MPI_ALLREDUCE(Negative_phi_Worst_l , Negative_phi_Worst, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
 
-write(2118,*) iter, Negative_phi_Counter, Negative_phi_Total, Negative_phi_Worst, Negative_phi_Total/Negative_phi_Counter
-call flush(2118)
+if(mySub .eq. 1) then
+   write(2118,*) iter, Negative_phi_Counter, Negative_phi_Total, Negative_phi_Worst
+   call flush(2118)
+end if
 
 CALL MPI_ALLREDUCE(Over_Sat_Counter_l , Over_Sat_Counter, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
 CALL MPI_ALLREDUCE(Largest_Phi_l , Largest_Phi, 1, MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi 
 
 !----- Monitoring the Over Saturation problem
-write(2119,*) iter, Over_Sat_Counter, Largest_phi/Cs_mol
-CALL FLUSH(2119)
-
+if(mySub .eq. 1) then
+   write(2119,*) iter, Over_Sat_Counter, Largest_phi/Cs_mol
+   CALL FLUSH(2119)
+end if
 
 !===================================================================================================
 END SUBROUTINE PrintDrugConservation 
