@@ -672,9 +672,7 @@ time	= iter*tcf
 
 !------------------------- Mode 1 - peristalsis -----------------------------
 DO i=0,nz_fine-1
-
-  h1(i) 	= amp1*(COS(kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
-
+  h1(i) 	= amp1*(COS(PI + kw1*(zz_fine(i) - (s1*time)))) + (0.5_dbl*D - amp1)
 END DO
 
 ! since PI cannot be stored exactly, the wavelength(s) does/do not EXACTLY span the domain...
