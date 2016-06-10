@@ -54,6 +54,9 @@ REAL(dbl) :: phiIC, phiWall						! values of scalar: initial, wall, contribution
 REAL(dbl) :: phiAbsorbed							! total amount of scalar absorbed up to current time
 REAL(dbl) :: phiAbsorbedS							! total amount of scalar absorbed up to current time - through the macroscopic surface
 REAL(dbl) :: phiAbsorbedV							! total amount of scalar absorbed up to current time - through the villi
+INTEGER   :: Negative_phi_Counter_l, Negative_phi_Counter             		! Monitoring the negative concentration
+REAL(dbl) :: Negative_phi_Total_l, Negative_phi_Total				! Total negative scalar which was fixed by setting it to zero
+REAL(dbl) :: Negative_phi_Worst_l, Negative_phi_Worst	        		! Worst Negative scalar ine ach time step
 REAL(dbl) :: phiInOut								! total amount of scalar leaving/entering the domain
 REAL(dbl) :: phiTotal								! total intial amount of scalar in the domain
 REAL(dbl) :: sigma									! standard deviation for scalar distributions
@@ -243,10 +246,10 @@ INTEGER(lng), PARAMETER :: ParticleOn= 1					! flag to signify Particle Tracking
 INTEGER(lng), PARAMETER :: ParticleOff= 0					! flag for signify if particle tracking is off
 INTEGER(lng) :: np								! number of particles
 LOGICAL, ALLOCATABLE :: flagParticleCF(:)                                           ! Flag to indicate whether the particle is in the coarse (0) or the fine mesh (1). 
-REAL(dbl), PARAMETER :: molarvol = 268.000_dbl					! (cm^3/mole) drug's molar volume
+REAL(dbl), PARAMETER :: molarvol = 268.000_dbl    ! (cm^3/mole) drug's molar volume
 REAL(dbl), PARAMETER :: diffm = 7.5000000e-6					! (cm2/s) drug's diffusivity	
 REAL(dbl), PARAMETER :: R0 = 0.0026_dbl		
-REAL(dbl), PARAMETER :: Cs_mol = 3.30000e-7 					! (mole/cm^3) or (micro M) or (micro g/ml)  drug properties
+REAL(dbl), PARAMETER :: Cs_mol = 3.30000e-7 ! (mole/cm^3) or (micro M) or (micro g/ml)  drug properties
 REAL(dbl):: Cb_global								! (mole/cm^3) or (micro M) or (micro g/ml)  Global bulk scalar Concentration
 
 INTEGER:: Cb_numFluids							! Number of fluid nodes in the process for Global bulk scalar Concentration
