@@ -1263,7 +1263,10 @@ CONTAINS
              
           end if
 
-          write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB, ' error = ', (sum(delphi_particle_fine(:,:,:)) * zcf3 - current%pardata%delNB)/current%pardata%delNB
+          write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB
+          if ( current%pardata%delNB .gt. 1e-25) then
+             write(31,*) ' error = ', (sum(delphi_particle_fine(:,:,:)) * zcf3 - current%pardata%delNB)/current%pardata%delNB
+          end if
           
           if (overlapCoarseProc .gt. 0) then
 
