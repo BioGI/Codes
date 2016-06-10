@@ -39,9 +39,12 @@ IMPLICIT NONE
 
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC				! scalar contribution from boundary
+REAL(dbl) :: zcf3 
 REAL(dbl) :: tmp
 CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
 
+
+zcf3 = zcf_fine * zcf_fine * zcf_fine
 ! store the previous scalar values
 phiTemp_fine = phi_fine
 

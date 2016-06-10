@@ -54,8 +54,11 @@ IMPLICIT NONE
 
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC							! scalar contribution from boundary
+REAL(dbl) :: zcf3
 
-flagNodeIntersectCoarse = 0_dbl
+zcf3 = zcf * zcf * zcf
+
+flagNodeIntersectCoarse = 0.0_dbl
 CALL ScalarDistribution						! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
 
 ! store the previous scalar values
