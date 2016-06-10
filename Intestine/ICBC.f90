@@ -434,7 +434,7 @@ ub = vel(km1)*cosTheta											! x-component of the velocity at i,j,k
 vb = vel(km1)*sinTheta											! y-component of the velocity at i,j,k
 wb = 0.0_dbl														! no z-component in this case			
 
-fbb = fplus(bb(m),i,j,k) + 6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))	! bounced back distribution function with added momentum
+fbb = fplus(bb(m),i,j,k) + 6.0_dbl*wt(m)*1.0*(ub*ex(m) + vb*ey(m) + wb*ez(m))	! bounced back distribution function with added momentum
 
 !------------------------------------------------
 END SUBROUTINE BounceBackL
@@ -533,140 +533,140 @@ kp2 = k + 2_lng*ez(m)											! k location of 2nd neighbor in the m direction
 IF((node(ip1,jp1,kp1) .EQ. FLUID) .AND. (node(ip2,jp2,kp2) .EQ. FLUID)) THEN		! continue with 2nd order BB if the two positive neighbors are in the fluid (most cases)
 
 !*****************************************************************************
-		 ! Initial fluid node guess
-                 x1=x(i)
-                 y1=y(j)
-                 z1=z(k)
-                
-		 ! Initial solid node guess
-                 x2=x(im1)
-                 y2=y(jm1)
-                 z2=z(km1)
-                 
-	 IF (k.NE.km1) THEN
-                 DO it=1,10
-		   ! guess of boundary location 
-                   xt=(x1+x2)/2.0_dbl
-                   yt=(y1+y2)/2.0_dbl
-                   zt=(z1+z2)/2.0_dbl
-
-      		   rt = SQRT(xt*xt + yt*yt)
-		   !Write(*,*) 'test'
-		   !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-		   ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
-		   !ht = (r(km1)+r(k))/2.0_dbl
-
-                   IF(rt.GT.ht) then
-                     x2=xt
-                     y2=yt
-                     z2=zt
-                   ELSE
-                     x1=xt
-                     y1=yt
-                     z1=zt
-                   END IF
-				   
-                 END DO
-		 x1=x(i)
-                 y1=y(j)
-                 z1=z(k)
-                 
-                 x2=x(im1)
-                 y2=y(jm1)
-                 z2=z(km1)
- 
-                 q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
-		 !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-	 ELSE
-		  DO it=1,10
-		   ! guess of boundary location 
-                   xt=(x1+x2)/2.0_dbl
-                   yt=(y1+y2)/2.0_dbl
-                   zt=(z1+z2)/2.0_dbl
-
-      		   rt = SQRT(xt*xt + yt*yt)
-		   !Write(*,*) 'test'
-		   !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-		   !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
-		   ht = (r(km1)+r(k))/2.0_dbl
-
-                   IF(rt.GT.ht) then
-                     x2=xt
-                     y2=yt
-                     z2=zt
-                   ELSE
-                     x1=xt
-                     y1=yt
-                     z1=zt
-                   END IF
-				   
-                 END DO
-		 x1=x(i)
-                 y1=y(j)
-                 z1=z(k)
-                 
-                 x2=x(im1)
-                 y2=y(jm1)
-                 z2=z(km1)
- 
-                 q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
-		 !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-	 ENDIF
-		 cosTheta=xt/rt
-		 sinTheta=yt/rt
-	 IF (k.NE.km1) THEN
-		 !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
-		 vt = ((zt-z(k))*vel(km1)+(z(km1)-zt)*vel(k))/(z(km1)-z(k))
-	 ELSE
-		 vt = (vel(k)+vel(km1))*0.5_dbl
-	 ENDIF
-		 ub = vt*cosTheta										! x-component of the velocity at i,j,k
-		 vb = vt*sinTheta										! y-component of the velocity at i,j,k
-		 wb = 0.0_dbl											! no z-component in this case)
-		 !write(*,*) 'ht',ht,rt
-		 !write(*,*) 'q-yanxing',q,i,j,k,im1,jm1,km1
-!*****************************************************************************
-!*****************************************************************************
-!! Original method used by Gino
-!  rijk = SQRT(x(im1)*x(im1) + y(jm1)*y(jm1))				! radius at current location
-!
-!  cosTheta = x(im1)/rijk										! COS(theta)
-!  sinTheta = y(jm1)/rijk										! SIN(theta)
-!  !cosTheta = x(im1)/r(km1)									! COS(theta)
-!  !sinTheta = y(jm1)/r(km1)									! SIN(theta)
-!
-!  ub = vel(km1)*cosTheta										! x-component of the velocity at i,j,k
-!  vb = vel(km1)*sinTheta										! y-component of the velocity at i,j,k
-!  wb = 0.0_dbl														! no z-component in this case)
-!
-!  CALL qCalc(m,i,j,k,im1,jm1,km1,q)							! calculate q					
-!*****************************************************************************
-		 !write(*,*) 'q-Gino',q,i,j,k,im1,jm1,km1
-
-
-  ! bounced back distribution function with added momentum
-  IF((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN
-    fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus(bb(m),i,j,k) 															&
-        + (1.0_dbl - 4.0_dbl*q*q)*fplus(bb(m),ip1,jp1,kp1) 													& 
-        - q*(1.0_dbl - 2.0_dbl*q)*fplus(bb(m),ip2,jp2,kp2) 													&
-        + 6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m))
-  ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
-    fbb = fplus(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
-        + ((2.0_dbl*q - 1.0_dbl)*fplus(m,i,j,k))/q																&
-        - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus(m,ip1,jp1,kp1)							&
-        + (6.0_dbl*wt(m)*rho(i,j,k)*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
-  ELSE
-    OPEN(1000,FILE='error-'//sub//'.txt')
-    WRITE(1000,*) "Error in BounceBack2() in ICBC.f90 (line 137): q is not (0<=q<=1)...? Aborting."
-    WRITE(1000,*) "q=",q,"(i,j,k):",i,j,k
-    CLOSE(1000)
-    STOP
-  END IF
-
+   ! Initial fluid node guess
+   x1=x(i)
+   y1=y(j)
+   z1=z(k)
+   
+   ! Initial solid node guess
+   x2=x(im1)
+   y2=y(jm1)
+   z2=z(km1)
+   
+   IF (k.NE.km1) THEN
+      DO it=1,10
+         ! guess of boundary location 
+         xt=(x1+x2)/2.0_dbl
+         yt=(y1+y2)/2.0_dbl
+         zt=(z1+z2)/2.0_dbl
+         
+         rt = SQRT(xt*xt + yt*yt)
+         !Write(*,*) 'test'
+         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+         ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+         !ht = (r(km1)+r(k))/2.0_dbl
+         
+         IF(rt.GT.ht) then
+            x2=xt
+            y2=yt
+            z2=zt
+         ELSE
+            x1=xt
+            y1=yt
+            z1=zt
+         END IF
+         
+      END DO
+      x1=x(i)
+      y1=y(j)
+      z1=z(k)
+      
+      x2=x(im1)
+      y2=y(jm1)
+      z2=z(km1)
+      
+      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+   ELSE
+      DO it=1,10
+         ! guess of boundary location 
+         xt=(x1+x2)/2.0_dbl
+         yt=(y1+y2)/2.0_dbl
+         zt=(z1+z2)/2.0_dbl
+         
+         rt = SQRT(xt*xt + yt*yt)
+         !Write(*,*) 'test'
+         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+         !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+         ht = (r(km1)+r(k))/2.0_dbl
+         
+         IF(rt.GT.ht) then
+            x2=xt
+            y2=yt
+            z2=zt
+         ELSE
+            x1=xt
+            y1=yt
+            z1=zt
+         END IF
+         
+      END DO
+      x1=x(i)
+      y1=y(j)
+      z1=z(k)
+      
+      x2=x(im1)
+      y2=y(jm1)
+      z2=z(km1)
+      
+      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+   ENDIF
+   cosTheta=xt/rt
+   sinTheta=yt/rt
+   IF (k.NE.km1) THEN
+      !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
+      vt = ((zt-z(k))*vel(km1)+(z(km1)-zt)*vel(k))/(z(km1)-z(k))
+   ELSE
+      vt = (vel(k)+vel(km1))*0.5_dbl
+   ENDIF
+   ub = vt*cosTheta										! x-component of the velocity at i,j,k
+   vb = vt*sinTheta										! y-component of the velocity at i,j,k
+   wb = 0.0_dbl											! no z-component in this case)
+   !write(*,*) 'ht',ht,rt
+   !write(*,*) 'q-yanxing',q,i,j,k,im1,jm1,km1
+   !*****************************************************************************
+   !*****************************************************************************
+   !! Original method used by Gino
+   !  rijk = SQRT(x(im1)*x(im1) + y(jm1)*y(jm1))				! radius at current location
+   !
+   !  cosTheta = x(im1)/rijk										! COS(theta)
+   !  sinTheta = y(jm1)/rijk										! SIN(theta)
+   !  !cosTheta = x(im1)/r(km1)									! COS(theta)
+   !  !sinTheta = y(jm1)/r(km1)									! SIN(theta)
+   !
+   !  ub = vel(km1)*cosTheta										! x-component of the velocity at i,j,k
+   !  vb = vel(km1)*sinTheta										! y-component of the velocity at i,j,k
+   !  wb = 0.0_dbl														! no z-component in this case)
+   !
+   !  CALL qCalc(m,i,j,k,im1,jm1,km1,q)							! calculate q					
+   !*****************************************************************************
+   !write(*,*) 'q-Gino',q,i,j,k,im1,jm1,km1
+   
+   
+   ! bounced back distribution function with added momentum
+   IF((q .LT. 0.5_dbl) .AND. (q .GT. -0.00000001_dbl)) THEN
+      fbb = q*(1.0_dbl + 2.0_dbl*q)*fplus(bb(m),i,j,k) 															&
+           + (1.0_dbl - 4.0_dbl*q*q)*fplus(bb(m),ip1,jp1,kp1) 													& 
+           - q*(1.0_dbl - 2.0_dbl*q)*fplus(bb(m),ip2,jp2,kp2) 													&
+           + 6.0_dbl*wt(m)*1.0*(ub*ex(m) + vb*ey(m) + wb*ez(m))
+   ELSE IF((q .GE. 0.5_dbl) .AND. (q .LT. 1.00000001_dbl)) THEN
+      fbb = fplus(bb(m),i,j,k)/(q*(2.0_dbl*q + 1.0_dbl)) 														&
+           + ((2.0_dbl*q - 1.0_dbl)*fplus(m,i,j,k))/q																&
+           - ((2.0_dbl*q - 1.0_dbl)/(2.0_dbl*q + 1.0_dbl))*fplus(m,ip1,jp1,kp1)							&
+           + (6.0_dbl*wt(m)*1.0*(ub*ex(m) + vb*ey(m) + wb*ez(m)))/(q*(2.0_dbl*q + 1.0_dbl))
+   ELSE
+      OPEN(1000,FILE='error-'//sub//'.txt')
+      WRITE(1000,*) "Error in BounceBack2() in ICBC.f90 (line 137): q is not (0<=q<=1)...? Aborting."
+      WRITE(1000,*) "q=",q,"(i,j,k):",i,j,k
+      CLOSE(1000)
+      STOP
+   END IF
+   
 ELSE
-
-  CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)
-
+   
+   CALL BounceBackL(m,i,j,k,im1,jm1,km1,fbb)
+   
 END IF
 
 !------------------------------------------------
