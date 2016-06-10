@@ -45,6 +45,9 @@ CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar 
 ! store the previous scalar values
 phiTemp_fine = phi_fine
 
+write(31,*) 'sum phi_fine before Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3 
+write(31,*) 'sum delphi_particle_fine inside Scalar_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3
+
 ! Stream the scalar
 DO k=1,nzSub_fine
   DO j=1,nySub_fine
@@ -91,7 +94,12 @@ DO k=1,nzSub_fine
 
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi_fine(i,j,k) .LT. 0.0_dbl) THEN
-          phi_fine(i,j,k) = 0.0_dbl
+           Negative_phi_Counter_l = Negative_phi_Counter_l + 1.0
+           Negative_phi_Total_l   = Negative_phi_Total_l + phi_fine(i,j,k) * zcf3
+           IF (phi_fine(i,j,k) .LT. Negative_phi_Worst) THEN
+              Negative_phi_Worst_l = phi_fine(i,j,k)
+           ENDIF
+           phi_fine(i,j,k) = 0.0_dbl
         END IF
 
       END IF
@@ -99,6 +107,9 @@ DO k=1,nzSub_fine
     END DO
   END DO
 END DO
+
+write(31,*) 'sum  phi_fine inside Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total, ' Error = ', (sum(phi_fine(:,:,:)) * zcf3 - Drug_Released_Total)/Drug_Released_Total
+write(31,*) ' '
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
 phiAbsorbed_fine = phiAbsorbedS_fine + phiAbsorbedV_fine ! total amount of scalar absorbed up to current time
