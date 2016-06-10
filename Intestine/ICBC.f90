@@ -197,7 +197,7 @@ ELSE
       CurPar%next%pardata%vpold = CurPar%next%pardata%vp
       CurPar%next%pardata%wpold = CurPar%next%pardata%wp
       CurPar%next%pardata%rpold = CurPar%next%pardata%rp
-      CurPar%next%pardata%par_conc = Cs_mol !3.14854e-6
+      CurPar%next%pardata%par_conc = Cs_mol
       CurPar%next%pardata%gamma_cont = 0.0000_dbl
       CurPar%next%pardata%sh = 1.0000_dbl/(1.0_dbl-CurPar%next%pardata%gamma_cont)
       CurPar%next%pardata%S = 0.0_dbl
