@@ -1040,10 +1040,11 @@ CONTAINS
     INTEGER  ,DIMENSION(2)    :: NEP_x, NEP_y, NEP_z                        ! Lattice Nodes Surronding the particle
     REAL(dbl)		  :: tmp, Overlap_sum, Overlap_sum_l, Overlap_sum_coarse, Overlap_sum_fine, checkEffVolumeOverlapFineMesh
     REAL(dbl)                 :: overlapCoarseProc, overlapFineProc
+    REAL(dbl)                 :: OverlapSumTest_l, OverlapSumTest
     TYPE(ParRecord), POINTER  :: current
     TYPE(ParRecord), POINTER  :: next
     INTEGER(lng)  		  :: mpierr
-    
+    INTEGER                   :: RANK
     
     delta_mesh = 1.0_dbl
     zcf3 = xcf_fine*ycf_fine*zcf_fine
@@ -1183,8 +1184,8 @@ CONTAINS
                          kk = k 
 
                          IF (node(i,j,kk) .EQ. FLUID) THEN
-                            Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk)) 
-                            Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk)
+                            Overlap(i,j,kk)= tmp * (1.0-flagNodeIntersectFine(i,j,kk)) * (max((Cs_mol-phi(i,j,kk) ),0.0_dbl) / Cs_mol) 
+                            Overlap_sum_coarse = Overlap_sum_coarse + Overlap(i,j,kk) 
                          END IF
                       END DO
                    END DO
@@ -1238,8 +1239,8 @@ CONTAINS
                       kk = k 
 
                       IF (node_fine(i,j,kk) .EQ. FLUID) THEN
-                         Overlap_fine(i,j,kk)= tmp
-                         Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk)
+                         Overlap_fine(i,j,kk)= tmp * (max((Cs_mol-phi_fine(i,j,kk) ),0.0_dbl) / Cs_mol)
+                         Overlap_sum_fine= Overlap_sum_fine + Overlap_fine(i,j,kk) 
                       END IF
                    END DO
                 END DO
@@ -1253,6 +1254,11 @@ CONTAINS
           CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
           write(31,*) 'Overlaps = ', Overlap_sum_coarse, Overlap_sum_fine, Overlap_sum_l, Overlap_sum
+
+          OverlapSumTest_l = 0.0_dbl
+          OverlapSumTest = 0.0_dbl
+
+          if (Overlap_sum .gt. 1e-40) then
 
           if (overlapFineProc .gt. 0) then
              
@@ -1272,13 +1278,9 @@ CONTAINS
                       IF (node_fine(i,j,kk) .EQ. FLUID) THEN                 
                          
                          !----- Overlap_sum going to zero when the particle is disapearing
-                         IF (Overlap_sum .gt. 1e-40) THEN
-                            Overlap_fine(i,j,kk) = Overlap_fine(i,j,kk) / Overlap_sum
-                         ELSE
-                            Overlap_fine(i,j,kk) = 0.0
-                         END IF
-                         
+                         Overlap_fine(i,j,kk) = Overlap_fine(i,j,kk) / Overlap_sum                         
                          delphi_particle_fine(i,j,kk)  = delphi_particle_fine(i,j,kk)  + current%pardata%delNB * Overlap_fine(i,j,kk)  / zcf3
+                         OverlapSumTest_l = OverlapSumTest_l + Overlap_fine(i,j,kk)
                          
                       END IF
                    END DO
@@ -1286,6 +1288,8 @@ CONTAINS
              END DO
              
           end if
+
+          write(31,*) 'OverlapSumTest_l, OverlapSumTest = ', OverlapSumTest_l, OverlapSumTest
 
           write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB
           if ( current%pardata%delNB .gt. 1e-25) then
@@ -1329,13 +1333,11 @@ CONTAINS
                          IF (node(i,j,kk) .EQ. FLUID) THEN                 
                             
                             !----- Overlap_sum going to zero when the particle is disapearing
-                            IF (Overlap_sum .gt. 1e-40) THEN
-                               Overlap(i,j,kk) = Overlap(i,j,kk) / Overlap_sum
-                            ELSE
-                               Overlap(i,j,kk) = 0.0
-                            END IF
-                            
+                            Overlap(i,j,kk) = Overlap(i,j,kk) / Overlap_sum
+                               
                             delphi_particle(i,j,kk)  = delphi_particle(i,j,kk)  + current%pardata%delNB * Overlap(i,j,kk)  / (xcf * ycf * zcf * (1.0-flagNodeIntersectFine(i,j,k)) )
+                            OverlapSumTest_l = OverlapSumTest_l + Overlap(i,j,kk)
+                            
                          END IF
                       END DO
                    END DO
@@ -1344,14 +1346,31 @@ CONTAINS
              end if
              
           end if
-       END IF
 
-    END IF
+          CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+          
+       end if
+
+       if (OverlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
+
+          Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
+          current%pardata%delNB = 0.0_dbl
+          current%pardata%rp = current%pardata%rpold
+          
+          RANK= current%pardata%cur_part - 1
+          CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+          CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+          
+       end if
        
-       !------ point to next node in the list
-       current => next
-    ENDDO
+    END IF
     
+ END IF
+ 
+ !------ point to next node in the list
+ current => next
+ENDDO
+
     !===================================================================================================
   END SUBROUTINE Interp_ParToNodes_Conc_Fine
   !===================================================================================================
