@@ -77,6 +77,8 @@ CONTAINS
     current => ParListHead%next
     DO WHILE (ASSOCIATED(current))
        next => current%next 						! copy pointer of next node
+
+       IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
        
        IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
           IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++
@@ -94,7 +96,8 @@ CONTAINS
           END IF
           
        END IF
-       
+
+    END IF
        current => next
     ENDDO
 
@@ -104,6 +107,8 @@ CONTAINS
     current => ParListHead%next
     DO WHILE (ASSOCIATED(current))
        next => current%next 						! copy pointer of next node
+
+       IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
        
        IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
           
@@ -114,6 +119,8 @@ CONTAINS
              
           END IF
        END IF
+
+    END IF
        current => next
     ENDDO
 
@@ -228,6 +235,7 @@ CONTAINS
     current => ParListHead%next
     DO WHILE (ASSOCIATED(current))
        next => current%next ! copy pointer of next node
+
        IF (mySub .EQ.current%pardata%cur_part) THEN
           
           IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in coarse mesh
@@ -354,7 +362,9 @@ CONTAINS
     current => ParListHead%next
     DO WHILE (ASSOCIATED(current))
        next => current%next ! copy pointer of next node
-       
+
+       IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
+          
        IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
           IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++++++
              
@@ -438,6 +448,8 @@ CONTAINS
              
           END IF
        END IF
+
+    END IF
        ! point to next node in the list
        current => next
        
@@ -494,7 +506,9 @@ CONTAINS
        !------ Copy pointer of next node
        next => current%next
        
-       IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
+       IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
+
+          IF ( flagParticleCF(current%pardata%parid) ) THEN  !Check if particle is in fine mesh
           !------ Calculate length scale for jth particle:  delta = R / Sh
           !------ Calculate effective radius: R_influence_P = R + (N_b *delta)
           !------ Note: need to convert this into Lattice units and not use the physical length units
@@ -908,6 +922,9 @@ CONTAINS
           current%pardata%bulk_conc = Cb_Hybrid
           
        END IF
+
+    END IF
+       
        current => next
        
     END DO
@@ -938,6 +955,8 @@ CONTAINS
     current => ParListHead%next
     DO WHILE (ASSOCIATED(current))
        next => current%next ! copy pointer of next node
+
+       IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
        
        IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
           
@@ -982,8 +1001,10 @@ CONTAINS
        IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh       
           Drug_Released_Total = Drug_Released_Total + current%pardata%delNB
        END IF
+
+    END IF
        current => next
-    ENDDO
+    END DO
     
     
     IF (myid .EQ. 0) THEN
@@ -1031,7 +1052,10 @@ CONTAINS
     DO WHILE (ASSOCIATED(current))
        
        !------ Copy pointer of next node
-       next => current%next 
+       next => current%next
+
+       IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
+       
        
        IF ( flagParticleCF(current%pardata%parid) )  THEN  !Check if particle is in fine mesh
           
@@ -1321,7 +1345,8 @@ CONTAINS
              
           end if
        END IF
-       
+
+    END IF
        
        !------ point to next node in the list
        current => next

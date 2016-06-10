@@ -198,6 +198,8 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
    next => current%next ! copy pointer of next node
 
+   IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
+      
    IF ( flagParticleCF(current%pardata%parid) .eqv. .false.) THEN  !Check if particle is in coarse mesh
       IF (mySub .EQ.current%pardata%cur_part) THEN !+++++++++++++++++++++++++++++
          xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
@@ -278,10 +280,12 @@ DO WHILE (ASSOCIATED(current))
          current%pardata%wp=c * vcf
       END IF
    END IF
+
+END IF
    ! point to next node in the list
    current => next
    
-ENDDO
+END DO
 
 !===================================================================================================
 END SUBROUTINE Interp_Parvel ! Using Trilinear interpolation
@@ -448,6 +452,8 @@ DO WHILE (ASSOCIATED(current))
    
    !------ Copy pointer of next node
    next => current%next
+
+   IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
    
    IF ( flagParticleCF(current%pardata%parid) .eqv. .false.) THEN  !Check if particle is in coarse mesh
       !------ Calculate length scale for jth particle:  delta = R / Sh
@@ -848,7 +854,10 @@ DO WHILE (ASSOCIATED(current))
       flush(31)
 
    END IF
-   current => next
+
+END IF
+
+current => next
    
 END DO
 
@@ -880,6 +889,8 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
   current => ParListHead%next
   DO WHILE (ASSOCIATED(current))
      next => current%next ! copy pointer of next node
+
+     IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
      
      IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh
 
@@ -925,6 +936,8 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
         write(31,*) 'New value = ', Drug_Released_Total
         ! point to next node in the list
      END IF
+
+  END IF
      current => next
   ENDDO
   
@@ -1094,7 +1107,9 @@ current => ParListHead%next
 DO WHILE (ASSOCIATED(current))
 
 !------ Copy pointer of next node
-	next => current%next 
+   next => current%next
+
+   IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
 
        IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh
 
@@ -1360,7 +1375,9 @@ DO WHILE (ASSOCIATED(current))
 
      end if
 
-     END IF
+  END IF
+
+END IF
 !------ point to next node in the list
 	current => next
 ENDDO
@@ -1464,6 +1481,7 @@ SUBROUTINE Particle_Track
   current => ParListHead%next
   DO WHILE (ASSOCIATED(current))
      next => current%next 						! copy pointer of next node
+     IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
      
      hardCheckCoarseMesh = ( (current%pardata%xp - fractionDfine * D * 0.5 - xcf) * (current%pardata%xp + fractionDfine * D * 0.5 + xcf) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - ycf) * (current%pardata%yp + fractionDfine * D * 0.5 + ycf) > 0 )
      softCheckCoarseMesh = ( (current%pardata%xp - fractionDfine * D * 0.5 - (gridRatio-1)*xcf_fine) * (current%pardata%xp + fractionDfine * D * 0.5 + (gridRatio-1)*xcf_fine) > 0 ) .or. ( (current%pardata%yp - fractionDfine * D * 0.5 - (gridRatio-1)*ycf_fine) * (current%pardata%yp + fractionDfine * D * 0.5 + (gridRatio-1)*ycf_fine) > 0 )
@@ -1496,7 +1514,8 @@ SUBROUTINE Particle_Track
         flagParticleCF(current%pardata%parid) = .true.         
         
      END IF
-     
+
+     END IF
      current => next
   ENDDO
   
@@ -1506,6 +1525,8 @@ SUBROUTINE Particle_Track
   current => ParListHead%next
   DO WHILE (ASSOCIATED(current))
      next => current%next 						! copy pointer of next node
+
+     IF (current%pardata%rp .GT. Min_R_Acceptable) THEN
      
      IF ( flagParticleCF(current%pardata%parid) .eqv. .false. ) THEN  !Ideally, I want to check if particle is in coarse mesh, if not skip this step and just let the first order time-stepping remain. But that doesn't seem to work. Hence doing a soft check for the coarse mesh.
         IF (mySub .EQ.current%pardata%cur_part) THEN !++++++++++++++++++++++++++++++++++++++++++++++++         
@@ -1515,6 +1536,7 @@ SUBROUTINE Particle_Track
         END IF
         
      END IF
+  END IF
      current => next
   ENDDO
   
