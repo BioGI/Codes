@@ -1241,17 +1241,104 @@ REAL(dbl) :: q																			! distance ratio from the current node to the s
 REAL(dbl) :: rhoB,phiB																! values of density and at the boundary, and contribution of scalar from the boundary and solid nodes
 REAL(dbl) :: feq_m																	! equilibrium distribution function in the mth direction
 REAL(dbl) :: phiijk_m																! contribution of scalar streamed in the mth direction to (ip1,jp1,kp1)
+REAL(dbl) :: rijk													! radius of current node
+REAL(dbl) :: x1,y1,z1,x2,y2,z2,xt,yt,zt,ht,rt,vt				! temporary coordinates to search for exact boundary coordinate (instead of ray tracing) 
+INTEGER(lng) :: it			! loop index variables
 REAL(dbl) :: cosTheta, sinTheta													! COS(theta), SIN(theta)
 REAL(dbl) :: ub, vb, wb																! wall velocity (x-, y-, z- components)
 
-CALL qCalc(m,i,j,k,im1,jm1,km1,q)												! calculate q	
+! Initial fluid node guess
+x1=x(i)
+y1=y(j)
+z1=z(k)
 
-cosTheta = x(im1)/r(km1)															! COS(theta)
-sinTheta = y(jm1)/r(km1)															! SIN(theta)
+! Initial solid node guess
+x2=x(im1)
+y2=y(jm1)
+z2=z(km1)
 
-ub = vel(km1)*cosTheta																! x-component of the velocity at i,j,k
-vb = vel(km1)*sinTheta																! y-component of the velocity at i,j,k
-wb = 0.0_dbl	
+IF (k.NE.km1) THEN
+   DO it=1,10
+      ! guess of boundary location 
+      xt=(x1+x2)/2.0_dbl
+      yt=(y1+y2)/2.0_dbl
+      zt=(z1+z2)/2.0_dbl
+      
+      rt = SQRT(xt*xt + yt*yt)
+      !Write(*,*) 'test'
+      !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+      ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+      !ht = (r(km1)+r(k))/2.0_dbl
+      
+      IF(rt.GT.ht) then
+         x2=xt
+         y2=yt
+            z2=zt
+         ELSE
+            x1=xt
+            y1=yt
+            z1=zt
+         END IF
+         
+      END DO
+      x1=x(i)
+      y1=y(j)
+      z1=z(k)
+      
+      x2=x(im1)
+      y2=y(jm1)
+      z2=z(km1)
+      
+      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+   ELSE
+      DO it=1,10
+         ! guess of boundary location 
+         xt=(x1+x2)/2.0_dbl
+         yt=(y1+y2)/2.0_dbl
+         zt=(z1+z2)/2.0_dbl
+         
+         rt = SQRT(xt*xt + yt*yt)
+         !Write(*,*) 'test'
+         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+         !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+         ht = (r(km1)+r(k))/2.0_dbl
+         
+         IF(rt.GT.ht) then
+            x2=xt
+            y2=yt
+            z2=zt
+         ELSE
+            x1=xt
+            y1=yt
+            z1=zt
+         END IF
+         
+      END DO
+      x1=x(i)
+      y1=y(j)
+      z1=z(k)
+      
+      x2=x(im1)
+      y2=y(jm1)
+      z2=z(km1)
+      
+      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+   ENDIF
+   cosTheta=xt/rt
+   sinTheta=yt/rt
+   IF (k.NE.km1) THEN
+      !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
+      vt = ((zt-z(k))*vel(km1)+(z(km1)-zt)*vel(k))/(z(km1)-z(k))
+   ELSE
+      vt = (vel(k)+vel(km1))*0.5_dbl
+   ENDIF
+   ub = vt*cosTheta										! x-component of the velocity at i,j,k
+   vb = vt*sinTheta										! y-component of the velocity at i,j,k
+   wb = 0.0_dbl											! no z-component in this case)
+
+
 
 ! neighboring node (fluid side)	
 ip1 = i + ex(m) 																		! i + 1

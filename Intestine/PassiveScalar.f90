@@ -100,7 +100,7 @@ DO k=1,nzSub
             CALL ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)															! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi(i,j,k) = phi(i,j,k) + phiBC     
             CALL FlagFineMeshNodesIntersectingWithCoarseMeshNodes(i,j,k)
-            CALL AbsorbedScalarS(i,j,k,m,phiBC)	     ! measure the absorption rate
+            CALL AbsorbedScalarS(i,j,k,m,im1,jm1,km1,phiBC)	     ! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error.txt")
             WRITE(1000,'(A75)') "error in PassiveScalar.f90 at Line 89: node(im1,jm1,km1) is out of range"
@@ -149,19 +149,165 @@ END SUBROUTINE Scalar
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
-SUBROUTINE AbsorbedScalarS(i,j,k,m,phiBC)		! measures the total absorbed scalar
+SUBROUTINE AbsorbedScalarS(i,j,k,m,im1,jm1,km1,phiBC)		! measures the total absorbed scalar
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
 
-INTEGER(lng), INTENT(IN) :: i,j,k,m				! index variables
+INTEGER(lng), INTENT(IN) :: i,j,k,m,im1,jm1,km1				! index variables
 REAL(dbl), INTENT(IN) :: phiBC     				! scalar contribution from the boundary condition
+
 REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
+INTEGER(dbl) :: ip1,jp1,kp1 														! neighboring nodes (2 away from the wall)
+REAL(dbl) :: q																			! distance ratio from the current node to the solid node
+REAL(dbl) :: rhoB,phiB																! values of density and at the boundary, and contribution of scalar from the boundary and solid nodes
+REAL(dbl) :: feq_m																	! equilibrium distribution function in the mth direction
+REAL(dbl) :: phiijk_m																! contribution of scalar streamed in the mth direction to (ip1,jp1,kp1)
+REAL(dbl) :: rijk													! radius of current node
+REAL(dbl) :: x1,y1,z1,x2,y2,z2,xt,yt,zt,ht,rt,vt				! temporary coordinates to search for exact boundary coordinate (instead of ray tracing) 
+INTEGER(lng) :: it			! loop index variables
+REAL(dbl)    :: ubb,vbb,wbb
+REAL(dbl)    :: feq_AO_u0
+REAL(dbl)    :: rhoAstar,phiAstar, PkAstar,feq_Astar,feq_Bstar
+REAL(dbl)    :: rhoA, PkA, feq_A
+REAL(dbl)    :: fPlusBstar, rhoBstar, phiBstar, PkBstar
 
-phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
-phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
 
-phiAbsorbedS = phiAbsorbedS + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
-!write(31,*) 'phiAbsorbedS = ', phiAbsorbedS, 'i,j,k,m,phiBC = ', i,j,k,m,phiBC
+ubb= 0.0_dbl
+vbb= 0.0_dbl
+wbb= 0.0_dbl
+
+   ! Initial fluid node guess
+   x1=x(i)
+   y1=y(j)
+   z1=z(k)
+   
+   ! Initial solid node guess
+   x2=x(im1)
+   y2=y(jm1)
+   z2=z(km1)
+   
+   IF (k.NE.km1) THEN
+      DO it=1,10
+         ! guess of boundary location 
+         xt=(x1+x2)/2.0_dbl
+         yt=(y1+y2)/2.0_dbl
+         zt=(z1+z2)/2.0_dbl
+         
+         rt = SQRT(xt*xt + yt*yt)
+         !Write(*,*) 'test'
+         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+         ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+         !ht = (r(km1)+r(k))/2.0_dbl
+         
+         IF(rt.GT.ht) then
+            x2=xt
+            y2=yt
+            z2=zt
+         ELSE
+            x1=xt
+            y1=yt
+            z1=zt
+         END IF
+         
+      END DO
+      x1=x(i)
+      y1=y(j)
+      z1=z(k)
+      
+      x2=x(im1)
+      y2=y(jm1)
+      z2=z(km1)
+      
+      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+   ELSE
+      DO it=1,10
+         ! guess of boundary location 
+         xt=(x1+x2)/2.0_dbl
+         yt=(y1+y2)/2.0_dbl
+         zt=(z1+z2)/2.0_dbl
+         
+         rt = SQRT(xt*xt + yt*yt)
+         !Write(*,*) 'test'
+         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+         !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+         ht = (r(km1)+r(k))/2.0_dbl
+         
+         IF(rt.GT.ht) then
+            x2=xt
+            y2=yt
+            z2=zt
+         ELSE
+            x1=xt
+            y1=yt
+            z1=zt
+         END IF
+         
+      END DO
+      x1=x(i)
+      y1=y(j)
+      z1=z(k)
+      
+      x2=x(im1)
+      y2=y(jm1)
+      z2=z(km1)
+      
+      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+   ENDIF
+
+
+
+
+!---------------------------------------------------------------------------------------------------
+!----- Computing phiOUT ----------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+CALL Equilibrium_LOCAL(bb(m),rho(i,j,k),ubb,vbb,wbb,feq_AO_u0)
+phiOUT= (feq_AO_u0/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)
+
+!---------------------------------------------------------------------------------------------------
+!---- Conmputing phiIN------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+!----- neighboring node (fluid side)
+ip1 = i + ex(m)
+jp1 = j + ey(m)
+kp1 = k + ez(m)
+IF(node(ip1,jp1,kp1) .NE. FLUID) THEN
+   ip1 = i
+   jp1 = j
+   kp1 = k
+END IF
+
+!----- Computing values at A* & scalar streamed from A* (Chpter 3 paper)
+rhoAstar= (rho(i,j,k)- rho(ip1,jp1,kp1))*(1+q)+ rho(ip1,jp1,kp1)! extrapolate the density
+CALL Equilibrium_LOCAL(m,rhoAstar,ubb,vbb,wbb,feq_Astar)! calculate the equibrium distribution function in the mth direction
+phiAstar= phiWall! getting phi at the solid surface
+PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta)*phiAstar! contribution from the wall in mth direction (0 if phiWall=0)
+
+!------ Computing values at B* & scalar streamed from B* (Chpter 3 paper)
+!rhoBstar=   (1-q)*rho(ip1,jp1,kp1)     + q*rho(i,j,k)
+!CALL Equilibrium_LOCAL(m,rhoBstar,ubb,vbb,wbb,feq_Bstar)
+!phiBstar=   (1-q)*phiTemp(ip1,jp1,kp1) + q*phiTemp(i,j,k)
+!PkBstar=    (feq_Bstar/rhoBstar - wt(m)*Delta)*phiBstar
+
+!phiIN= PkAstar+ (PkAstar- PkBstar)*(1-q)
+
+
+!---- Modification for moving boundary in case of using only A and A* for BC
+rhoA= rho(i,j,k)
+CALL Equilibrium_LOCAL(m,rhoA,ubb,vbb,wbb,feq_A)
+PkA= (feq_A/rhoA - wt(m)*Delta)*phiTemp(i,j,k)
+IF(q .LT. 0.25) THEN
+   q = 0.25_dbl
+END IF
+phiIN   = ((PkAstar - PkA)/q) + PkAstar
+
+!--- No Modifications in book-keeping for moving boundaries
+!phiIN= phiBC                                                     ! contribution from wall to crrent node (in)
+!phiOUT= (fplus(bb(m),i,j,k)/rho(i,j,k)-wt(bb(m))*Delta)*phiTemp(i,j,k)
+
+phiAbsorbedS = phiAbsorbedS + (phiOUT-phiIN)! scalar absorbed at current location in mth direction
+!===================================================================================================
 
 
 !------------------------------------------------
