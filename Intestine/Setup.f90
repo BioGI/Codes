@@ -54,6 +54,8 @@ REAL(dbl) :: phiIC, phiWall						! values of scalar: initial, wall, contribution
 REAL(dbl) :: phiAbsorbed							! total amount of scalar absorbed up to current time
 REAL(dbl) :: phiAbsorbedS							! total amount of scalar absorbed up to current time - through the macroscopic surface
 REAL(dbl) :: phiAbsorbedV							! total amount of scalar absorbed up to current time - through the villi
+INTEGER(dbl) :: Over_Sat_Counter_l, Over_Sat_Counter
+REAL(dbl) :: Largest_phi_l, Largest_phi
 INTEGER   :: Negative_phi_Counter_l, Negative_phi_Counter             		! Monitoring the negative concentration
 REAL(dbl) :: Negative_phi_Total_l, Negative_phi_Total				! Total negative scalar which was fixed by setting it to zero
 REAL(dbl) :: Negative_phi_Worst_l, Negative_phi_Worst	        		! Worst Negative scalar ine ach time step

@@ -19,6 +19,10 @@ IMPLICIT NONE
 ! initialize arrays
 phi    		= 0.0_dbl					! scalar
 phiTemp		= 0.0_dbl					! temporary scalar
+Over_Sat_Counter_l = 0
+Over_Sat_Counter = 0
+Largest_phi_l = 0.0_dbl
+Largest_phi = 0.0_dbl
 Negative_phi_Counter_l = 0
 Negative_phi_Worst_l   = 0.0_dbl
 Negative_phi_Counter   = 0
@@ -55,6 +59,15 @@ IMPLICIT NONE
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC							! scalar contribution from boundary
 REAL(dbl) :: zcf3
+
+Over_Sat_Counter_l = 0
+Over_Sat_Counter = 0
+Largest_phi_l = 0.0_dbl
+Largest_phi = 0.0_dbl
+Negative_phi_Counter_l = 0
+Negative_phi_Worst_l   = 0.0_dbl
+Negative_phi_Counter   = 0
+Negative_phi_Worst     = 0.0_dbl
 
 zcf3 = zcf * zcf * zcf
 
@@ -115,6 +128,11 @@ DO k=1,nzSub
               Negative_phi_Worst_l = phi(i,j,k)
            ENDIF
            phi(i,j,k) = 0.0_dbl
+        ELSE IF (phi(i,j,k) .gt. Cs_mol) THEN
+           Over_Sat_Counter_l = Over_Sat_Counter_l + 1
+           IF (phi(i,j,k) .GT. Largest_Phi_l) THEN
+              Largest_Phi_l = phi(i,j,k)
+           ENDIF           
         END IF
 
       END IF
