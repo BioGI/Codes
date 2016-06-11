@@ -101,6 +101,7 @@ CONTAINS
        current => next
     ENDDO
 
+    CALL Particle_Transfer_fine
     CALL Interp_Parvel_fine
     
     !--Using a linked list of particle records
@@ -124,8 +125,8 @@ CONTAINS
        current => next
     ENDDO
 
-    CALL Interp_Parvel_fine						! interpolate final particle velocities after the final position is ascertained. 
     CALL Particle_Transfer_fine
+    CALL Interp_Parvel_fine						! interpolate final particle velocities after the final position is ascertained. 
     
     !   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
     !   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
@@ -877,7 +878,7 @@ CONTAINS
                    !------ Finding particle location in this processor
                    xp = (current%pardata%xp-xx(1))/xcf + 1 - REAL(iMin-1_lng,dbl)
                    yp = (current%pardata%yp-yy(1))/ycf + 1 - REAL(jMin-1_lng,dbl)
-                   zp = (zp_fine-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
+                   zp = (zp_coarse-zz(1))/zcf + 1 - REAL(kMin-1_lng,dbl)
                    
                    NEP_x(1)= MAX(1,CEILING(xp - 0.5*L_influence_P/xcf))
                    NEP_x(2)= MIN(nxSub, FLOOR(xp + 0.5*L_influence_P/xcf))

@@ -1539,6 +1539,7 @@ SUBROUTINE Particle_Track
      current => next
   ENDDO
   
+  CALL Particle_Transfer
   CALL Interp_Parvel
   
   !--Using a linked list of particle records
@@ -1560,8 +1561,8 @@ SUBROUTINE Particle_Track
      current => next
   ENDDO
   
-  CALL Interp_Parvel 							! interpolate final particle velocities after the final position is ascertained.
   CALL Particle_Transfer
+  CALL Interp_Parvel 							! interpolate final particle velocities after the final position is ascertained.
   
   !   CALL Interp_bulkconc(Cb_Local)  					! interpolate final bulk_concentration after the final position is ascertained.
   !   CALL Calc_Global_Bulk_Scalar_Conc(Cb_Domain)
