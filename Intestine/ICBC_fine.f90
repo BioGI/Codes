@@ -588,96 +588,136 @@ REAL(dbl) :: ub, vb, wb																! wall velocity (x-, y-, z- components)
 REAL(dbl) :: x1,y1,z1,x2,y2,z2,xt,yt,zt,ht,rt,vt				! temporary coordinates to search for exact boundary coordinate (instead of ray tracing)
 INTEGER   :: it
 
-   ! Initial fluid node guess
+! Initial fluid node guess
+x1=x_fine(i)
+y1=y_fine(j)
+z1=z_fine(k)
+
+! Initial solid node guess
+x2=x_fine(im1)
+y2=y_fine(jm1)
+z2=z_fine(km1)
+
+IF (k.NE.km1) THEN
+   DO it=1,10
+      ! guess of boundary location 
+      xt=(x1+x2)/2.0_dbl
+      yt=(y1+y2)/2.0_dbl
+      zt=(z1+z2)/2.0_dbl
+      
+      rt = SQRT(xt*xt + yt*yt)
+      !Write(*,*) 'test'
+      !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+      ht = ((zt-z_fine(k))*r_fine(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
+      !ht = (r(km1)+r(k))/2.0_dbl
+      
+      IF(rt.GT.ht) then
+         x2=xt
+         y2=yt
+         z2=zt
+      ELSE
+         x1=xt
+         y1=yt
+         z1=zt
+      END IF
+      
+   END DO
    x1=x_fine(i)
    y1=y_fine(j)
    z1=z_fine(k)
    
-   ! Initial solid node guess
    x2=x_fine(im1)
    y2=y_fine(jm1)
    z2=z_fine(km1)
    
-   IF (k.NE.km1) THEN
-      DO it=1,10
-         ! guess of boundary location 
-         xt=(x1+x2)/2.0_dbl
-         yt=(y1+y2)/2.0_dbl
-         zt=(z1+z2)/2.0_dbl
-         
-         rt = SQRT(xt*xt + yt*yt)
-         !Write(*,*) 'test'
-         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-         ht = ((zt-z_fine(k))*r_fine(km1)+(z_fine(km1)-zt)*r_fine(k))/(z_fine(km1)-z_fine(k))
-         !ht = (r(km1)+r(k))/2.0_dbl
-         
-         IF(rt.GT.ht) then
-            x2=xt
-            y2=yt
-            z2=zt
-         ELSE
-            x1=xt
-            y1=yt
-            z1=zt
-         END IF
-         
-      END DO
-      x1=x_fine(i)
-      y1=y_fine(j)
-      z1=z_fine(k)
+   q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+   !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+ELSE
+   DO it=1,10
+      ! guess of boundary location 
+      xt=(x1+x2)/2.0_dbl
+      yt=(y1+y2)/2.0_dbl
+      zt=(z1+z2)/2.0_dbl
       
-      x2=x_fine(im1)
-      y2=y_fine(jm1)
-      z2=z_fine(km1)
+      rt = SQRT(xt*xt + yt*yt)
+      !Write(*,*) 'test'
+      !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
+      !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
+      ht = (r_fine(km1)+r_fine(k))/2.0_dbl
       
-      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
-      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-   ELSE
-      DO it=1,10
-         ! guess of boundary location 
-         xt=(x1+x2)/2.0_dbl
-         yt=(y1+y2)/2.0_dbl
-         zt=(z1+z2)/2.0_dbl
-         
-         rt = SQRT(xt*xt + yt*yt)
-         !Write(*,*) 'test'
-         !ht = (ABS(zt-z(k))*r(km1)+ABS(z(km1)-zt)*r(k))/ABS(z(km1)-z(k))
-         !ht = ((zt-z(k))*r(km1)+(z(km1)-zt)*r(k))/(z(km1)-z(k))
-         ht = (r_fine(km1)+r_fine(k))/2.0_dbl
-         
-         IF(rt.GT.ht) then
-            x2=xt
-            y2=yt
-            z2=zt
-         ELSE
-            x1=xt
-            y1=yt
-            z1=zt
-         END IF
-         
-      END DO
-      x1=x_fine(i)
-      y1=y_fine(j)
-      z1=z_fine(k)
+      IF(rt.GT.ht) then
+         x2=xt
+         y2=yt
+         z2=zt
+      ELSE
+         x1=xt
+         y1=yt
+         z1=zt
+      END IF
       
-      x2=x_fine(im1)
-      y2=y_fine(jm1)
-      z2=z_fine(km1)
-      
-      q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
-      !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-   ENDIF
-   cosTheta=xt/rt
-   sinTheta=yt/rt
-   IF (k.NE.km1) THEN
-      !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
-      vt = ((zt-z_fine(k))*vel_fine(km1)+(z_fine(km1)-zt)*vel_fine(k))/(z_fine(km1)-z_fine(k))
-   ELSE
-      vt = (vel_fine(k)+vel_fine(km1))*0.5_dbl
-   ENDIF
-   ub = vt*cosTheta										! x-component of the velocity at i,j,k
-   vb = vt*sinTheta										! y-component of the velocity at i,j,k
-   wb = 0.0_dbl											! no z-component in this case)
+   END DO
+   x1=x_fine(i)
+   y1=y_fine(j)
+   z1=z_fine(k)
+   
+   x2=x_fine(im1)
+   y2=y_fine(jm1)
+   z2=z_fine(km1)
+   
+   q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
+   !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
+ENDIF
+cosTheta=xt/rt
+sinTheta=yt/rt
+IF (k.NE.km1) THEN
+   !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
+   vt = ((zt-z_fine(k))*vel_fine(km1)+(z_fine(km1)-zt)*vel_fine(k))/(z_fine(km1)-z_fine(k))
+ELSE
+   vt = (vel_fine(k)+vel_fine(km1))*0.5_dbl
+ENDIF
+ub = vt*cosTheta										! x-component of the velocity at i,j,k
+vb = vt*sinTheta										! y-component of the velocity at i,j,k
+wb = 0.0_dbl											! no z-component in this case)
+
+!---------------------------------------------------------------------------------------------------
+!----- Computing phi at the wall in case of Dirichlet BC -------------------------------------------
+!---------------------------------------------------------------------------------------------------
+IF (coeffGrad .EQ. 0.0) then
+   phiWall= coeffConst/coeffPhi
+END IF
+
+!---------------------------------------------------------------------------------------------------
+!----- Estimating  phi at the wall in case of Neumann or Mixed BC ----------------------------------
+!----- Two Fluid nodes are needed for extrapolation ------------------------------------------------
+!----- 1st node; A, is adjacent to the boundary ----------------------------------------------------
+!----- 2nd node; B, is a fluid neighbor of A, in the direction closest to geometry-normal ----------
+!---------------------------------------------------------------------------------------------------
+! IF (coeffGrad .NE. 0.0) then
+!    Geom_norm_x= 1.0
+!    Geom_norm_y= 0.0
+!    Geom_norm_z= 0.0
+!    n_prod_max= 0.0_dbl
+!    !----- Finding the mth direction closest to normal vector
+!    !----- Only one fluid neighboring node is needed for interpolation
+!    DO mm=0,NumDistDirs
+!       ip1 = i+ ex(mm)
+!       jp1 = j+ ey(mm)
+!       kp1 = k+ ez(mm)
+!       IF (node_fine(ip1,jp1,kp1) .EQ. FLUID) THEN
+!          n_prod= abs( Geom_norm_x * (ip1-i) + Geom_norm_y * (jp1-j) + Geom_norm_z * (kp1-k))
+!          IF (n_prod_max .LT. n_prod) THEN
+!             n_prod_max= n_prod
+!             iB= ip1
+!             jB= jp1
+!             kB= kp1
+!          END IF
+!       END IF
+!    END DO
+!    phiWall= ((phiTemp_fine(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) -    &
+!         (phiTemp_fine(iB,jB,kB)*q*q/(1.0+2.0*q)) -          &
+!         (q*(1+q)/(1+2.0*q))* (coeffConst/coeffGrad)    )  &
+!         /(1.0- (q*(1+q)/(1+2.0*q))*(coeffPhi/coeffGrad))
+! END IF
 
 
 ! neighboring node (fluid side)	

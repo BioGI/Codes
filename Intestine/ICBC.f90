@@ -1325,20 +1325,58 @@ IF (k.NE.km1) THEN
       
       q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
       !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
-   ENDIF
-   cosTheta=xt/rt
-   sinTheta=yt/rt
-   IF (k.NE.km1) THEN
-      !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
-      vt = ((zt-z(k))*vel(km1)+(z(km1)-zt)*vel(k))/(z(km1)-z(k))
-   ELSE
-      vt = (vel(k)+vel(km1))*0.5_dbl
-   ENDIF
-   ub = vt*cosTheta										! x-component of the velocity at i,j,k
-   vb = vt*sinTheta										! y-component of the velocity at i,j,k
-   wb = 0.0_dbl											! no z-component in this case)
+ENDIF
+cosTheta=xt/rt
+sinTheta=yt/rt
+IF (k.NE.km1) THEN
+   !vt = (ABS(zt-z(k))*vel(km1)+ABS(z(km1)-zt)*vel(k))/ABS(z(km1)-z(k))
+   vt = ((zt-z(k))*vel(km1)+(z(km1)-zt)*vel(k))/(z(km1)-z(k))
+ELSE
+   vt = (vel(k)+vel(km1))*0.5_dbl
+ENDIF
+ub = vt*cosTheta										! x-component of the velocity at i,j,k
+vb = vt*sinTheta										! y-component of the velocity at i,j,k
+wb = 0.0_dbl											! no z-component in this case)
 
+!---------------------------------------------------------------------------------------------------
+!----- Computing phi at the wall in case of Dirichlet BC -------------------------------------------
+!---------------------------------------------------------------------------------------------------
+IF (coeffGrad .EQ. 0.0) then
+   phiWall= coeffConst/coeffPhi
+END IF
 
+!---------------------------------------------------------------------------------------------------
+!----- Estimating  phi at the wall in case of Neumann or Mixed BC ----------------------------------
+!----- Two Fluid nodes are needed for extrapolation ------------------------------------------------
+!----- 1st node; A, is adjacent to the boundary ----------------------------------------------------
+!----- 2nd node; B, is a fluid neighbor of A, in the direction closest to geometry-normal ----------
+!---------------------------------------------------------------------------------------------------
+! IF (coeffGrad .NE. 0.0) then
+!    Geom_norm_x= 1.0
+!    Geom_norm_y= 0.0
+!    Geom_norm_z= 0.0
+!    n_prod_max= 0.0_dbl
+!    !----- Finding the mth direction closest to normal vector
+!    !----- Only one fluid neighboring node is needed for interpolation
+!    DO mm=0,NumDistDirs
+!       ip1= i+ ex(mm)
+!       jp1= j+ ey(mm)
+!       kp1= k+ ez(mm)
+!       IF (node(ip1,jp1,kp1) .EQ. FLUID) THEN
+!          n_prod= abs( Geom_norm_x * (ip1-i) + Geom_norm_y * (jp1-j) + Geom_norm_z * (kp1-k))
+!          IF (n_prod_max .LT. n_prod) THEN
+!             n_prod_max= n_prod
+!             iB= ip1
+!             jB= jp1
+!             kB= kp1
+!          END IF
+!       END IF
+!    END DO
+!    phiWall= ((phiTemp(i,j,k)*(1.0+q)*(1.0+q)/(1.0+2.0*q)) -    &
+!         (phiTemp(iB,jB,kB)*q*q/(1.0+2.0*q)) -          &
+!         (q*(1+q)/(1+2.0*q))* (coeffConst/coeffGrad)    )  &
+!         /(1.0- (q*(1+q)/(1+2.0*q))*(coeffPhi/coeffGrad))
+! END IF
 
 ! neighboring node (fluid side)	
 ip1 = i + ex(m) 																		! i + 1
