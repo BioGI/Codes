@@ -121,7 +121,12 @@ DO k=1,nzSub_fine
   END DO
 END DO
 
-write(31,*) 'sum  phi_fine inside Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total, ' Error = ', (sum(phi_fine(:,:,:)) * zcf3 - Drug_Released_Total)/Drug_Released_Total
+write(31,*) 'sum  phi_fine inside Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total
+
+if (Drug_Released_Total .gt. 1e-40)  then
+   write(31,*) ' Error = ', (sum(phi_fine(:,:,:)) * zcf3 - Drug_Released_Total)/Drug_Released_Total
+end if
+
 write(31,*) ' '
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
