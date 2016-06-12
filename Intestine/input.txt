@@ -17,7 +17,7 @@
 2.5				! segmental contraction period [s]						(Ts) 
 1				! number of segmental waves 							(numw2)
 0.0				! segmental weighting coefficient 						(wc2)
-7.5				! period of mixed mode simulation						(Tmix)
+15.0				! period of mixed mode simulation						(Tmix)
 0				! number of rows of villi in the axial direction				(numVilliZ)
 0				! number of villi in the azimuthal direction in each row			(numVilliTheta)
 1				! number of villi groups							(numVilliGroups)
@@ -31,7 +31,7 @@
 2.4e-6				! kinematic viscosity [m^2/s]							(nu)
 1.5				! relaxation parameter								(tau)
 4.5                             ! relaxation parameter for fine mesh						(tau_fine)
-50.0  				! Schmidt Number								(Sc)
+20.0  				! Schmidt Number								(Sc)
 4				! initial/maintained scalar distribution [1=BLOB,2=LINE,3=INLET,4=UNIFORM]	(sclrIC)
 0.0				! period at which to start the scalar calculation				(phiPer)
 0.0				! maximum value of scalar distribution                               	        (phiIC)
@@ -41,6 +41,6 @@
 5.0				! number of time periods							(nPers)
 300				! approximate number of output files						(numOuts)
 .FALSE.				! restart flag, .TRUE. or .FALSE						(restart)
-0				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
+1				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
 0                               ! A flag to indicate if we're doing a straight tube test
 0.005                           ! Radius of the straight tube if we're doing a straight tube test
