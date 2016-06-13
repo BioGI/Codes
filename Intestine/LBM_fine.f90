@@ -1919,8 +1919,14 @@ ENDDO
           f1 =  rho(lCxIndex-1,45,lCzIndex)
           f2 =  rho(lCxIndex,45,lCzIndex) 
           f3 =  rho(lCxIndex+1,45,lCzIndex)
-          f4 =  rho(lCxIndex+2,45,lCzIndex)
+          f4 =  rho(lCxIndex+2,45,lCzIndex)          
           dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,45,lCzIndex),node(lCxIndex,45,lCzIndex),node(lCxIndex+1,45,lCzIndex),node(lCxIndex+2,45,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_bottomXZ(1,3,i,k) - 1.0) .gt. 0.5) .and. (node(lCxIndex,45,lCzIndex)*node(lCxIndex+1,45,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,k = ', i, k
+             write(31,*) 'lCxIndex, 45, lCzIndex = ', lCxIndex, 45, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_bottomXZ(1,3,i,k)
+             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex)
+          end if
           f1 =  phi(lCxIndex-1,45,lCzIndex)
           f2 =  phi(lCxIndex,45,lCzIndex) 
           f3 =  phi(lCxIndex+1,45,lCzIndex)
@@ -1953,6 +1959,13 @@ ENDDO
           f3 =  rho(lCxIndex+1,45,lCzIndex)
           f4 =  rho(lCxIndex+2,45,lCzIndex)
           dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,45,lCzIndex),node(lCxIndex,45,lCzIndex),node(lCxIndex+1,45,lCzIndex),node(lCxIndex+2,45,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(lCxIndex,45,lCzIndex)*node(lCxIndex+1,45,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,j,k = ', i, j, k
+             write(31,*) 'lCxIndex, 45, lCzIndex = ', lCxIndex, 45, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1)
+             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex)
+          end if
+          
           f1 =  phi(lCxIndex-1,45,lCzIndex)
           f2 =  phi(lCxIndex,45,lCzIndex)
           f3 =  phi(lCxIndex+1,45,lCzIndex)
@@ -1985,6 +1998,12 @@ ENDDO
           f3 =  rho(lCxIndex+1,57,lCzIndex) 
           f4 =  rho(lCxIndex+2,57,lCzIndex) 
           dsCtoF_topXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_topXZ(1,3,i,k)  - 1.0) .gt. 0.5) .and. (node(lCxIndex,57,lCzIndex)*node(lCxIndex+1,57,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,k = ', i, k
+             write(31,*) 'lCxIndex, 57, lCzIndex = ', lCxIndex, 57, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_topXZ(1,3,i,k) 
+             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex)              
+          end if          
           f1 =  phi(lCxIndex-1,57,lCzIndex) 
           f2 =  phi(lCxIndex,57,lCzIndex) 
           f3 =  phi(lCxIndex+1,57,lCzIndex) 
@@ -2016,6 +2035,13 @@ ENDDO
           f3 =  rho(lCxIndex+1,57,lCzIndex) 
           f4 =  rho(lCxIndex+2,57,lCzIndex) 
           dsCtoF_topXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_topXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(lCxIndex,57,lCzIndex)*node(lCxIndex+1,57,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,k = ', i, k
+             write(31,*) 'lCxIndex, 57, lCzIndex = ', lCxIndex, 57, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_topXZ(1,3,i,k) 
+             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex)              
+          end if          
+          
           f1 =  phi(lCxIndex-1,57,lCzIndex) 
           f2 =  phi(lCxIndex,57,lCzIndex) 
           f3 =  phi(lCxIndex+1,57,lCzIndex) 
@@ -2099,6 +2125,13 @@ ENDDO
           f3 =  rho(45,lCyIndex+1,lCzIndex) 
           f4 =  rho(45,lCyIndex+2,lCzIndex) 
           dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_frontYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(45,lCyIndex,lCzIndex)*node(45,lCyIndex+1,lCzIndex) .eq. 0) )  then
+             write(31,*) 'j,k = ', j, k
+             write(31,*) '45, lCyIndex, lCzIndex = ', 45, lCyIndex, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,k)
+             write(31,*) 'Interpolating values = ', rho(45,lCyIndex-1,lCzIndex), rho(45,lCyIndex,lCzIndex), rho(45,lCyIndex+1,lCzIndex), rho(45,lCyIndex+2,lCzIndex) 
+          end if          
+          
           f1 =  phi(45,lCyIndex-1,lCzIndex) 
           f2 =  phi(45,lCyIndex,lCzIndex) 
           f3 =  phi(45,lCyIndex+1,lCzIndex) 
@@ -2131,6 +2164,13 @@ ENDDO
           f3 =  rho(45,lCyIndex+1,lCzIndex) 
           f4 =  rho(45,lCyIndex+2,lCzIndex) 
           dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(45,lCyIndex,lCzIndex)*node(45,lCyIndex+1,lCzIndex) .eq. 0))  then
+             write(31,*) 'i,j,k = ', i, j, k
+             write(31,*) '45, lCyIndex, lCzIndex = ', 45, lCyIndex, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1)
+             write(31,*) 'Interpolating values = ', rho(45,lCyIndex-1,lCzIndex), rho(45,lCyIndex,lCzIndex), rho(45,lCyIndex+1,lCzIndex), rho(45,lCyIndex+2,lCzIndex) 
+          end if          
+          
           f1 =  phi(45,lCyIndex-1,lCzIndex) 
           f2 =  phi(45,lCyIndex,lCzIndex) 
           f3 =  phi(45,lCyIndex+1,lCzIndex) 
@@ -2162,6 +2202,12 @@ ENDDO
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
           dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_backYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(57,lCyIndex,lCzIndex)*node(57,lCyIndex+1,lCzIndex) .eq. 0) )  then
+             write(31,*) 'j,k = ', j, k
+             write(31,*) '57, lCyIndex, lCzIndex = ', 57, lCyIndex, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_backYZ(1,3,j,k)
+             write(31,*) 'Interpolating values = ', rho(57,lCyIndex-1,lCzIndex), rho(57,lCyIndex,lCzIndex), rho(57,lCyIndex+1,lCzIndex), rho(57,lCyIndex+2,lCzIndex) 
+          end if          
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
@@ -2193,6 +2239,12 @@ ENDDO
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
           dsCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(57,lCyIndex,lCzIndex)*node(57,lCyIndex+1,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,j,k = ', i, j, k
+             write(31,*) '57, lCyIndex, lCzIndex = ', 57, lCyIndex, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1)
+             write(31,*) 'Interpolating values = ', rho(57,lCyIndex-1,lCzIndex), rho(57,lCyIndex,lCzIndex), rho(57,lCyIndex+1,lCzIndex), rho(57,lCyIndex+2,lCzIndex) 
+          end if                    
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
@@ -2263,6 +2315,13 @@ ENDDO
           f3 =  rho(lCxIndex+1,45,lCzIndex)
           f4 =  rho(lCxIndex+2,45,lCzIndex)
           dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,45,lCzIndex),node(lCxIndex,45,lCzIndex),node(lCxIndex+1,45,lCzIndex),node(lCxIndex+2,45,lCzIndex), xInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_bottomXZ(1,3,i,k) - 1.0) .gt. 0.5) .and. (node(lCxIndex,45,lCzIndex)*node(lCxIndex+1,45,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,k = ', i, k
+             write(31,*) 'lCxIndex, 45, lCzIndex = ', lCxIndex, 45, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_bottomXZ(1,3,i,k)
+             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex)
+          end if
+         
           f1 =  phi(lCxIndex-1,45,lCzIndex)
           f2 =  phi(lCxIndex,45,lCzIndex) 
           f3 =  phi(lCxIndex+1,45,lCzIndex)
@@ -2293,6 +2352,12 @@ ENDDO
           f3 =  rho(lCxIndex+1,57,lCzIndex) 
           f4 =  rho(lCxIndex+2,57,lCzIndex) 
           dsCtoF_topXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4, node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex), xInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_topXZ(1,3,i,k) - 1.0) .gt. 0.5) .and. (node(lCxIndex,57,lCzIndex)*node(lCxIndex+1,57,lCzIndex) .eq. 0) )  then
+             write(31,*) 'i,k = ', i, k
+             write(31,*) 'lCxIndex, 57, lCzIndex = ', lCxIndex, 57, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_topXZ(1,3,i,k) 
+             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex)       
+          end if          
           f1 =  phi(lCxIndex-1,57,lCzIndex) 
           f2 =  phi(lCxIndex,57,lCzIndex) 
           f3 =  phi(lCxIndex+1,57,lCzIndex) 
@@ -2355,6 +2420,13 @@ ENDDO
           f3 =  rho(45,lCyIndex+1,lCzIndex) 
           f4 =  rho(45,lCyIndex+2,lCzIndex) 
           dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_frontYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(45,lCyIndex,lCzIndex)*node(45,lCyIndex+1,lCzIndex) .eq. 0) )  then
+             write(31,*) 'j,k = ', j, k
+             write(31,*) '45, lCyIndex, lCzIndex = ', 45, lCyIndex, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,k)
+             write(31,*) 'Interpolating values = ', rho(45,lCyIndex-1,lCzIndex), rho(45,lCyIndex,lCzIndex), rho(45,lCyIndex+1,lCzIndex), rho(45,lCyIndex+2,lCzIndex) 
+          end if          
+          
           f1 =  phi(45,lCyIndex-1,lCzIndex) 
           f2 =  phi(45,lCyIndex,lCzIndex) 
           f3 =  phi(45,lCyIndex+1,lCzIndex) 
@@ -2385,6 +2457,13 @@ ENDDO
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
           dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          if ( (abs(dsCtoF_backYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(57,lCyIndex,lCzIndex)*node(57,lCyIndex+1,lCzIndex) .eq. 0) )  then
+             write(31,*) 'j,k = ', j, k
+             write(31,*) '57, lCyIndex, lCzIndex = ', 57, lCyIndex, lCzIndex
+             write(31,*) 'Affected value = ', dsCtoF_backYZ(1,3,j,k)
+             write(31,*) 'Interpolating values = ', rho(57,lCyIndex-1,lCzIndex), rho(57,lCyIndex,lCzIndex), rho(57,lCyIndex+1,lCzIndex), rho(57,lCyIndex+2,lCzIndex) 
+          end if          
+          
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
