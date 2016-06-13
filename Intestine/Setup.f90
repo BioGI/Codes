@@ -62,6 +62,7 @@ REAL(dbl) :: Negative_phi_Total_l, Negative_phi_Total				! Total negative scalar
 REAL(dbl) :: Negative_phi_Worst_l, Negative_phi_Worst	        		! Worst Negative scalar ine ach time step
 REAL(dbl) :: phiInOut								! total amount of scalar leaving/entering the domain
 REAL(dbl) :: phiTotal								! total intial amount of scalar in the domain
+REAL(dbl) :: Drug_Initial       ! Initial drug in the domain
 REAL(dbl) :: Drug_Released_Total! Total moles of drug released from all particles in the domain summed up in all time steps
 REAL(dbl) :: Drug_Absorbed! Total moles of drug absorbed at domains boundary summed up in all time steps
 REAL(dbl) :: Drug_Remained_in_Domain! Total moles of drug remaind in the domain
