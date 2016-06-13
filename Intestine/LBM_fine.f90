@@ -1290,8 +1290,6 @@ CONTAINS
              
           end if
 
-          write(31,*) 'OverlapSumTest_l, OverlapSumTest = ', OverlapSumTest_l, OverlapSumTest
-
           write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB
           if ( current%pardata%delNB .gt. 1e-25) then
              write(31,*) ' error = ', (sum(delphi_particle_fine(:,:,:)) * zcf3 - current%pardata%delNB)/current%pardata%delNB
@@ -1348,21 +1346,26 @@ CONTAINS
              
           end if
 
-          CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
-          
        end if
 
-       if (OverlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
+       CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+       
+       write(31,*) 'OverlapSumTest_l, OverlapSumTest = ', OverlapSumTest_l, OverlapSumTest
+       
+       ! if (OverlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
 
-          Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
-          current%pardata%delNB = 0.0_dbl
-          current%pardata%rp = current%pardata%rpold
+       !    write(31,*) 'Modifying Drug_Released_Total in fine mesh now '
+       !    write(31,*) 'Old value = ', Drug_Released_Total
+       !    Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
+       !    write(31,*) 'New value = ', Drug_Released_Total     
+       !    current%pardata%delNB = 0.0_dbl
+       !    current%pardata%rp = current%pardata%rpold
           
-          RANK= current%pardata%cur_part - 1
-          CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
-          CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+       !    RANK= current%pardata%cur_part - 1
+       !    CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+       !    CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
           
-       end if
+       ! end if
        
     END IF
     
@@ -2158,29 +2161,29 @@ ENDDO
           f2 =  rho(57,lCyIndex,lCzIndex) 
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
-          dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
           f4 =  phi(57,lCyIndex+2,lCzIndex) 
-          dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           velCtoF_backYZ(:,1,j,k) = velCtoF_backYZ(:,2,j,k) !Cycle the second time step to the first time step
           velCtoF_backYZ(:,2,j,k) = velCtoF_backYZ(:,3,j,k) !Cycle the last time step to the second time step
           f1 =  u(57,lCyIndex-1,lCzIndex) 
           f2 =  u(57,lCyIndex,lCzIndex) 
           f3 =  u(57,lCyIndex+1,lCzIndex) 
           f4 =  u(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  v(57,lCyIndex-1,lCzIndex) 
           f2 =  v(57,lCyIndex,lCzIndex) 
           f3 =  v(57,lCyIndex+1,lCzIndex) 
           f4 =  v(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  w(57,lCyIndex-1,lCzIndex) 
           f2 =  w(57,lCyIndex,lCzIndex) 
           f3 =  w(57,lCyIndex+1,lCzIndex) 
           f4 =  w(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(3,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(3,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           
           lCzIndex = closestCoarseZindex(z_fine(nzSub_fine-gridRatio+1-k+1))  ! Lower Coarse z Index - No interpolation in z
           dsCtoF_backYZ(:,1,j,nzSub_fine-gridRatio+1-k+1) = dsCtoF_backYZ(:,2,j,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
@@ -2189,29 +2192,29 @@ ENDDO
           f2 =  rho(57,lCyIndex,lCzIndex) 
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
-          dsCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          dsCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
           f4 =  phi(57,lCyIndex+2,lCzIndex) 
-          dsCtoF_backYZ(2,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          dsCtoF_backYZ(2,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           velCtoF_backYZ(:,1,j,nzSub_fine-gridRatio+1-k+1) = velCtoF_backYZ(:,2,j,nzSub_fine-gridRatio+1-k+1) !Cycle the second time step to the first time step
           velCtoF_backYZ(:,2,j,nzSub_fine-gridRatio+1-k+1) = velCtoF_backYZ(:,3,j,nzSub_fine-gridRatio+1-k+1) !Cycle the last time step to the second time step
           f1 =  u(57,lCyIndex-1,lCzIndex) 
           f2 =  u(57,lCyIndex,lCzIndex) 
           f3 =  u(57,lCyIndex+1,lCzIndex) 
           f4 =  u(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  v(57,lCyIndex-1,lCzIndex) 
           f2 =  v(57,lCyIndex,lCzIndex) 
           f3 =  v(57,lCyIndex+1,lCzIndex) 
           f4 =  v(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(2,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(2,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  w(57,lCyIndex-1,lCzIndex) 
           f2 =  w(57,lCyIndex,lCzIndex) 
           f3 =  w(57,lCyIndex+1,lCzIndex) 
           f4 =  w(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(3,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(3,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           
        end do
     end do
@@ -2333,7 +2336,7 @@ ENDDO
              f2 =  feqFF_frontYZ(m,lCyIndex,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex,lCzIndex) - feqFF_frontYZ(m,lCyIndex,lCzIndex))
              f3 =  feqFF_frontYZ(m,lCyIndex+1,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+1,lCzIndex) - feqFF_frontYZ(m,lCyIndex+1,lCzIndex))
              f4 =  feqFF_frontYZ(m,lCyIndex+2,lCzIndex) + (tau_fine - 1.0)/(gridRatio * (tau - 1.0)) * (f(m,45,lCyIndex+2,lCzIndex) - feqFF_frontYZ(m,lCyIndex+2,lCzIndex))           
-             fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCyIndex-1,45,lCzIndex),node(lCyIndex,45,lCzIndex),node(lCyIndex+1,45,lCzIndex),node(lCyIndex+2,45,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+             fCtoF_frontYZ(m,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
              
              fCtoF_backYZ(m,1,j,k) = fCtoF_backYZ(m,2,j,k) !Cycle the second time step to the first time step
              fCtoF_backYZ(m,2,j,k) = fCtoF_backYZ(m,3,j,k) !Cycle the last time step to the second time step
@@ -2381,29 +2384,29 @@ ENDDO
           f2 =  rho(57,lCyIndex,lCzIndex) 
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
-          dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCyIndex-1,57,lCzIndex),node(lCyIndex,57,lCzIndex),node(lCyIndex+1,57,lCzIndex),node(lCyIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
           f4 =  phi(57,lCyIndex+2,lCzIndex) 
-          dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCyIndex-1,57,lCzIndex),node(lCyIndex,57,lCzIndex),node(lCyIndex+1,57,lCzIndex),node(lCyIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          dsCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           velCtoF_backYZ(:,1,j,k) = velCtoF_backYZ(:,2,j,k) !Cycle the second time step to the first time step
           velCtoF_backYZ(:,2,j,k) = velCtoF_backYZ(:,3,j,k) !Cycle the last time step to the second time step
           f1 =  u(57,lCyIndex-1,lCzIndex) 
           f2 =  u(57,lCyIndex,lCzIndex) 
           f3 =  u(57,lCyIndex+1,lCzIndex) 
           f4 =  u(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCyIndex-1,57,lCzIndex),node(lCyIndex,57,lCzIndex),node(lCyIndex+1,57,lCzIndex),node(lCyIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  v(57,lCyIndex-1,lCzIndex) 
           f2 =  v(57,lCyIndex,lCzIndex) 
           f3 =  v(57,lCyIndex+1,lCzIndex) 
           f4 =  v(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCyIndex-1,57,lCzIndex),node(lCyIndex,57,lCzIndex),node(lCyIndex+1,57,lCzIndex),node(lCyIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(2,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           f1 =  w(57,lCyIndex-1,lCzIndex) 
           f2 =  w(57,lCyIndex,lCzIndex) 
           f3 =  w(57,lCyIndex+1,lCzIndex) 
           f4 =  w(57,lCyIndex+2,lCzIndex) 
-          velCtoF_backYZ(3,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(lCyIndex-1,57,lCzIndex),node(lCyIndex,57,lCzIndex),node(lCyIndex+1,57,lCzIndex),node(lCyIndex+2,57,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
+          velCtoF_backYZ(3,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
           
        end do
     end do
@@ -2554,7 +2557,13 @@ ENDDO
           w_fine(1,j,k) = temporalInterpolate(velCtoF_frontYZ(3,1,j,k),velCtoF_frontYZ(3,2,j,k),velCtoF_frontYZ(3,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
 
           rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
-          phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)        
+          phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
+          if( (rho_fine(nx_fine,j,k) .lt. 0.1) .and. (node_fine_backYZ(2,j,k) * node_fine_backYZ(3,j,k) .eq. 0) ) then
+             write(31,*) 'j,k = ', j,k
+             write(31,*) ' rho_fine = ', dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k)
+             write(31,*) ' node_fine  = ', node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k)
+             write(31,*) ' tInterp = ', tInterp
+          end if
           u_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(1,1,j,k),velCtoF_backYZ(1,2,j,k),velCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           v_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(2,1,j,k),velCtoF_backYZ(2,2,j,k),velCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           w_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(3,1,j,k),velCtoF_backYZ(3,2,j,k),velCtoF_backYZ(3,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)        
