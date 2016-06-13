@@ -96,7 +96,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
 
 	DO iter=iter0,nt
 
-         write(31,*) 'iter = ', iter, ' phiStart = ', phiStart
          CALL AdvanceGeometry		! advance the geometry to the next time step [MODULE: Geometry]
 !         fPlus = f
         CALL Stream			! perform the streaming operation (with Lallemand 2nd order BB) [MODULE: Algorithm]

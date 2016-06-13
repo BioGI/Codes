@@ -462,15 +462,9 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
      END DO
   END DO
 
-  write(31,*) 'phiDomain_l = ', phiDomain_l
-  write(31,*) 'numFluids_l = ', numFluids_l
-  flush(31)
   CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
   CALL MPI_ALLREDUCE(numFluids_l , numFluids , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
   CALL MPI_ALLREDUCE(Negative_phi_Total_l , Negative_phi_Total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
-  write(31,*) 'phiDomain = ', phiDomain
-  write(31,*) 'numFluids = ', numFluids
-  flush(31)
 
   !------ average scalar in the domain
   IF (numFluids .GT. 1e-8) THEN

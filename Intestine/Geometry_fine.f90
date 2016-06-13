@@ -884,14 +884,7 @@ FUNCTION degreeOverlapCube(x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp)
   REAL(dbl) :: x1,xp,y1,yp,z1,zp,a,ap,b,bp,c,cp
   REAL(dbl) :: degreeOverlapCube
 
-!  write(31,*) 'min(ap,xp)-max(a,x1) = ', min(ap,xp)-max(a,x1), ' max(min(ap,xp)-max(a,x1),0.0_dbl) = ', max(min(ap,xp)-max(a,x1),0.0_dbl)
-!  write(31,*) 'min(bp,yp)-max(b,y1) = ', min(bp,yp)-max(b,y1), ' max(min(bp,yp)-max(b,y1),0.0_dbl) = ', max(min(bp,yp)-max(b,y1),0.0_dbl)
-!  write(31,*) 'min(cp,zp)-max(c,z1) = ', min(cp,zp)-max(c,z1), ' max(min(cp,zp)-max(c,z1),0.0_dbl) = ', max(min(cp,zp)-max(c,z1),0.0_dbl)
-  
   degreeOverlapCube = (max(min(ap,xp)-max(a,x1),0.0_dbl)/xcf_fine) * (max(min(bp,yp)-max(b,y1),0.0_dbl)/ycf_fine) * (max(min(cp,zp)-max(c,z1),0.0_dbl)/zcf_fine)
-!  if (degreeOverlapCube .gt. 0) then
-!     write(31,*) 'degreeOverlapCube = ', degreeOverlapCube
-!  end if
   RETURN
 
 END FUNCTION degreeOverlapCube

@@ -86,8 +86,6 @@ zcf3 = zcf_fine * zcf_fine * zcf_fine
 phiTemp_fine = phi_fine
 
 tmp = sum(phi_fine(:,:,:)) * zcf3 
-write(31,*) 'sum phi_fine before Scalar_fine = ', tmp
-write(31,*) 'sum delphi_particle_fine inside Scalar_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3
 
 ! Stream the scalar
 DO k=1,nzSub_fine
@@ -108,15 +106,9 @@ DO k=1,nzSub_fine
 
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-         ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-            if (rho_fine(im1,jm1,km1) .lt. 0.1) then
-               write(31,*) 'i,j,k = ', i,j,k, 'im1, jm1, km1 = ', im1, jm1, km1
-               write(31,*) 'Closest coarse indices are ', lowerCoarseXindex(i), lowerCoarseYindex(j), closestCoarseZindex(z_fine(k))
-               write(31,*) 'Nodes coarse ', node(lowerCoarseXindex(i), lowerCoarseYindex(j), closestCoarseZindex(z_fine(k))), node(lowerCoarseXindex(im1), lowerCoarseYindex(jm1), closestCoarseZindex(z_fine(km1)))
-               write(31,*) 'Nodes fine ', node_fine(i,j,k), node_fine(im1,jm1,km1)
-               write(31,*) 'Rhos coarse = ', rho(lowerCoarseXindex(i), lowerCoarseYindex(j), closestCoarseZindex(z_fine(k))), rho(lowerCoarseXindex(im1), lowerCoarseYindex(jm1), closestCoarseZindex(z_fine(km1)))
-               write(31,*) 'Rhos fine ', rho_fine(i,j,k), rho_fine(im1,jm1,km1)               
-               flush(31)
+          ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
+             if ( abs(rho_fine(im1,jm1,km1) - 1.0) .gt. 0.5) then
+               rho_fine(im1,jm1,km1) = 1.0
             end if
             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
@@ -165,17 +157,6 @@ DO k=1,nzSub_fine
      END DO
   END DO
 END DO
-
-write(31,*) 'sum  phi_fine after Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total
-
-if (Drug_Released_Total .gt. 1e-40)  then
-   write(31,*) ' Error = ', (sum(phi_fine(:,:,:)) * zcf3 - Drug_Released_Total)/Drug_Released_Total
-   write(31,*) ' Error in this Delta t = ', ( sum(phi_fine(:,:,:) - phiTemp_fine(:,:,:)  ) - sum(delphi_particle_fine(:,:,:)) ) * zcf3
-   write(31,*) ' Error in this Delta t = ', ( sum(phi_fine(:,:,:) - phiTemp_fine(:,:,:) - delphi_particle_fine(:,:,:)) ) * zcf3
-   write(31,*) ' Error in this Delta t = ', ( sum(phi_fine(:,:,:)) - sum(delphi_particle_fine(:,:,:)) ) * zcf3 - tmp
-end if
-
-write(31,*) ' '
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
 phiAbsorbed_fine = phiAbsorbedS_fine + phiAbsorbedV_fine ! total amount of scalar absorbed up to current time

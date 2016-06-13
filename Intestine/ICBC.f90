@@ -156,11 +156,7 @@ ELSE
          flagParticleCF(parid) = .true.
          
          DO ipartition = 1_lng,NumSubsTotal
-            write(31,*) 'ipartition = ', ipartition
-            write(31,*) 'xp, i, xMinMax = ', xp, (xp-xx_fine(1))/xcf_fine + 1, REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl, REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl
-            write(31,*) 'yp, j, yMinMax = ', yp, (yp-yy_fine(1))/ycf_fine + 1, REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl, REAL(jMaxDomain_fine(ipartition),dbl)+0.0_dbl
-            write(31,*) 'zp, k, zMinMax = ', zp, (zp-zz_fine(1))/zcf_fine + 1, REAL(kMinDomain_fine(ipartition),dbl)-1.0_dbl, REAL(kMaxDomain_fine(ipartition),dbl)+0.0_dbl            
-            
+           
             IF (( ((xp-xx_fine(1))/xcf_fine + 1) .GE.REAL(iMinDomain_fine(ipartition),dbl)-1.0_dbl).AND.&
                  ( ((xp-xx_fine(1))/xcf_fine + 1) .LT.(REAL(iMaxDomain_fine(ipartition),dbl)+0.0_dbl)).AND. &
                  ( ((yp-yy_fine(1))/ycf_fine + 1) .GE.REAL(jMinDomain_fine(ipartition),dbl)-1.0_dbl).AND. &
@@ -170,7 +166,6 @@ ELSE
                
                particle_partition = ipartition
             END IF
-            write(31,*) 'particle_partition = ', particle_partition
             
          END DO
          
@@ -1403,14 +1398,11 @@ phiijk_m	= (fplus(m,i,j,k)/rho(i,j,k) - wt(m)*Delta)*phiTemp(i,j,k)	! contributi
 
 ! if q is too small, the extrapolation to phiBC can create a large error...
 IF(q .LT. 0.25) THEN
-!   write(31,*) 'Real q = ', q   
   q = 0.25_dbl  																		! approximate the distance ratio as 0.25
 END IF
 
 ! extrapolate using phiB and phijk_m to obtain contribution from the solid node to the current node
 phiBC		= ((phiB - phiijk_m)/q) + phiB										! extrapolated scalar value at the solid node, using q
-!write(31,*) 'm,i,j,k,q =', m,i,j,k,q, 'phiB = ', phiB, ' phiijk_m = ', phiijk_m
-!write(31,*) 'fplus(m,i,j,k) = ', fplus(m,i,j,k), ' rho(i,j,k) = ', rho(i,j,k), ' phiTemp(i,j,k) = ', phiTemp(i,j,k)
 
 !------------------------------------------------
 END SUBROUTINE ScalarBC

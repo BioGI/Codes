@@ -28,9 +28,9 @@
 2				! random or ordered villous motion [1=RANDOM,2=ORDERED]				(randORord)
 0.0				! maximum angle of active villous travel (degrees) 				(villiAngle)	 
 1000.0				! density [kg/m^3]								(den)
-2.4e-6				! kinematic viscosity [m^2/s]							(nu)
-1.5				! relaxation parameter								(tau)
-4.5                             ! relaxation parameter for fine mesh						(tau_fine)
+1.0e-6				! kinematic viscosity [m^2/s]							(nu)
+0.6				! relaxation parameter								(tau)
+0.9                             ! relaxation parameter for fine mesh						(tau_fine)
 20.0  				! Schmidt Number								(Sc)
 4				! initial/maintained scalar distribution [1=BLOB,2=LINE,3=INLET,4=UNIFORM]	(sclrIC)
 0.0				! period at which to start the scalar calculation				(phiPer)
@@ -38,8 +38,8 @@
 1.0                             ! coeffPhi
 0.0		                ! coeffGrad
 0.0		                ! coeffConst
-5.0				! number of time periods							(nPers)
-300				! approximate number of output files						(numOuts)
+20.0				! number of time periods							(nPers)
+3000				! approximate number of output files						(numOuts)
 .FALSE.				! restart flag, .TRUE. or .FALSE						(restart)
 1				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
 0                               ! A flag to indicate if we're doing a straight tube test

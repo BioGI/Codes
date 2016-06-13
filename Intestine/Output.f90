@@ -396,8 +396,6 @@ TYPE(ParRecord), POINTER :: next
 xaxis=ANINT(0.5_dbl*(nx+1))
 yaxis=ANINT(0.5_dbl*(ny+1))
 
-write(31,*) 'numOuts = ', numOuts
-flush(31)
 IF ((MOD(iter,(((nt+1_lng)-iter0)/numOuts)) .EQ. 0) &
    .OR. (iter .EQ. iter0-1_lng) .OR. (iter .EQ. iter0) &
    .OR. (iter .EQ. phiStart) .OR. (iter .EQ. nt)) THEN

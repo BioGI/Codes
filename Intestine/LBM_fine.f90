@@ -775,12 +775,6 @@ CONTAINS
              VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
              VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
 
-             write(31,*) 'L_influence_p = ', L_influence_P
-             write(31,*) 'VIBs'
-             write(31,*) 'x ', VIB_x(1), VIB_x(2)
-             write(31,*) 'y ', VIB_y(1), VIB_y(2)
-             write(31,*) 'z ', VIB_z(1), VIB_z(2)
-            
              checkEffVolumeOverlapFineMesh = ( MAX ( MIN(VIB_x(2), fractionDfine * D * 0.5 + xcf) - MAX(VIB_x(1), -fractionDfine * D * 0.5 - xcf), 0.0_dbl) / L_influence_P ) * &
                   ( MAX ( MIN(VIB_y(2),fractionDfine * D * 0.5 + xcf) - MAX(VIB_y(1), -fractionDfine * D * 0.5 - ycf), 0.0_dbl) / L_influence_P ) - 0.99
              
@@ -850,11 +844,6 @@ CONTAINS
                 NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf_fine))
                 NEP_z(2)= MIN(nzSub_fine, FLOOR(zp + 0.5*L_influence_P/zcf_fine))
 
-                write(31,*) 'NEPs fine mesh'                
-                write(31,*) 'x ', NEP_x(1), NEP_x(2), x_fine(NEP_x(1)), x_fine(NEP_x(2))
-                write(31,*) 'y ', NEP_y(1), NEP_y(2), y_fine(NEP_y(1)), y_fine(NEP_y(2))
-                write(31,*) 'z ', NEP_z(1), NEP_z(2), z_fine(NEP_z(1)), z_fine(NEP_z(2))                
-                
                 DO i= NEP_x(1),NEP_x(2) 
                    DO j= NEP_y(1),NEP_y(2)
                       DO k= NEP_z(1),NEP_z(2)
@@ -887,11 +876,6 @@ CONTAINS
                    NEP_z(1)= MAX(1,CEILING(zp - 0.5*L_influence_P/zcf))
                    NEP_z(2)= MIN(nzSub, FLOOR(zp + 0.5*L_influence_P/zcf))
 
-                   write(31,*) 'NEPs coarse mesh'                
-                   write(31,*) 'x ', NEP_x(1), NEP_x(2), x(NEP_x(1)), x(NEP_x(2))
-                   write(31,*) 'y ', NEP_y(1), NEP_y(2), y(NEP_y(1)), y(NEP_y(2))
-                   write(31,*) 'z ', NEP_z(1), NEP_z(2), z(NEP_z(1)), z(NEP_z(2))                
-                   
                    DO i= NEP_x(1),NEP_x(2) 
                       DO j= NEP_y(1),NEP_y(2)
                          DO k= NEP_z(1),NEP_z(2)
@@ -902,8 +886,6 @@ CONTAINS
                             IF (node(i,j,kk) .EQ. FLUID) THEN
                                Cb_Total_Veff_l  = Cb_Total_Veff_l  + phi(i,j,kk) * (1.0 - flagNodeIntersectFine(i,j,kk)) * (gridRatio * gridRatio * gridRatio)
                                fluids_Veff_l = fluids_Veff_l + (1.0 - flagNodeIntersectFine(i,j,kk)) * (gridRatio * gridRatio * gridRatio)
-                            ELSE
-                               write(31,*) 'Node i,j,k ', i,j,kk, ' is not a fluid node'
                             END IF
                          END DO
                       END DO
@@ -967,8 +949,6 @@ CONTAINS
              
               bulkconc = current%pardata%bulk_conc
 
-              write(31,*) 'bulk conc = ', bulkconc, ' Cs = ', current%pardata%par_conc, ' Driving Delta = ', current%pardata%par_conc-bulkconc
-              
               temp = current%pardata%rpold**2.0_dbl-4.0_dbl*tcf_fine*molarvol*diffm*current%pardata%sh*max((current%pardata%par_conc-bulkconc),0.0_dbl)
              
               IF (temp.GE.0.0_dbl) THEN
@@ -1083,14 +1063,6 @@ CONTAINS
           VIB_z(1)= current%pardata%zp - 0.5_dbl * L_influence_P
           VIB_z(2)= current%pardata%zp + 0.5_dbl * L_influence_P
 
-          write(31,*) 'Interp_ParToNodes_Conc'
-          write(31,*) 'L_influence_p = ', L_influence_P
-          write(31,*) 'VIBs'
-          write(31,*) 'x ', VIB_x(1), VIB_x(2)
-          write(31,*) 'y ', VIB_y(1), VIB_y(2)
-          write(31,*) 'z ', VIB_z(1), VIB_z(2)
-          
-          
           !Check if Volume of Influence Border overlaps with the current processor domain
           
           if (MAX ( MIN(VIB_z(2)+L,(kMaxDomain(mySub)-0.5)*zcf) - MAX(VIB_z(1)+L,(kMinDomain(mySub)-1.5)*zcf), 0.0_dbl) .gt. 0) then
@@ -1158,11 +1130,6 @@ CONTAINS
                 NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf))
                 NEP_z(2)= MIN(nzSub,NINT(zp + 0.5*L_influence_P/zcf))
                 
-                write(31,*) 'NEPs coarse mesh'                
-                write(31,*) 'x ', NEP_x(1), NEP_x(2), x(NEP_x(1)), x(NEP_x(2))
-                write(31,*) 'y ', NEP_y(1), NEP_y(2), y(NEP_y(1)), y(NEP_y(2))
-                write(31,*) 'z ', NEP_z(1), NEP_z(2), z(NEP_z(1)), z(NEP_z(2))                
-                
                 !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
                 
                 Overlap= 0.0
@@ -1212,12 +1179,6 @@ CONTAINS
              NEP_z(1)= MAX(1,NINT(zp - 0.5*L_influence_P/xcf_fine))
              NEP_z(2)= MIN(nzSub_fine,NINT(zp + 0.5*L_influence_P/zcf_fine))
 
-             write(31,*) 'NEPs fine mesh'                
-             write(31,*) 'x ', NEP_x(1), NEP_x(2), x_fine(NEP_x(1)), x_fine(NEP_x(2))
-             write(31,*) 'y ', NEP_y(1), NEP_y(2), y_fine(NEP_y(1)), y_fine(NEP_y(2))
-             write(31,*) 'z ', NEP_z(1), NEP_z(2), z_fine(NEP_z(1)), z_fine(NEP_z(2))                
-             
-             
              !------ NEW: Finding the volume overlapping between particle-effetive-volume and the volume around each lattice node
              Overlap_sum_fine = 0.0_dbl
              Overlap_fine= 0.0
@@ -1254,8 +1215,6 @@ CONTAINS
           CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)
           CALL MPI_ALLREDUCE(Overlap_sum_l, Overlap_sum, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
-          write(31,*) 'Overlaps = ', Overlap_sum_coarse, Overlap_sum_fine, Overlap_sum_l, Overlap_sum
-
           OverlapSumTest_l = 0.0_dbl
           OverlapSumTest = 0.0_dbl
 
@@ -1290,15 +1249,8 @@ CONTAINS
              
           end if
 
-          write(31,*) 'sum delphi_particle_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3, ' delNB = ', current%pardata%delNB
-          if ( current%pardata%delNB .gt. 1e-25) then
-             write(31,*) ' error = ', (sum(delphi_particle_fine(:,:,:)) * zcf3 - current%pardata%delNB)/current%pardata%delNB
-          end if
-          
           if (overlapCoarseProc .gt. 0) then
 
-             write(31,*) 'checkEffVolumeOverlapFineMesh = ', checkEffVolumeOverlapFineMesh
-             
              !Now the coarse mesh
              if (checkEffVolumeOverlapFineMesh .lt. 0) then
                 
@@ -1350,22 +1302,17 @@ CONTAINS
 
        CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
        
-       write(31,*) 'OverlapSumTest_l, OverlapSumTest = ', OverlapSumTest_l, OverlapSumTest
-       
-       ! if (OverlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
+       if (OverlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
 
-       !    write(31,*) 'Modifying Drug_Released_Total in fine mesh now '
-       !    write(31,*) 'Old value = ', Drug_Released_Total
-       !    Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
-       !    write(31,*) 'New value = ', Drug_Released_Total     
-       !    current%pardata%delNB = 0.0_dbl
-       !    current%pardata%rp = current%pardata%rpold
+          Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
+          current%pardata%delNB = 0.0_dbl
+          current%pardata%rp = current%pardata%rpold
           
-       !    RANK= current%pardata%cur_part - 1
-       !    CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
-       !    CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+          RANK= current%pardata%cur_part - 1
+          CALL MPI_BCast(current%pardata%delNB, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
+          CALL MPI_BCast(current%pardata%rp, 1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
           
-       ! end if
+       end if
        
     END IF
     
@@ -1921,12 +1868,6 @@ ENDDO
           f3 =  rho(lCxIndex+1,45,lCzIndex)
           f4 =  rho(lCxIndex+2,45,lCzIndex)          
           dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,45,lCzIndex),node(lCxIndex,45,lCzIndex),node(lCxIndex+1,45,lCzIndex),node(lCxIndex+2,45,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_bottomXZ(1,3,i,k) - 1.0) .gt. 0.5) .and. (node(lCxIndex,45,lCzIndex)*node(lCxIndex+1,45,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,k = ', i, k
-             write(31,*) 'lCxIndex, 45, lCzIndex = ', lCxIndex, 45, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_bottomXZ(1,3,i,k)
-             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex)
-          end if
           f1 =  phi(lCxIndex-1,45,lCzIndex)
           f2 =  phi(lCxIndex,45,lCzIndex) 
           f3 =  phi(lCxIndex+1,45,lCzIndex)
@@ -1959,13 +1900,6 @@ ENDDO
           f3 =  rho(lCxIndex+1,45,lCzIndex)
           f4 =  rho(lCxIndex+2,45,lCzIndex)
           dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,45,lCzIndex),node(lCxIndex,45,lCzIndex),node(lCxIndex+1,45,lCzIndex),node(lCxIndex+2,45,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(lCxIndex,45,lCzIndex)*node(lCxIndex+1,45,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,j,k = ', i, j, k
-             write(31,*) 'lCxIndex, 45, lCzIndex = ', lCxIndex, 45, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_bottomXZ(1,3,i,nzSub_fine-gridRatio+1-k+1)
-             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex)
-          end if
-          
           f1 =  phi(lCxIndex-1,45,lCzIndex)
           f2 =  phi(lCxIndex,45,lCzIndex)
           f3 =  phi(lCxIndex+1,45,lCzIndex)
@@ -1998,12 +1932,6 @@ ENDDO
           f3 =  rho(lCxIndex+1,57,lCzIndex) 
           f4 =  rho(lCxIndex+2,57,lCzIndex) 
           dsCtoF_topXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_topXZ(1,3,i,k)  - 1.0) .gt. 0.5) .and. (node(lCxIndex,57,lCzIndex)*node(lCxIndex+1,57,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,k = ', i, k
-             write(31,*) 'lCxIndex, 57, lCzIndex = ', lCxIndex, 57, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_topXZ(1,3,i,k) 
-             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex)              
-          end if          
           f1 =  phi(lCxIndex-1,57,lCzIndex) 
           f2 =  phi(lCxIndex,57,lCzIndex) 
           f3 =  phi(lCxIndex+1,57,lCzIndex) 
@@ -2035,13 +1963,6 @@ ENDDO
           f3 =  rho(lCxIndex+1,57,lCzIndex) 
           f4 =  rho(lCxIndex+2,57,lCzIndex) 
           dsCtoF_topXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex),xInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_topXZ(1,3,i,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(lCxIndex,57,lCzIndex)*node(lCxIndex+1,57,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,k = ', i, k
-             write(31,*) 'lCxIndex, 57, lCzIndex = ', lCxIndex, 57, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_topXZ(1,3,i,k) 
-             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex)              
-          end if          
-          
           f1 =  phi(lCxIndex-1,57,lCzIndex) 
           f2 =  phi(lCxIndex,57,lCzIndex) 
           f3 =  phi(lCxIndex+1,57,lCzIndex) 
@@ -2125,13 +2046,6 @@ ENDDO
           f3 =  rho(45,lCyIndex+1,lCzIndex) 
           f4 =  rho(45,lCyIndex+2,lCzIndex) 
           dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_frontYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(45,lCyIndex,lCzIndex)*node(45,lCyIndex+1,lCzIndex) .eq. 0) )  then
-             write(31,*) 'j,k = ', j, k
-             write(31,*) '45, lCyIndex, lCzIndex = ', 45, lCyIndex, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,k)
-             write(31,*) 'Interpolating values = ', rho(45,lCyIndex-1,lCzIndex), rho(45,lCyIndex,lCzIndex), rho(45,lCyIndex+1,lCzIndex), rho(45,lCyIndex+2,lCzIndex) 
-          end if          
-          
           f1 =  phi(45,lCyIndex-1,lCzIndex) 
           f2 =  phi(45,lCyIndex,lCzIndex) 
           f3 =  phi(45,lCyIndex+1,lCzIndex) 
@@ -2164,13 +2078,6 @@ ENDDO
           f3 =  rho(45,lCyIndex+1,lCzIndex) 
           f4 =  rho(45,lCyIndex+2,lCzIndex) 
           dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(45,lCyIndex,lCzIndex)*node(45,lCyIndex+1,lCzIndex) .eq. 0))  then
-             write(31,*) 'i,j,k = ', i, j, k
-             write(31,*) '45, lCyIndex, lCzIndex = ', 45, lCyIndex, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1)
-             write(31,*) 'Interpolating values = ', rho(45,lCyIndex-1,lCzIndex), rho(45,lCyIndex,lCzIndex), rho(45,lCyIndex+1,lCzIndex), rho(45,lCyIndex+2,lCzIndex) 
-          end if          
-          
           f1 =  phi(45,lCyIndex-1,lCzIndex) 
           f2 =  phi(45,lCyIndex,lCzIndex) 
           f3 =  phi(45,lCyIndex+1,lCzIndex) 
@@ -2202,12 +2109,6 @@ ENDDO
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
           dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_backYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(57,lCyIndex,lCzIndex)*node(57,lCyIndex+1,lCzIndex) .eq. 0) )  then
-             write(31,*) 'j,k = ', j, k
-             write(31,*) '57, lCyIndex, lCzIndex = ', 57, lCyIndex, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_backYZ(1,3,j,k)
-             write(31,*) 'Interpolating values = ', rho(57,lCyIndex-1,lCzIndex), rho(57,lCyIndex,lCzIndex), rho(57,lCyIndex+1,lCzIndex), rho(57,lCyIndex+2,lCzIndex) 
-          end if          
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
@@ -2239,12 +2140,6 @@ ENDDO
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
           dsCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_backYZ(1,3,j,nzSub_fine-gridRatio+1-k+1) - 1.0) .gt. 0.5) .and. (node(57,lCyIndex,lCzIndex)*node(57,lCyIndex+1,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,j,k = ', i, j, k
-             write(31,*) '57, lCyIndex, lCzIndex = ', 57, lCyIndex, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,nzSub_fine-gridRatio+1-k+1)
-             write(31,*) 'Interpolating values = ', rho(57,lCyIndex-1,lCzIndex), rho(57,lCyIndex,lCzIndex), rho(57,lCyIndex+1,lCzIndex), rho(57,lCyIndex+2,lCzIndex) 
-          end if                    
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
@@ -2315,13 +2210,6 @@ ENDDO
           f3 =  rho(lCxIndex+1,45,lCzIndex)
           f4 =  rho(lCxIndex+2,45,lCzIndex)
           dsCtoF_bottomXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4,node(lCxIndex-1,45,lCzIndex),node(lCxIndex,45,lCzIndex),node(lCxIndex+1,45,lCzIndex),node(lCxIndex+2,45,lCzIndex), xInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_bottomXZ(1,3,i,k) - 1.0) .gt. 0.5) .and. (node(lCxIndex,45,lCzIndex)*node(lCxIndex+1,45,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,k = ', i, k
-             write(31,*) 'lCxIndex, 45, lCzIndex = ', lCxIndex, 45, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_bottomXZ(1,3,i,k)
-             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex), rho(lCxIndex-1,45,lCzIndex)
-          end if
-         
           f1 =  phi(lCxIndex-1,45,lCzIndex)
           f2 =  phi(lCxIndex,45,lCzIndex) 
           f3 =  phi(lCxIndex+1,45,lCzIndex)
@@ -2352,12 +2240,6 @@ ENDDO
           f3 =  rho(lCxIndex+1,57,lCzIndex) 
           f4 =  rho(lCxIndex+2,57,lCzIndex) 
           dsCtoF_topXZ(1,3,i,k) = spatialInterpolate(f1,f2,f3,f4, node(lCxIndex-1,57,lCzIndex),node(lCxIndex,57,lCzIndex),node(lCxIndex+1,57,lCzIndex),node(lCxIndex+2,57,lCzIndex), xInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_topXZ(1,3,i,k) - 1.0) .gt. 0.5) .and. (node(lCxIndex,57,lCzIndex)*node(lCxIndex+1,57,lCzIndex) .eq. 0) )  then
-             write(31,*) 'i,k = ', i, k
-             write(31,*) 'lCxIndex, 57, lCzIndex = ', lCxIndex, 57, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_topXZ(1,3,i,k) 
-             write(31,*) 'Interpolating values = ', rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex), rho(lCxIndex-1,57,lCzIndex)       
-          end if          
           f1 =  phi(lCxIndex-1,57,lCzIndex) 
           f2 =  phi(lCxIndex,57,lCzIndex) 
           f3 =  phi(lCxIndex+1,57,lCzIndex) 
@@ -2420,13 +2302,6 @@ ENDDO
           f3 =  rho(45,lCyIndex+1,lCzIndex) 
           f4 =  rho(45,lCyIndex+2,lCzIndex) 
           dsCtoF_frontYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(45,lCyIndex-1,lCzIndex),node(45,lCyIndex,lCzIndex),node(45,lCyIndex+1,lCzIndex),node(45,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_frontYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(45,lCyIndex,lCzIndex)*node(45,lCyIndex+1,lCzIndex) .eq. 0) )  then
-             write(31,*) 'j,k = ', j, k
-             write(31,*) '45, lCyIndex, lCzIndex = ', 45, lCyIndex, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_frontYZ(1,3,j,k)
-             write(31,*) 'Interpolating values = ', rho(45,lCyIndex-1,lCzIndex), rho(45,lCyIndex,lCzIndex), rho(45,lCyIndex+1,lCzIndex), rho(45,lCyIndex+2,lCzIndex) 
-          end if          
-          
           f1 =  phi(45,lCyIndex-1,lCzIndex) 
           f2 =  phi(45,lCyIndex,lCzIndex) 
           f3 =  phi(45,lCyIndex+1,lCzIndex) 
@@ -2457,13 +2332,6 @@ ENDDO
           f3 =  rho(57,lCyIndex+1,lCzIndex) 
           f4 =  rho(57,lCyIndex+2,lCzIndex) 
           dsCtoF_backYZ(1,3,j,k) = spatialInterpolate(f1,f2,f3,f4,node(57,lCyIndex-1,lCzIndex),node(57,lCyIndex,lCzIndex),node(57,lCyIndex+1,lCzIndex),node(57,lCyIndex+2,lCzIndex),yInterp) !Interpolate the latest value to the last(third) time step
-          if ( (abs(dsCtoF_backYZ(1,3,j,k) - 1.0) .gt. 0.5) .and. (node(57,lCyIndex,lCzIndex)*node(57,lCyIndex+1,lCzIndex) .eq. 0) )  then
-             write(31,*) 'j,k = ', j, k
-             write(31,*) '57, lCyIndex, lCzIndex = ', 57, lCyIndex, lCzIndex
-             write(31,*) 'Affected value = ', dsCtoF_backYZ(1,3,j,k)
-             write(31,*) 'Interpolating values = ', rho(57,lCyIndex-1,lCzIndex), rho(57,lCyIndex,lCzIndex), rho(57,lCyIndex+1,lCzIndex), rho(57,lCyIndex+2,lCzIndex) 
-          end if          
-          
           f1 =  phi(57,lCyIndex-1,lCzIndex) 
           f2 =  phi(57,lCyIndex,lCzIndex) 
           f3 =  phi(57,lCyIndex+1,lCzIndex) 
@@ -2637,12 +2505,6 @@ ENDDO
 
           rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
-          if( (rho_fine(nx_fine,j,k) .lt. 0.1) .and. (node_fine_backYZ(2,j,k) * node_fine_backYZ(3,j,k) .eq. 0) ) then
-             write(31,*) 'j,k = ', j,k
-             write(31,*) ' rho_fine = ', dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k)
-             write(31,*) ' node_fine  = ', node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k)
-             write(31,*) ' tInterp = ', tInterp
-          end if
           u_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(1,1,j,k),velCtoF_backYZ(1,2,j,k),velCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           v_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(2,1,j,k),velCtoF_backYZ(2,2,j,k),velCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           w_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(3,1,j,k),velCtoF_backYZ(3,2,j,k),velCtoF_backYZ(3,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)        

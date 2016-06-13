@@ -851,7 +851,6 @@ DO WHILE (ASSOCIATED(current))
       END IF
       
       current%pardata%bulk_conc = Cb_Hybrid
-      flush(31)
 
    END IF
 
@@ -930,10 +929,7 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
      CALL MPI_BCast(current%pardata%rp,        1, MPI_DOUBLE_PRECISION, RANK, MPI_COMM_WORLD, mpierr)
 
      IF ( flagParticleCF(current%pardata%parid) .eqv. .false. )  THEN  !Check if particle is in coarse mesh     
-        write(31,*) 'Modifying Drug_Released_Total in coarse mesh now '
-        write(31,*) 'Old value = ', Drug_Released_Total
         Drug_Released_Total = Drug_Released_Total + current%pardata%delNB
-        write(31,*) 'New value = ', Drug_Released_Total
         ! point to next node in the list
      END IF
 
@@ -1372,20 +1368,15 @@ DO WHILE (ASSOCIATED(current))
         end if
 
      end if
-
-     CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
      
   end if
 
+  CALL MPI_ALLREDUCE(OverlapSumTest_l, OverlapSumTest, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+  
   if (overlapSumTest .lt. 0.5) then ! Drug could not be released to nodes. Set delNB back to zero.
 
-     
-     write(31,*) 'Modifying Drug_Released_Total in coarse mesh now '
-     write(31,*) 'Old value = ', Drug_Released_Total
      Drug_Released_Total = Drug_Released_Total - current%pardata%delNB
-     write(31,*) 'New value = ', Drug_Released_Total
      ! point to next node in the list
-     
      current%pardata%delNB = 0.0_dbl
      current%pardata%rp = current%pardata%rpold
      RANK= current%pardata%cur_part - 1
