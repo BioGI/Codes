@@ -353,7 +353,9 @@ SUBROUTINE PrintMass! checks the total mass in the system
   REAL(dbl) :: mass_theoretical! mass in the system (per unit volume)
   REAL(dbl) :: volume_l, volume, node_volume! total volume and volume of a sincle node (cell)
   REAL(dbl) :: fineMeshVol
+  REAL(dbl) ::  averageRho 
   INTEGER   :: mpierr
+  
 
   ! calculate the node volume
   node_volume = xcf*ycf*zcf
@@ -385,7 +387,7 @@ SUBROUTINE PrintMass! checks the total mass in the system
 
            IF(node_fine(i,j,k) .EQ. FLUID) THEN
               mass_actual_l = mass_actual_l + (rho_fine(i,j,k)*dcf) * fineMeshVol
-              volume = volume + fineMeshVol
+              volume_l = volume_l + fineMeshVol
            END IF
 
         END DO
@@ -396,14 +398,17 @@ SUBROUTINE PrintMass! checks the total mass in the system
   CALL MPI_ALLREDUCE(volume_l , volume, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
 
-  mass_actual  = mass_actual * volume * node_volume
+  averageRho = mass_actual/volume/dcf
+  
+  mass_actual  = mass_actual * node_volume
   ! calcuate the theoretical amount of mass in the system
   mass_theoretical = den * volume * node_volume
 
 
+
   ! print the mass to a file(s)
   if (mySub .eq. 1) then
-     WRITE(2458,'(I8,2E15.5)') iter, mass_actual, mass_theoretical
+     WRITE(2458,'(I8,5E19.8)') iter, mass_actual, mass_theoretical, (mass_actual-mass_theoretical)/mass_actual*100.0, averageRho, 1.0 - averageRho
      CALL FLUSH(2458)
   end if
 
@@ -418,7 +423,7 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
 
   INTEGER(lng) :: i,j,k! index variables
   REAL(dbl) :: numFluids, numFluids_l! number of fluid nodes in the domain
-  REAL(dbl)    :: phiDomain, phiDomain_l, phiIC, Drug_Initial! current amount of scalar in the domain
+  REAL(dbl)    :: phiDomain, phiDomain_l, phiIC! current amount of scalar in the domain
   REAL(dbl)    :: phiAverage! average scalar in the domain
   REAL(dbl)    :: zcf3! node volume in physical units
   TYPE(ParRecord), POINTER :: current
@@ -475,7 +480,6 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   END IF
 
   zcf3 = zcf_fine * zcf_fine * zcf_fine  
-  Drug_Initial =  0.0
   Drug_Absorbed = (phiAbsorbedS * gridRatio * gridRatio * gridRatio + phiAbsorbedS_fine) * zcf3
   Drug_Remained_in_Domain = phiDomain * zcf3
   Drug_Loss = (Drug_Released_Total + Drug_Initial) - (Drug_Absorbed + Drug_Remained_in_Domain)
@@ -500,7 +504,7 @@ end if
 CALL MPI_ALLREDUCE(Negative_phi_Counter_l , Negative_phi_Counter, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
 CALL MPI_ALLREDUCE(Negative_phi_Worst_l , Negative_phi_Worst, 1, MPI_DOUBLE_PRECISION, MPI_MIN, MPI_COMM_WORLD, mpierr)!----- Monitoring the Negative phi issue
 if(mySub .eq. 1) then
-   write(2118,*) iter, Negative_phi_Counter, Negative_phi_Total, Negative_phi_Worst, Negative_phi_Total/Negative_phi_Counter
+   write(2118,*) iter, Negative_phi_Counter, Negative_phi_Total, Negative_phi_Worst
    call flush(2118)
 end if
 
