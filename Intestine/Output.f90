@@ -73,7 +73,7 @@ OPEN(31,FILE='interpolation-'//sub//'.dat')
 
 ! Mass
 if (mySub .eq. 1) then
-   OPEN(2458,FILE='mass-'//sub//'.dat')
+   OPEN(2458,FILE='mass.dat')
    WRITE(2458,*) 'VARIABLES = "period", "mass_actual", "mass_theoretical"'
    WRITE(2458,*) 'ZONE F=POINT'
    CALL FLUSH(2458)
@@ -86,11 +86,11 @@ if (mySub .eq. 1) then
    CALL FLUSH(2472)
 
    !----- Monitoring over saturation
-   OPEN(2118,FILE='Negative-phi.dat',POSITION='APPEND')
+   OPEN(2118,FILE='Negative-phi.dat')
    WRITE(2118,'(A120)') 'VARIABLES = iter,  Number of Negative phi Nodes,  Total Sum of Negative phi,  Worst Negative phi,  Average of Negative phi'
    CALL FLUSH(2118)
    
-   OPEN(2119,FILE='Over_Saturation.dat',POSITION='APPEND')
+   OPEN(2119,FILE='Over_Saturation.dat')
    WRITE(2119,'(A120)') 'VARIABLES = iter,  Number of OverSaturated Nodes,  Worst Oversaturation'
    CALL FLUSH(2119)
    
