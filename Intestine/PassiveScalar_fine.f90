@@ -16,6 +16,11 @@ CONTAINS
 SUBROUTINE Scalar_Setup_fine	! sets up the passive scalar component
 !--------------------------------------------------------------------------------------------------
 IMPLICIT NONE
+INTEGER(lng) :: i,j,k  ! index variables
+REAL(dbl) :: numFluids, numFluids_l! number of fluid nodes in the domain
+REAL(dbl)    :: phiDomain, phiDomain_l, phiIC! current amount of scalar in the domain
+INTEGER   :: mpierr
+
 
 ! initialize arrays
 phi_fine  = 0.0_dbl		! scalar
@@ -27,6 +32,38 @@ Delta_fine = 1.0_dbl - gridRatio*(1.0_dbl - Delta)	! scalar diffusion parameter
 write(31,*) 'nuL = ', nuL, ' Dm = ', Dm, ' Delta = ', Delta, ' Delta_fine = ', Delta_fine
 
 CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC_fine.f90]
+
+!----- Calculate the amount of scalar in the domain
+numFluids = 0.0_dbl
+phiDomain = 0.0_dbl
+numFluids_l = 0.0_dbl
+phiDomain_l = 0.0_dbl
+
+DO k=1,nzSub_fine
+   DO j=1,nySub_fine
+      DO i=1,nxSub_fine
+         
+         IF(node_fine(i,j,k) .EQ. FLUID) THEN
+            phiDomain_l = phiDomain_l + phi_fine(i,j,k)
+            numFluids_l = numFluids_l + 1.0_dbl
+         END IF
+
+      END DO
+   END DO
+END DO
+
+DO k=1,nzSub
+   DO j=1,nySub
+      DO i=1,nxSub
+         IF (node(i,j,k) .EQ. FLUID) THEN
+            phiDomain_l = phiDomain_l + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k) * gridRatio * gridRatio * gridRatio
+            numFluids_l = numFluids_l + (1.0-flagNodeIntersectFine(i,j,k)) * gridRatio * gridRatio * gridRatio
+         END IF
+      END DO
+   END DO
+END DO
+CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+Drug_Initial = phiDomain * zcf_fine * zcf_fine * zcf_fine
 
 !------------------------------------------------
 END SUBROUTINE Scalar_Setup_fine
@@ -48,7 +85,8 @@ zcf3 = zcf_fine * zcf_fine * zcf_fine
 ! store the previous scalar values
 phiTemp_fine = phi_fine
 
-write(31,*) 'sum phi_fine before Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3 
+tmp = sum(phi_fine(:,:,:)) * zcf3 
+write(31,*) 'sum phi_fine before Scalar_fine = ', tmp
 write(31,*) 'sum delphi_particle_fine inside Scalar_fine = ', sum(delphi_particle_fine(:,:,:)) * zcf3
 
 ! Stream the scalar
@@ -70,11 +108,20 @@ DO k=1,nzSub_fine
 
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-          ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/(rho_fine(im1,jm1,km1)+1e-10) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+         ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
+            if (rho_fine(im1,jm1,km1) .lt. 0.1) then
+               write(31,*) 'i,j,k = ', i,j,k, 'im1, jm1, km1 = ', im1, jm1, km1
+               write(31,*) 'Closest coarse indices are ', lowerCoarseXindex(i), lowerCoarseYindex(j), closestCoarseZindex(z_fine(k))
+               write(31,*) 'Nodes coarse ', node(lowerCoarseXindex(i), lowerCoarseYindex(j), closestCoarseZindex(z_fine(k))), node(lowerCoarseXindex(im1), lowerCoarseYindex(jm1), closestCoarseZindex(z_fine(km1)))
+               write(31,*) 'Nodes fine ', node_fine(i,j,k), node_fine(im1,jm1,km1)
+               write(31,*) 'Rhos coarse = ', rho(lowerCoarseXindex(i), lowerCoarseYindex(j), closestCoarseZindex(z_fine(k))), rho(lowerCoarseXindex(im1), lowerCoarseYindex(jm1), closestCoarseZindex(z_fine(km1)))
+               write(31,*) 'Rhos fine ', rho_fine(i,j,k), rho_fine(im1,jm1,km1)               
+               flush(31)
+            end if
+            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
-           phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
+            phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
             CALL AbsorbedScalarS_fine(i,j,k,m,im1,jm1,km1,phiBC)	! measure the absorption rate
           ELSE
             OPEN(1000,FILE="error_fine.txt")
@@ -93,17 +140,15 @@ DO k=1,nzSub_fine
 
         END DO
 
-!	phi_fine(i,j,k) = phi_fine(i,j,k) + delphi_particle_fine(i,j,k) ! Balaji added to introduce drug concentration release
-
        	!  fix spurious oscillations in moment propagation method for high Sc #s
         IF(phi_fine(i,j,k) .LT. 0.0_dbl) THEN
-           if(subIter .eq. gridRatio) then
+!           if(subIter .eq. gridRatio) then
               Negative_phi_Counter_l = Negative_phi_Counter_l + 1
               Negative_phi_Total_l   = Negative_phi_Total_l + phi_fine(i,j,k) * zcf3 
               IF (phi_fine(i,j,k) .LT. Negative_phi_Worst) THEN
                  Negative_phi_Worst_l = phi_fine(i,j,k)
               ENDIF
-           end if
+!           end if
            phi_fine(i,j,k) = 0.0_dbl
            
         ELSE IF (phi_fine(i,j,k) .gt. Cs_mol) THEN
@@ -121,10 +166,13 @@ DO k=1,nzSub_fine
   END DO
 END DO
 
-write(31,*) 'sum  phi_fine inside Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total
+write(31,*) 'sum  phi_fine after Scalar_fine = ', sum(phi_fine(:,:,:)) * zcf3, 'Total Drug released = ', Drug_Released_Total
 
 if (Drug_Released_Total .gt. 1e-40)  then
    write(31,*) ' Error = ', (sum(phi_fine(:,:,:)) * zcf3 - Drug_Released_Total)/Drug_Released_Total
+   write(31,*) ' Error in this Delta t = ', ( sum(phi_fine(:,:,:) - phiTemp_fine(:,:,:)  ) - sum(delphi_particle_fine(:,:,:)) ) * zcf3
+   write(31,*) ' Error in this Delta t = ', ( sum(phi_fine(:,:,:) - phiTemp_fine(:,:,:) - delphi_particle_fine(:,:,:)) ) * zcf3
+   write(31,*) ' Error in this Delta t = ', ( sum(phi_fine(:,:,:)) - sum(delphi_particle_fine(:,:,:)) ) * zcf3 - tmp
 end if
 
 write(31,*) ' '
