@@ -51,9 +51,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
  	CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
         CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
   	CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
+        CALL FlagCoarseMeshNodesIntersectingWithFineMeshNodes
 	CALL ICs			! set initial conditions [MODULE: ICBC]
 	CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]       
-        CALL FlagCoarseMeshNodesIntersectingWithFineMeshNodes
  
         ! Setup interpolation 
         iter = 0  
@@ -187,11 +187,11 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
      ENDIF
 
      CALL PrintDrugConservation		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
-     ! CALL PrintMass			! print the total mass in the system (TEST)
+     CALL PrintMass			! print the total mass in the system (TEST)
      ! CALL PrintVolume			! print the volume in the system (TEST)
 
      !     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]
-     CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+!     CALL PrintScalar_fine		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
 !     CALL PrintMass_fine		! print the total mass in the system (TEST)
 !     CALL PrintVolume_fine		! print the volume in the system (TEST)
 
