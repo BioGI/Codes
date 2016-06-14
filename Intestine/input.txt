@@ -4,13 +4,13 @@
 150				! number of nodes in the z-direction						(nz)
 1				! number of x-subdomains							(NumSubsX)
 1				! number of y-subdomains							(NumSubsY)
-5				! number of z-subdomains							(NumSubsZ)
+10				! number of z-subdomains							(NumSubsZ)
 0.03				! gut segment length [m] 							(L)
 0.02				! gut diameter [m]								(D)
 0.1                             ! Fraction of gut diameter to be resolved by fine mesh                          (fractionDfine)
 4				! Ratio of coarse to fine mesh resolution                                       (gridRatio)
 0.1				! peristaltic occlusion ratio - distance of occlusion/mean half-width		(epsOVERa1)
-0.004				! peristaltic wave speed [m/s]							(s1) 
+0.002				! peristaltic wave speed [m/s]							(s1) 
 1				! number of peristaltic waves 							(numw1)
 1.0				! peristaltic weighting coefficient 						(wc1)	
 0.5				! segmental occlusion ratio - distance of occlusion/mean half-width		(epsOVERa2)
@@ -33,13 +33,13 @@
 0.9                             ! relaxation parameter for fine mesh						(tau_fine)
 20.0  				! Schmidt Number								(Sc)
 4				! initial/maintained scalar distribution [1=BLOB,2=LINE,3=INLET,4=UNIFORM]	(sclrIC)
-0.0				! period at which to start the scalar calculation				(phiPer)
+0.05333333333333334		! period at which to start the scalar calculation				(phiPer)
 0.0				! maximum value of scalar distribution                               	        (phiIC)
 1.0                             ! coeffPhi
 0.0		                ! coeffGrad
 0.0		                ! coeffConst
 20.0				! number of time periods							(nPers)
-3000				! approximate number of output files						(numOuts)
+500				! approximate number of output files						(numOuts)
 .FALSE.				! restart flag, .TRUE. or .FALSE						(restart)
 1				! flag to track particles (0 if off and 1 if on)				(ParticleTrack)
 0                               ! A flag to indicate if we're doing a straight tube test
