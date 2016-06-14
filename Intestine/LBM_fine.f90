@@ -2727,27 +2727,36 @@ ENDDO
     
     if (n3 .eq. SOLID) then
        if (n2 .ne. SOLID) then
-          spatialInterpolate = spatialExtrapolate_n1n2(f1,f2,s)
+          if (n1 .ne. SOLID) then
+             spatialInterpolate = spatialExtrapolate_n1n2(f1,f2,s)
+          else
+             spatialInterpolate = f2
+          end if
        else
           spatialInterpolate = 0.0
        end if
-       
+
     else if (n2 .eq. SOLID) then
-       spatialInterpolate = spatialExtrapolate_n3n4(f3,f4,s)
-       
-    else if ( (n1 .ne. SOLID) .and. (n4 .eq. SOLID) ) then
+
+       if (n4 .ne. SOLID) then
+          spatialInterpolate = spatialExtrapolate_n3n4(f3,f4,s)
+       else
+          spatialInterpolate = f3
+       end if
+
+    else if ( (n1 .ne. SOLID) .and. (n2 .ne. SOLID) .and. (n4 .eq. SOLID) ) then
        spatialInterpolate = spatialInterpolate_n1n2n3(f1,f2,f3,s)
-       
-    else if ( (n1 .eq. SOLID) .and. (n4 .ne. SOLID) ) then
+
+    else if ( (n1 .eq. SOLID) .and. (n2 .ne. SOLID) .and. (n4 .ne. SOLID) ) then
        spatialInterpolate = spatialInterpolate_n2n3n4(f2,f3,f4,s)
-       
-    else if ( (n1 .eq. SOLID) .and. (n4 .eq. SOLID) ) then
+
+    else if ( (n1 .eq. SOLID) .and. (n2 .ne. SOLID) .and. (n4 .eq. SOLID) ) then
        spatialInterpolate = spatialInterpolate_n2n3(f2,f3,s)
-       
+
     else if ( (n1 .ne. SOLID) .and. (n2 .ne. SOLID) .and. (n3 .ne. SOLID) .and. (n4 .ne. SOLID) ) then
        spatialInterpolate = spatialInterpolateAllFour(f1,f2,f3,f4,s)
     end if
-    
+   
     RETURN
     
   END FUNCTION spatialInterpolate
