@@ -514,7 +514,7 @@ CONTAINS
           !------ Calculate effective radius: R_influence_P = R + (N_b *delta)
           !------ Note: need to convert this into Lattice units and not use the physical length units
           !------ Then compute equivalent cubic mesh length scale
-          N_b = 2.0
+          N_b = 4.0
           R_P  = current%pardata%rp
           Sh_P = current%pardata%sh
           delta_P = R_P / Sh_P
@@ -1046,7 +1046,7 @@ CONTAINS
           !------ Calculate effective radius: R_influence_P = R + (N_d *delta)
           !------ Note: need to convert this into Lattice units and not use the physical length units
           !------ Then compute equivalent cubic mesh length scale
-          N_d = 3.0
+          N_d = 5.0
           R_P  = current%pardata%rp
           Sh_P = current%pardata%sh
           delta_P = R_P / Sh_P
