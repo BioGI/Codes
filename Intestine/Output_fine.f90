@@ -462,6 +462,8 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
      END DO
   END DO
 
+ 
+  zcf3 = zcf_fine * zcf_fine * zcf_fine  
   phiAbsorbed_l = (phiAbsorbed_coarse * gridRatio * gridRatio * gridRatio + phiAbsorbed_fine) * zcf3
 
   CALL MPI_ALLREDUCE(phiAbsorbed_l , phiAbsorbed , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
@@ -476,7 +478,6 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
      phiAverage = 0.0_dbl
   END IF
 
-  zcf3 = zcf_fine * zcf_fine * zcf_fine  
   Drug_Absorbed = phiAbsorbed
   Drug_Remained_in_Domain = phiDomain * zcf3
   Drug_Loss = (Drug_Released_Total + Drug_Initial) - (Drug_Absorbed + Drug_Remained_in_Domain)
