@@ -149,7 +149,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         CALL PrintParticles						! output the particle velocity, radius, position and con. [MODULE: Output]
      ENDIF
      
-     CALL PrintDrugConservation		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+     if (iter .GE. phiStart) then
+        CALL PrintDrugConservation		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
+     end if
      CALL PrintMass			! print the total mass in the system (TEST)
      
      !	  CALL PrintPeriodicRestart	! print periodic restart files (SAFE GUARD) [MODULE: Output]
