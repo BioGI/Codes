@@ -905,7 +905,7 @@ SUBROUTINE Calc_Scalar_Release! Calculate rate of scalar release at every time s
               current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
            ELSE
               temp = 0.0_dbl
-              current%pardata%rp=0.5_dbl*(current%pardata%rpold+sqrt(temp))
+              current%pardata%rp=0.95_dbl*(current%pardata%rpold+sqrt(temp))
            END IF
            
            deltaR=current%pardata%rpold-current%pardata%rp
