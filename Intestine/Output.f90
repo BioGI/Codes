@@ -49,23 +49,6 @@ IF(myid .EQ. master) THEN
   OPEN(5,FILE='status.dat')										
   CALL FLUSH(5)													
 
-  ! Surface Area
-  OPEN(2474,FILE='SA.dat',POSITION='APPEND')
-  WRITE(2474,'(A36)') 'VARIABLES = "period", "SA"'
-  WRITE(2474,*) 'ZONE F=POINT'
-  CALL FLUSH(2474)
-
-  ! Walll Flux
-  OPEN(4748,FILE='wall_flux.dat')
-  WRITE(4748,*) 'VARIABLES = "Axial Distance", "Flux"'
-  CALL FLUSH(4748)
-
-  ! Volume
-  OPEN(2460,FILE='volume.dat')
-  WRITE(2460,*) 'VARIABLES = "period", "volume"'
-  WRITE(2460,*) 'ZONE F=POINT'
-  CALL FLUSH(2460)
-
 END IF
 
 ! Debug interpolation variables
@@ -110,25 +93,10 @@ IF(myid .EQ. master) THEN
   ! Status
   CLOSE(5)													
 
-  ! Surface Area
-  CLOSE(2474)
-
-!  ! Walll Flux
-!  CLOSE(4748)
-
-  ! Volume
-  CLOSE(2460)
-
 END IF
 
 !Interpolation variables
 CLOSE(31)
-
-! Mass
-!CLOSE(2458)
-
-! Scalar
-CLOSE(2472)
 
 !------------------------------------------------
 END SUBROUTINE CloseOutputFiles
@@ -567,39 +535,6 @@ END DO
 
 !------------------------------------------------
 END SUBROUTINE CheckVariables
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintVolume				! prints the volume as a function of time
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng) :: i,j,k				! index variables
-REAL(dbl) :: volume					! analytical volume
-
-IF(myid .EQ. master) THEN
-
-  ! initialize the volume
-  volume = 0.0_dbl
-
-  ! cacluate volume in the system
-  DO k=1,nz
-    volume = volume + rDom(k)*rDom(k)*zcf
-  END DO
-
-  volume = PI*volume
-
-  ! account for the villi
-  volume = volume - numVilliActual*(PI*Rv*Rv*(Lv-Rv))						! subtract the cylindrical volume
-  volume = volume - numVilliActual*((2.0_dbl/3.0_dbl)*PI*Rv*Rv*Rv)	! subtract the hemispherical volume
-
-  WRITE(2460,'(2E15.5)') REAL(iter/(nt/nPers)), volume
-  CALL FLUSH(2460)  
-
-END IF
-
-!------------------------------------------------
-END SUBROUTINE PrintVolume
 !------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
