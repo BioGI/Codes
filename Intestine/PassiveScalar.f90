@@ -142,7 +142,7 @@ DO k=1,nzSub
 END DO
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
-phiAbsorbed = 	phiAbsorbedS + phiAbsorbedV																		! total amount of scalar absorbed up to current time
+phiAbsorbed_coarse = 	phiAbsorbedS_coarse + phiAbsorbedV_coarse																		! total amount of scalar absorbed up to current time
       
 !------------------------------------------------
 END SUBROUTINE Scalar
@@ -306,7 +306,7 @@ phiIN   = ((PkAstar - PkA)/q) + PkAstar
 !phiIN= phiBC                                                     ! contribution from wall to crrent node (in)
 !phiOUT= (fplus(bb(m),i,j,k)/rho(i,j,k)-wt(bb(m))*Delta)*phiTemp(i,j,k)
 
-phiAbsorbedS = phiAbsorbedS + (phiOUT-phiIN)! scalar absorbed at current location in mth direction
+phiAbsorbedS_coarse = phiAbsorbedS_coarse + (phiOUT-phiIN)! scalar absorbed at current location in mth direction
 !===================================================================================================
 
 
@@ -326,7 +326,7 @@ REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
 phiIN 	= phiBC																						! contribution from the wall to the crrent node (in)
 phiOUT	= (fplus(bb(m),i,j,k)/rho(i,j,k) - wt(bb(m))*Delta)*phiTemp(i,j,k)		! contribution to the wall from the current node (out)
 
-phiAbsorbedV = phiAbsorbedV + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
+phiAbsorbedV_coarse = phiAbsorbedV_coarse + (phiOUT - phiIN)												! add the amount of scalar that has been absorbed at the current location in the current direction
 
 !------------------------------------------------
 END SUBROUTINE AbsorbedScalarV

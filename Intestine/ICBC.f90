@@ -42,9 +42,9 @@ IF(restart) THEN											! restart from  file
     END DO
   END DO
 
-  READ(50,*) phiAbsorbed
-  READ(50,*) phiAbsorbedS
-  READ(50,*) phiAbsorbedV
+  READ(50,*) phiAbsorbed_coarse
+  READ(50,*) phiAbsorbedS_coarse
+  READ(50,*) phiAbsorbedV_coarse
   READ(50,*) phiInOut
  
   CLOSE(50)
@@ -94,9 +94,9 @@ ELSE															! clean start
   !iter0 = 0_lng
 
   ! Initialize scalar values
-  phiAbsorbed	= 0.0_dbl								! total amount of scalar absorbed
-  phiAbsorbedS	= 0.0_dbl								! total amount of scalar absorbed through the macroscopic surface
-  phiAbsorbedV	= 0.0_dbl								! total amount of scalar absorbed through the villi
+  phiAbsorbed_coarse	= 0.0_dbl					! total amount of scalar absorbed in coarse mesh
+  phiAbsorbedS_coarse	= 0.0_dbl					! total amount of scalar absorbed through the macroscopic surface in coarse mesh
+  phiAbsorbedV_coarse	= 0.0_dbl					! total amount of scalar absorbed through the villi in coarse mesh
   phiInOut	= 0.0_dbl								! total amount of scalar leaving the inlet/outlet
   delphi_particle = 0.0_dbl								! Initialize the scalar contirbution from particles to 0.0. Once the particle
 											! data is read, we can interpolate to get the delphi_particle. In any event, thi

@@ -268,9 +268,9 @@ DO k=0,nzSub+1
   END DO
 END DO
 
-WRITE(500,*) phiAbsorbed
-WRITE(500,*) phiAbsorbedS
-WRITE(500,*) phiAbsorbedV
+WRITE(500,*) phiAbsorbed_coarse
+WRITE(500,*) phiAbsorbedS_coarse
+WRITE(500,*) phiAbsorbedV_coarse
 WRITE(500,*) phiInOut
 
 CLOSE(500)

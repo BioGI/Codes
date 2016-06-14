@@ -52,9 +52,10 @@ REAL(dbl) :: Dm,Dmcf									! binary molecular diffusivity (passive scalar in f
 REAL(dbl) :: Delta									! scalar parameter
 REAL(dbl) :: phiIC, phiWall						! values of scalar: initial, wall, contribution from boundary
 REAL(dbl) :: coeffPhi, coeffGrad, coeffConst                                    ! Coefficients for the generalized scalar boundary condition (coeffPhi * phiWall + coeffGrad * dPhiDn_wall = coeffConst). 'n' is the direction from the wall into the fluid.
-REAL(dbl) :: phiAbsorbed							! total amount of scalar absorbed up to current time
-REAL(dbl) :: phiAbsorbedS							! total amount of scalar absorbed up to current time - through the macroscopic surface
-REAL(dbl) :: phiAbsorbedV							! total amount of scalar absorbed up to current time - through the villi
+REAL(dbl) :: phiAbsorbed_l, phiAbsorbed						! total amount of scalar absorbed in fine and coarse mesh up to current time in the current processor and total
+REAL(dbl) :: phiAbsorbed_coarse                                                 ! total amount of scalar absorbed in coarse mesh
+REAL(dbl) :: phiAbsorbedS_coarse						! total amount of scalar absorbed up to current time - through the macroscopic surface
+REAL(dbl) :: phiAbsorbedV_coarse						! total amount of scalar absorbed up to current time - through the villi
 INTEGER(dbl) :: Over_Sat_Counter_l, Over_Sat_Counter
 REAL(dbl) :: Largest_phi_l, Largest_phi
 INTEGER   :: Negative_phi_Counter_l, Negative_phi_Counter             		! Monitoring the negative concentration
