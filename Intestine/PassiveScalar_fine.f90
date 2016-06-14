@@ -272,7 +272,7 @@ REAL(dbl)    :: fPlusBstar, rhoBstar, phiBstar, PkBstar
    wbb = 0.0
    
    CALL Equilibrium_LOCAL(bb(m),rho_fine(i,j,k),ubb,vbb,wbb,feq_AO_u0)
-   phiOUT= (feq_AO_u0/rho_fine(i,j,k) - wt(bb(m))*Delta)*phiTemp_fine(i,j,k)
+   phiOUT= (feq_AO_u0/rho_fine(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp_fine(i,j,k)
 
    !---------------------------------------------------------------------------------------------------
    !---- Conmputing phiIN------------------------------------------------------------------------------
@@ -291,12 +291,12 @@ REAL(dbl)    :: fPlusBstar, rhoBstar, phiBstar, PkBstar
    rhoAstar= (rho_fine(i,j,k)- rho_fine(ip1,jp1,kp1))*(1+q)+ rho_fine(ip1,jp1,kp1)! extrapolate the density
    CALL Equilibrium_LOCAL_fine(m,rhoAstar,ubb,vbb,wbb,feq_Astar)! calculate the equibrium distribution function in the mth direction
    phiAstar= phiWall! getting phi at the solid surface
-   PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta)*phiAstar! contribution from the wall in mth direction (0 if phiWall=0)
+   PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta_fine)*phiAstar! contribution from the wall in mth direction (0 if phiWall=0)
 
    !---- Modification for moving boundary in case of using only A and A* for BC
    rhoA= rho_fine(i,j,k)
    CALL Equilibrium_LOCAL_fine(m,rhoA,ubb,vbb,wbb,feq_A)
-   PkA= (feq_A/rhoA - wt(m)*Delta)*phiTemp_fine(i,j,k)
+   PkA= (feq_A/rhoA - wt(m)*Delta_fine)*phiTemp_fine(i,j,k)
    IF(q .LT. 0.25) THEN
       q = 0.25_dbl
    END IF
