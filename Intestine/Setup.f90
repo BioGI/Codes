@@ -196,6 +196,7 @@ REAL(dbl) :: Ts, Tp											! segmental period, peristaltic period
 REAL(dbl) :: wc1, wc2										! weighting coefficients for the different modes
 REAL(dbl) :: Re1, Re2										! weighting coefficients for the different modes
 REAL(dbl) :: shift2											! amplitude of the segmental contraction
+REAL(dbl) :: tOffset = 0.8                             !offset in time after which the bolus is expected to come to the center
 REAL(dbl) :: Tmix												! calculated period (mix)
 REAL(dbl) :: period											! period of current simulation
 REAL(dbl) :: freqRatioT										! villous frequency to macroscopic contraction frequency (theta, azimuthal)
