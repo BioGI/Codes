@@ -851,16 +851,16 @@ xcfBy2_fine = 0.5 * xcf_fine
 
 !Do the top and bottom XZ planes first
 do k=1,nzSub
-   flagNodeIntersectFine(45,45,k) = 0.16
-   flagNodeIntersectFine(45,57,k) = 0.16
+   flagNodeIntersectFine(45,45,k) = 0.140625 ! (3^2/8^2) = 9/64.
+   flagNodeIntersectFine(45,57,k) = 0.140625 ! (3^2/8^2) = 9/64.
    do i=46,56
-      flagNodeIntersectFine(i,45,k) = 0.4375 !3.5/8.0
-      flagNodeIntersectFine(45,i,k) = 0.4375 !3.5/8.0
-      flagNodeIntersectFine(i,57,k) = 0.4375 !3.5/8.0      
-      flagNodeIntersectFine(57,i,k) = 0.4375 !3.5/8.0      
+      flagNodeIntersectFine(i,45,k) = 0.375 !3.0/8.0
+      flagNodeIntersectFine(45,i,k) = 0.375 !3.0/8.0
+      flagNodeIntersectFine(i,57,k) = 0.375 !3.0/8.0      
+      flagNodeIntersectFine(57,i,k) = 0.375 !3.0/8.0      
    end do
-   flagNodeIntersectFine(57,45,k) = 0.16
-   flagNodeIntersectFine(57,57,k) = 0.16
+   flagNodeIntersectFine(57,45,k) = 0.140625 ! (3^2/8^2) = 9/64.
+   flagNodeIntersectFine(57,57,k) = 0.140625 ! (3^2/8^2) = 9/64.
 end do
    
 
