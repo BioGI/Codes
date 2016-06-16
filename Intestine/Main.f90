@@ -45,9 +45,9 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
   CALL Output_Setup_fine		! set up the output [MODULE: Output_fine]
   CALL OpenOutputFiles		! opens output files for writing [MODULE: Output.f90]
   CALL OpenOutputFiles_fine	! opens output files for writing [MODULE: Output_fine.f90]
+  CALL FlagCoarseMeshNodesIntersectingWithFineMeshNodes
   CALL Scalar_Setup		! set up the passive scalar component of the simluation [MODULE: Scalar]
   CALL Scalar_Setup_fine		! set up the passive scalar component of the simluation [MODULE: Scalar_fine]
-  CALL FlagCoarseMeshNodesIntersectingWithFineMeshNodes
   CALL ICs			! set initial conditions [MODULE: ICBC]
   CALL ICs_fine			! set initial conditions [MODULE: ICBC_fine]       
   
