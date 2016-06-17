@@ -424,6 +424,7 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   INTEGER(lng) :: i,j,k! index variables
   REAL(dbl) :: numFluids, numFluids_l! number of fluid nodes in the domain
   REAL(dbl)    :: phiDomain, phiDomain_l, phiIC! current amount of scalar in the domain
+  REAL(dbl)    :: phiDomainFine, phiDomainCoarse
   REAL(dbl)    :: phiAverage! average scalar in the domain
   REAL(dbl)    :: zcf3! node volume in physical units
   TYPE(ParRecord), POINTER :: current
@@ -438,6 +439,8 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   numFluids_l = 0.0_dbl
   phiDomain_l = 0.0_dbl
 
+  zcf3 = zcf_fine * zcf_fine * zcf_fine  
+
   DO k=1,nzSub_fine
      DO j=1,nySub_fine
         DO i=1,nxSub_fine
@@ -450,6 +453,9 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
         END DO
      END DO
   END DO
+ 
+  CALL MPI_ALLREDUCE(phiDomain_l , phiDomainFine , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+  phiDomainFine = phiDomainFine*zcf3
 
   DO k=1,nzSub
      DO j=1,nySub
@@ -462,12 +468,12 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
      END DO
   END DO
 
+  CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+  phiDomainCoarse = phiDomain*zcf3-phiDomainFine
  
-  zcf3 = zcf_fine * zcf_fine * zcf_fine  
   phiAbsorbed_l = (phiAbsorbed_coarse * gridRatio * gridRatio * gridRatio + phiAbsorbed_fine) * zcf3
 
   CALL MPI_ALLREDUCE(phiAbsorbed_l , phiAbsorbed , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
-  CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
   CALL MPI_ALLREDUCE(numFluids_l , numFluids , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
   CALL MPI_ALLREDUCE(Negative_phi_Total_l , Negative_phi_Total, 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
 
@@ -495,7 +501,7 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   ENDIF
 
 if(mySub .eq. 1) then
-   WRITE(2472,'(I7, F9.3, 6E21.13)') iter, iter*tcf, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, Drug_Loss_Percent, Drug_Loss_Modified_Percent
+   WRITE(2472,'(I7, F9.3, 8E21.13)') iter, iter*tcf, Drug_Initial, Drug_Released_Total, Drug_Absorbed, Drug_Remained_in_Domain, phiDomainCoarse, phiDomainFine, Drug_Loss_Percent, Drug_Loss_Modified_Percent
    CALL FLUSH(2472)
 end if
 

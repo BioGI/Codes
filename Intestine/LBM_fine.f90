@@ -2374,7 +2374,8 @@ ENDDO
     REAL(dbl) :: tmp
     
     tInterp = dble(subIter-1)/dble(gridRatio)
-    
+
+    write(31,*) 'iter = ', iter
     !Do the bottom and top x-z planes first
     do k=1,nzSub_fine
        do i=1,nxSub_fine
@@ -2384,12 +2385,26 @@ ENDDO
           end do
           rho_fine(i,1,k) = temporalInterpolate(dsCtoF_bottomXZ(1,1,i,k),dsCtoF_bottomXZ(1,2,i,k),dsCtoF_bottomXZ(1,3,i,k),node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
           phi_fine(i,1,k) = temporalInterpolate(dsCtoF_bottomXZ(2,1,i,k),dsCtoF_bottomXZ(2,2,i,k),dsCtoF_bottomXZ(2,3,i,k), node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
+          tmp = phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(1), closestCoarseZIndex(z_fine(k))) - dsCtoF_bottomXZ(2,2,i,k)
+          if (abs(tmp)/dsCtoF_bottomXZ(2,2,i,k) .gt. 1e-10) then
+             write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(i),lowerCoarseYIndex(1), closestCoarseZIndex(z_fine(k))
+             write(31,*) 'Fine mesh indices = ', i,1,k
+             write(31,*) 'Fine Coarse phi = ', phi_fine(i,1,k),  dsCtoF_bottomXZ(2,2,i,k), phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(1), closestCoarseZIndex(z_fine(k)))
+!             write(31,*) '3 time coarse = ', dsCtoF_bottomXZ(2,1,i,k),dsCtoF_bottomXZ(2,2,i,k),dsCtoF_bottomXZ(2,3,i,k)
+          end if
           u_fine(i,1,k) = temporalInterpolate(velCtoF_bottomXZ(1,1,i,k),velCtoF_bottomXZ(1,2,i,k),velCtoF_bottomXZ(1,3,i,k), node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
           v_fine(i,1,k) = temporalInterpolate(velCtoF_bottomXZ(2,1,i,k),velCtoF_bottomXZ(2,2,i,k),velCtoF_bottomXZ(2,3,i,k), node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)
           w_fine(i,1,k) = temporalInterpolate(velCtoF_bottomXZ(3,1,i,k),velCtoF_bottomXZ(3,2,i,k),velCtoF_bottomXZ(3,3,i,k), node_fine_bottomXZ(1,i,k), node_fine_bottomXZ(2,i,k), node_fine_bottomXZ(3,i,k), tInterp)          
           
           rho_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(1,1,i,k),dsCtoF_topXZ(1,2,i,k),dsCtoF_topXZ(1,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
           phi_fine(i,ny_fine,k) = temporalInterpolate(dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
+          tmp = phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))) - dsCtoF_topXZ(2,2,i,k) 
+          if (abs(tmp)/dsCtoF_topXZ(2,2,i,k) .gt. 1e-30) then
+             write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))
+             write(31,*) 'Fine mesh indices = ', i,ny_fine,k
+             write(31,*) 'Fine Coarse phi = ', phi_fine(i,ny_fine,k), dsCtoF_topXZ(2,2,i,k), phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k)))
+!             write(31,*) '3 time coarse = ', dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k)
+          end if
           u_fine(i,ny_fine,k) = temporalInterpolate(velCtoF_topXZ(1,1,i,k),velCtoF_topXZ(1,2,i,k),velCtoF_topXZ(1,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
           v_fine(i,ny_fine,k) = temporalInterpolate(velCtoF_topXZ(2,1,i,k),velCtoF_topXZ(2,2,i,k),velCtoF_topXZ(2,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
           w_fine(i,ny_fine,k) = temporalInterpolate(velCtoF_topXZ(3,1,i,k),velCtoF_topXZ(3,2,i,k),velCtoF_topXZ(3,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
@@ -2406,12 +2421,26 @@ ENDDO
           end do
           rho_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(1,1,j,k),dsCtoF_frontYZ(1,2,j,k),dsCtoF_frontYZ(1,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
           phi_fine(1,j,k) = temporalInterpolate(dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
+          tmp = phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) - dsCtoF_frontYZ(2,2,j,k)
+          if (abs(tmp)/dsCtoF_frontYZ(2,2,j,k) .gt. 1e-30) then
+             write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))
+             write(31,*) 'Fine mesh indices = ', 1,j,k
+             write(31,*) 'Fine Coarse phi = ', phi_fine(1,j,k), dsCtoF_frontYZ(2,2,j,k), phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k)))
+!             write(31,*) '3 time coarse = ', dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k)            
+          end if                    
           u_fine(1,j,k) = temporalInterpolate(velCtoF_frontYZ(1,1,j,k),velCtoF_frontYZ(1,2,j,k),velCtoF_frontYZ(1,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
           v_fine(1,j,k) = temporalInterpolate(velCtoF_frontYZ(2,1,j,k),velCtoF_frontYZ(2,2,j,k),velCtoF_frontYZ(2,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
           w_fine(1,j,k) = temporalInterpolate(velCtoF_frontYZ(3,1,j,k),velCtoF_frontYZ(3,2,j,k),velCtoF_frontYZ(3,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
 
           rho_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           phi_fine(nx_fine,j,k) = temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
+          tmp = phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) - dsCtoF_backYZ(2,2,j,k)
+          if (abs(tmp)/dsCtoF_backYZ(2,2,j,k) .gt. 1e-30) then
+             write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))
+             write(31,*) 'Fine mesh indices = ', nx_fine,j,k
+             write(31,*) 'Fine Coarse phi = ', phi_fine(nx_fine,j,k), dsCtoF_backYZ(2,2,j,k), phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k)))
+!             write(31,*) '3 time coarse = ', dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k)            
+          end if                              
           u_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(1,1,j,k),velCtoF_backYZ(1,2,j,k),velCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           v_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(2,1,j,k),velCtoF_backYZ(2,2,j,k),velCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           w_fine(nx_fine,j,k) = temporalInterpolate(velCtoF_backYZ(3,1,j,k),velCtoF_backYZ(3,2,j,k),velCtoF_backYZ(3,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)        

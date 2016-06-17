@@ -59,6 +59,7 @@ IMPLICIT NONE
 INTEGER(lng) :: i,j,k,m,im1,jm1,km1		! index variables
 REAL(dbl) :: phiBC							! scalar contribution from boundary
 REAL(dbl) :: zcf3
+REAL(dbl) :: phiMaxInterface
 
 Over_Sat_Counter_l = 0
 Over_Sat_Counter = 0
@@ -77,6 +78,7 @@ CALL ScalarDistribution						! sets/maintains initial distributions of scalar [M
 ! store the previous scalar values
 phiTemp = phi
 
+phiMaxInterface = 0.0
 ! Stream the scalar
 DO k=1,nzSub
   DO j=1,nySub
@@ -94,8 +96,13 @@ DO k=1,nzSub
           jm1 = j - ey(m)
           km1 = k - ez(m)
 
-          IF((node(im1,jm1,km1) .EQ. FLUID) .or. (node(im1,jm1,km1) .EQ. FINEMESH)) THEN 
-            phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
+          IF(node(im1,jm1,km1) .EQ. FLUID) THEN 
+             phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
+          ELSE IF(node(im1,jm1,km1) .EQ. FINEMESH) THEN
+             if (phiTemp(im1,jm1,km1) .gt. phiMaxInterface) then
+                phiMaxInterface = phiTemp(im1,jm1,km1)
+             end if
+             phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. SOLID) THEN															! macro- boundary
             CALL ScalarBC(m,i,j,k,im1,jm1,km1,phiBC)															! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi(i,j,k) = phi(i,j,k) + phiBC     
@@ -116,7 +123,7 @@ DO k=1,nzSub
             STOP
           END IF
 
-        END DO
+       END DO
 
 !	phi(i,j,k) = phi(i,j,k) + delphi_particle(i,j,k) ! Balaji added to introduce drug concentration release
 
@@ -140,6 +147,8 @@ DO k=1,nzSub
     END DO
   END DO
 END DO
+
+write(31,*) phiMaxInterface
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
 phiAbsorbed_coarse = 	phiAbsorbedS_coarse + phiAbsorbedV_coarse																		! total amount of scalar absorbed up to current time

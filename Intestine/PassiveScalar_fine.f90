@@ -107,9 +107,9 @@ DO k=1,nzSub_fine
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-             if ( abs(rho_fine(im1,jm1,km1) - 1.0) .gt. 0.5) then
-               rho_fine(im1,jm1,km1) = 1.0
-            end if
+!             if ( abs(rho_fine(im1,jm1,km1) - 1.0) .gt. 0.5) then
+!               rho_fine(im1,jm1,km1) = 1.0
+!            end if
             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
