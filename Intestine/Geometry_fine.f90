@@ -851,19 +851,18 @@ xcfBy2_fine = 0.5 * xcf_fine
 
 !Do the top and bottom XZ planes first
 do k=1,nzSub
-   flagNodeIntersectFine(45,45,k) = 0.140625 ! (3^2/8^2) = 9/64.
-   flagNodeIntersectFine(45,57,k) = 0.140625 ! (3^2/8^2) = 9/64.
+   flagNodeIntersectFine(45,45,k) = dble((gridRatio-1)*(gridRatio-1))/dble(gridRatio*gridRatio) 
+   flagNodeIntersectFine(45,57,k) = dble((gridRatio-1)*(gridRatio-1))/dble(gridRatio*gridRatio) 
    do i=46,56
-      flagNodeIntersectFine(i,45,k) = 0.375 !3.0/8.0
-      flagNodeIntersectFine(45,i,k) = 0.375 !3.0/8.0
-      flagNodeIntersectFine(i,57,k) = 0.375 !3.0/8.0      
-      flagNodeIntersectFine(57,i,k) = 0.375 !3.0/8.0      
+      flagNodeIntersectFine(i,45,k) = dble(gridRatio-1)/dble(gridRatio)
+      flagNodeIntersectFine(45,i,k) = dble(gridRatio-1)/dble(gridRatio)
+      flagNodeIntersectFine(i,57,k) = dble(gridRatio-1)/dble(gridRatio)
+      flagNodeIntersectFine(57,i,k) = dble(gridRatio-1)/dble(gridRatio)
    end do
-   flagNodeIntersectFine(57,45,k) = 0.140625 ! (3^2/8^2) = 9/64.
-   flagNodeIntersectFine(57,57,k) = 0.140625 ! (3^2/8^2) = 9/64.
+   flagNodeIntersectFine(57,45,k) = dble((gridRatio-1)*(gridRatio-1))/dble(gridRatio*gridRatio) 
+   flagNodeIntersectFine(57,57,k) = dble((gridRatio-1)*(gridRatio-1))/dble(gridRatio*gridRatio) 
 end do
    
-
 ! write(*,*) 'Temporarily putting flagNodeIntersectFine into phi_fine for visualization'
 ! do i = 1,nxSub
 !    do j = 1,nySub
