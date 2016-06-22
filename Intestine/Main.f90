@@ -140,8 +140,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
         
      END DO
      
-     CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
-     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]                       
      CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
      CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
      
@@ -152,6 +150,8 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
      if (iter .GE. phiStart) then
         CALL PrintDrugConservation		! print the total absorbed/entering/leaving scalar as a function of time [MODULE: Output]
      end if
+     CALL PrintFields			! output the velocity, density, and scalar fields [MODULE: Output]
+     CALL PrintFields_fine		! output the velocity, density, and scalar fields [MODULE: Output]                            
      CALL PrintMass			! print the total mass in the system (TEST)
      
      !	  CALL PrintPeriodicRestart	! print periodic restart files (SAFE GUARD) [MODULE: Output]

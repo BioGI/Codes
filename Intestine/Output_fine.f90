@@ -430,7 +430,7 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   TYPE(ParRecord), POINTER :: current
   TYPE(ParRecord), POINTER :: next
   INTEGER                         :: mpierr
-
+  REAL(dbl)    :: overlappedPhi 
   CALL ScalarInOut     ! Calculate the amount of scalar that entered/left through the inlet/outlet
 
   !----- Calculate the amount of scalar in the domain
@@ -441,6 +441,8 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
 
   zcf3 = zcf_fine * zcf_fine * zcf_fine  
 
+!  write(31,*)  phi_fine(closestFineIindex(x(46)),closestFineJindex(y(50)),closestFineKindex(z(5))), phi(44,50,5)
+  
   DO k=1,nzSub_fine
      DO j=1,nySub_fine
         DO i=1,nxSub_fine
@@ -457,10 +459,13 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   CALL MPI_ALLREDUCE(phiDomain_l , phiDomainFine , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
   phiDomainFine = phiDomainFine*zcf3
 
+!  write(31,*) ''
+  overlappedPhi = 0.0_dbl
   DO k=1,nzSub
      DO j=1,nySub
         DO i=1,nxSub
            IF (node(i,j,k) .EQ. FLUID) THEN
+              overlappedPhi = overlappedPhi + flagNodeIntersectFine(i,j,k) * phi(i,j,k) * gridRatio * gridRatio * gridRatio
               phiDomain_l = phiDomain_l + (1.0-flagNodeIntersectFine(i,j,k)) * phi(i,j,k) * gridRatio * gridRatio * gridRatio
               numFluids_l = numFluids_l + (1.0-flagNodeIntersectFine(i,j,k)) * gridRatio * gridRatio * gridRatio
            END IF
@@ -468,6 +473,7 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
      END DO
   END DO
 
+!  write(31,*) 'overlappedPhi = ', overlappedPhi * zcf3 / Drug_Initial * 100.0
   CALL MPI_ALLREDUCE(phiDomain_l , phiDomain , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
   phiDomainCoarse = phiDomain*zcf3-phiDomainFine
  
@@ -525,52 +531,6 @@ end if
 END SUBROUTINE PrintDrugConservation
 !===================================================================================================
 
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE PrintScalar_fine		! prints the total amount of scalar absorbed through the walls 
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng) :: i,j,k		! index variables
-INTEGER(lng) :: numFluids	! number of fluid nodes in the domain
-REAL(dbl) :: phiDomain		! current amount of scalar in the domain
-REAL(dbl) :: phiAverage		! average scalar in the domain
-REAL(dbl) :: zcf3				! node volume in physical units
-
-! Calculate the amount of scalar that entered/left through the inlet/outlet
-CALL ScalarInOut_fine
-
-! Calculate the amount of scalar in the domain
-numFluids = 0_lng
-phiDomain = 0.0_dbl
-DO k=1,nzSub_fine
-  DO j=1,nySub_fine
-    DO i=1,nxSub_fine
-
-      IF(node_fine(i,j,k) .EQ. FLUID) THEN
-        phiDomain = phiDomain + phi_fine(i,j,k)
-        numFluids = numFluids + 1_lng
-      END IF
-
-    END DO
-  END DO
-END DO
-
-IF(numFluids .GT. 1e-8) THEN
-  phiAverage = phiDomain/numFluids		! average scalar in the domain
-ELSE
-  phiAverage = 0.0_dbl
-END IF
-
-! node volume in physical units
-zcf3 = zcf_fine*zcf_fine*zcf_fine
-
-WRITE(2473,'(I8,6E25.15)') iter, phiAbsorbed_fine*zcf3, phiAbsorbedS_fine*zcf3, phiAbsorbedV_fine*zcf3,	&
-                           (phiTotal_fine-phiDomain)*zcf3, phiDomain*zcf3, (phiAbsorbed_fine+phiDomain)*zcf3
-CALL FLUSH(2473)
-
-!------------------------------------------------
-END SUBROUTINE PrintScalar_fine
-!------------------------------------------------
 
 !--------------------------------------------------------------------------------------------------
 SUBROUTINE PrintParams_fine	! prints the total amount of scalar absorbed through the walls 

@@ -40,10 +40,11 @@ phiWall		= 0.0_dbl								! value of scalar at the boundary
 sigma = 0.1_dbl*D										! 1/10 of the Diameter
 
 ! determine scalar starting iteration
-phiStart 	= NINT((phiPer*Tmix)/tcf)
-IF (phiPer.EQ.0.0) THEN
-	phiStart 	= NINT((phiPer*Tmix)/tcf) ! Balaji changed this to add 1 as for phiPer=0, phiSTart=0. But iter never has a value 0.
-ENDIF
+phiStart = 1
+!phiStart 	= NINT((phiPer*Tmix)/tcf)
+!IF (phiPer.EQ.0.0) THEN
+!	phiStart 	= NINT((phiPer*Tmix)/tcf) ! Balaji changed this to add 1 as for phiPer=0, phiSTart=0. But iter never has a value 0.
+!ENDIF
 
 CALL ScalarDistribution						! sets/maintains initial distributions of scalar [MODULE: ICBC.f90]
 
@@ -148,7 +149,6 @@ DO k=1,nzSub
   END DO
 END DO
 
-write(31,*) phiMaxInterface
 
 ! Add the amount of scalar absorbed through the outer and villous surfaces
 phiAbsorbed_coarse = 	phiAbsorbedS_coarse + phiAbsorbedV_coarse																		! total amount of scalar absorbed up to current time
@@ -180,10 +180,6 @@ REAL(dbl)    :: rhoAstar,phiAstar, PkAstar,feq_Astar,feq_Bstar
 REAL(dbl)    :: rhoA, PkA, feq_A
 REAL(dbl)    :: fPlusBstar, rhoBstar, phiBstar, PkBstar
 
-
-ubb= 0.0_dbl
-vbb= 0.0_dbl
-wbb= 0.0_dbl
 
    ! Initial fluid node guess
    x1=x(i)
@@ -264,9 +260,9 @@ wbb= 0.0_dbl
       q=sqrt((xt-x1)**2+(yt-y1)**2+(zt-z1)**2)/sqrt((x2-x1)**2+(y2-y1)**2+(z2-z1)**2)
       !write(*,*) 'q',q,zt,z1,z2,0.5*(z1+z2),rt,ht
    ENDIF
-
-
-
+   ubb= 0.0_dbl
+   vbb= 0.0_dbl
+   wbb= 0.0_dbl
 
 !---------------------------------------------------------------------------------------------------
 !----- Computing phiOUT ----------------------------------------------------------------------------
@@ -293,15 +289,6 @@ CALL Equilibrium_LOCAL(m,rhoAstar,ubb,vbb,wbb,feq_Astar)! calculate the equibriu
 phiAstar= phiWall! getting phi at the solid surface
 PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta)*phiAstar! contribution from the wall in mth direction (0 if phiWall=0)
 
-!------ Computing values at B* & scalar streamed from B* (Chpter 3 paper)
-!rhoBstar=   (1-q)*rho(ip1,jp1,kp1)     + q*rho(i,j,k)
-!CALL Equilibrium_LOCAL(m,rhoBstar,ubb,vbb,wbb,feq_Bstar)
-!phiBstar=   (1-q)*phiTemp(ip1,jp1,kp1) + q*phiTemp(i,j,k)
-!PkBstar=    (feq_Bstar/rhoBstar - wt(m)*Delta)*phiBstar
-
-!phiIN= PkAstar+ (PkAstar- PkBstar)*(1-q)
-
-
 !---- Modification for moving boundary in case of using only A and A* for BC
 rhoA= rho(i,j,k)
 CALL Equilibrium_LOCAL(m,rhoA,ubb,vbb,wbb,feq_A)
@@ -311,12 +298,7 @@ IF(q .LT. 0.25) THEN
 END IF
 phiIN   = ((PkAstar - PkA)/q) + PkAstar
 
-!--- No Modifications in book-keeping for moving boundaries
-!phiIN= phiBC                                                     ! contribution from wall to crrent node (in)
-!phiOUT= (fplus(bb(m),i,j,k)/rho(i,j,k)-wt(bb(m))*Delta)*phiTemp(i,j,k)
-
 phiAbsorbedS_coarse = phiAbsorbedS_coarse + (phiOUT-phiIN)! scalar absorbed at current location in mth direction
-!===================================================================================================
 
 
 !------------------------------------------------

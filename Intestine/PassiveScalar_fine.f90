@@ -29,7 +29,7 @@ phiTemp_fine  = 0.0_dbl		! temporary scalar
 ! scalar parameters
 Dmcf_fine = (zcf_fine*zcf_fine)/tcf_fine		! conversion factor for diffusivity
 Delta_fine = 1.0_dbl - gridRatio*(1.0_dbl - Delta)	! scalar diffusion parameter
-write(31,*) 'nuL = ', nuL, ' Dm = ', Dm, ' Delta = ', Delta, ' Delta_fine = ', Delta_fine
+!write(31,*) 'nuL = ', nuL, ' Dm = ', Dm, ' Delta = ', Delta, ' Delta_fine = ', Delta_fine
 
 CALL ScalarDistribution_fine			! sets/maintains initial distributions of scalar [MODULE: ICBC_fine.f90]
 
@@ -105,12 +105,18 @@ DO k=1,nzSub_fine
           km1 = k - ez(m)
 
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+             if( (i .eq. closestFineIindex(x(46))) .and. (j .eq. closestFineJindex(y(50))) .and. (k .eq. closestFineKindex(z(5))) ) then
+                write(31,*) m, phi_fine(i,j,k), fplus_fine(m,im1,jm1,km1), rho_fine(im1,jm1,km1), wt(m), Delta_fine, phiTemp_fine(im1,jm1,km1)
+             end if
           ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
 !             if ( abs(rho_fine(im1,jm1,km1) - 1.0) .gt. 0.5) then
 !               rho_fine(im1,jm1,km1) = 1.0
 !            end if
-            phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
+             if( (i .eq. closestFineIindex(x(46))) .and. (j .eq. closestFineJindex(y(50))) .and. (k .eq. closestFineKindex(z(5))) ) then
+                write(31,*) m, phi_fine(i,j,k), fplus_fine(m,im1,jm1,km1), rho_fine(im1,jm1,km1), wt(m), Delta_fine, phiTemp_fine(im1,jm1,km1)
+             end if             
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     
@@ -158,6 +164,7 @@ DO k=1,nzSub_fine
   END DO
 END DO
 
+!write(31,*) 'Drug after - before in fine mesh = ', sum(phi_fine(:,:,:)) * zcf3 - tmp
 ! Add the amount of scalar absorbed through the outer and villous surfaces
 phiAbsorbed_fine = phiAbsorbedS_fine + phiAbsorbedV_fine ! total amount of scalar absorbed up to current time
       
@@ -271,90 +278,44 @@ REAL(dbl)    :: fPlusBstar, rhoBstar, phiBstar, PkBstar
    vbb = 0.0
    wbb = 0.0
    
-   CALL Equilibrium_LOCAL(bb(m),rho_fine(i,j,k),ubb,vbb,wbb,feq_AO_u0)
-   phiOUT= (feq_AO_u0/rho_fine(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp_fine(i,j,k)
+!---------------------------------------------------------------------------------------------------
+!----- Computing phiOUT ----------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+CALL Equilibrium_LOCAL(bb(m),rho_fine(i,j,k),ubb,vbb,wbb,feq_AO_u0)
+phiOUT= (feq_AO_u0/rho_fine(i,j,k) - wt(bb(m))*Delta_fine)*phiTemp_fine(i,j,k)
 
-   !---------------------------------------------------------------------------------------------------
-   !---- Conmputing phiIN------------------------------------------------------------------------------
-   !---------------------------------------------------------------------------------------------------
-   !----- neighboring node (fluid side)
-   ip1 = i + ex(m)
-   jp1 = j + ey(m)
-   kp1 = k + ez(m)
-   IF(node_fine(ip1,jp1,kp1) .NE. FLUID) THEN
-      ip1 = i
-      jp1 = j
-      kp1 = k
-   END IF
+!---------------------------------------------------------------------------------------------------
+!---- Conmputing phiIN------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------------
+!----- neighboring node (fluid side)
+ip1 = i + ex(m)
+jp1 = j + ey(m)
+kp1 = k + ez(m)
+IF(node_fine(ip1,jp1,kp1) .NE. FLUID) THEN
+   ip1 = i
+   jp1 = j
+   kp1 = k
+END IF
 
-   !----- Computing values at A* & scalar streamed from A* (Chpter 3 paper)
-   rhoAstar= (rho_fine(i,j,k)- rho_fine(ip1,jp1,kp1))*(1+q)+ rho_fine(ip1,jp1,kp1)! extrapolate the density
-   CALL Equilibrium_LOCAL_fine(m,rhoAstar,ubb,vbb,wbb,feq_Astar)! calculate the equibrium distribution function in the mth direction
-   phiAstar= phiWall! getting phi at the solid surface
-   PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta_fine)*phiAstar! contribution from the wall in mth direction (0 if phiWall=0)
+!----- Computing values at A* & scalar streamed from A* (Chpter 3 paper)
+rhoAstar= (rho_fine(i,j,k)- rho_fine(ip1,jp1,kp1))*(1+q)+ rho_fine(ip1,jp1,kp1)! extrapolate the density
+CALL Equilibrium_LOCAL_fine(m,rhoAstar,ubb,vbb,wbb,feq_Astar)! calculate the equibrium distribution function in the mth direction
+phiAstar= phiWall! getting phi at the solid surface
+PkAstar= (feq_Astar/rhoAstar- wt(m)*Delta_fine)*phiAstar! contribution from the wall in mth direction (0 if phiWall=0)
 
-   !---- Modification for moving boundary in case of using only A and A* for BC
-   rhoA= rho_fine(i,j,k)
-   CALL Equilibrium_LOCAL_fine(m,rhoA,ubb,vbb,wbb,feq_A)
-   PkA= (feq_A/rhoA - wt(m)*Delta_fine)*phiTemp_fine(i,j,k)
-   IF(q .LT. 0.25) THEN
-      q = 0.25_dbl
-   END IF
-   phiIN   = ((PkAstar - PkA)/q) + PkAstar
+!---- Modification for moving boundary in case of using only A and A* for BC
+rhoA= rho_fine(i,j,k)
+CALL Equilibrium_LOCAL_fine(m,rhoA,ubb,vbb,wbb,feq_A)
+PkA= (feq_A/rhoA - wt(m)*Delta_fine)*phiTemp_fine(i,j,k)
+IF(q .LT. 0.25) THEN
+   q = 0.25_dbl
+END IF
+phiIN   = ((PkAstar - PkA)/q) + PkAstar
 
-   phiAbsorbedS_fine = phiAbsorbedS_fine + (phiOUT-phiIN)! scalar absorbed at current location in mth direction
+phiAbsorbedS_fine = phiAbsorbedS_fine + (phiOUT-phiIN)! scalar absorbed at current location in mth direction
 
 !------------------------------------------------
 END SUBROUTINE AbsorbedScalarS_fine
-!------------------------------------------------
-
-!--------------------------------------------------------------------------------------------------
-SUBROUTINE ScalarInOut_fine		! measure scalar that has left or entered the domain through the inlet or outlet
-!--------------------------------------------------------------------------------------------------
-IMPLICIT NONE
-
-INTEGER(lng) :: i,j,k,m,im1,jm1,km1,iComm		! index variables
-REAL(dbl) :: phiOUT, phiIN							! scalar values exchanged with the wall
-
-! XY Faces (z-direction)
-DO iComm=5,6
-
-  IF(SubID(iComm) .EQ. 0) THEN					
-
-    k = XY_SendIndex(iComm)						! k index
-
-    DO j=1,nySub
-      DO i=1,nxSub
-
-        IF(node(i,j,k) .NE. SOLID) THEN
-
-          DO m=1,NumFs_face
-
-            ! i,j,k location of neighboring node
-            im1 = i - ex(bb(f_Comps(iComm,m)))
-            jm1 = j - ey(bb(f_Comps(iComm,m)))
-            km1 = k - ez(bb(f_Comps(iComm,m)))
-
-            IF(node(im1,jm1,km1) .NE. SOLID) THEN
-              phiIN = (fplus(bb(f_Comps(iComm,m)),im1,jm1,km1)/rho(im1,jm1,km1) - wt(bb(f_Comps(iComm,m)))*Delta_fine)	&								! scalar contribution from inlet/outlet to current node
-                      *phiTemp(im1,jm1,km1)		
-              phiOUT	= (fplus(f_Comps(iComm,m),i,j,k)/rho(i,j,k) - wt(f_Comps(iComm,m))*Delta_fine)*phiTemp(i,j,k)										! scalar contribution from current node to inlet/outlet
-              phiInOut = phiInOut + (phiOUT - phiIN)
-            END IF
-
-          END DO
- 
-        END IF
-
-      END DO
-    END DO
-  
-  END IF
-
-END DO
-
-!------------------------------------------------
-END SUBROUTINE ScalarInOut_fine
 !------------------------------------------------
 
 !================================================

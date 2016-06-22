@@ -235,7 +235,7 @@ IF(iter .EQ. phiStart) THEN
         DO j=0,nySub+1
           DO i=0,nxSub+1
 
-             if ( ( abs(x(i)) .lt. 0.001) .and. (abs(y(j)) .lt. 0.001) ) then
+             if ( ( abs(x(i)) .lt. 0.0002) .and. (abs(y(j)) .lt. 0.0002) ) then
                 phi(i,j,k) = 1.0
              else
                 phi(i,j,k) = 0.0
