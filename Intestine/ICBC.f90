@@ -236,9 +236,9 @@ IF(iter .EQ. phiStart) THEN
           DO i=0,nxSub+1
 
              if ( ( abs(x(i)) .lt. 0.0002) .and. (abs(y(j)) .lt. 0.0002) ) then
-                phi(i,j,k) = 1.0
+                phi(i,j,k) = 1.0_dbl
              else
-                phi(i,j,k) = 0.0
+                phi(i,j,k) = 0.0_dbl
              end if
 
           END DO

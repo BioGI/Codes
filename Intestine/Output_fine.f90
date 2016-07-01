@@ -441,23 +441,25 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
 
   zcf3 = zcf_fine * zcf_fine * zcf_fine  
 
-!  write(31,*)  phi_fine(closestFineIindex(x(46)),closestFineJindex(y(50)),closestFineKindex(z(5))), phi(44,50,5)
+!  write(31,*)  phi_fine(2,6,10), phi(46,50,10)
+!  write(31,*) 'Coarse mesh index = 46, 50, 5'
+!  write(31,*) 'Corresponding fine mesh indices = ', closestFineIindex(x(46)),closestFineJindex(y(50)),closestFineKindex(z(5))
   
-  DO k=1,nzSub_fine
-     DO j=1,nySub_fine
-        DO i=1,nxSub_fine
+  ! DO k=1,nzSub_fine
+  !    DO j=1,nySub_fine
+  !       DO i=1,nxSub_fine
 
-           IF(node_fine(i,j,k) .EQ. FLUID) THEN
-              phiDomain_l = phiDomain_l + phi_fine(i,j,k)
-              numFluids_l = numFluids_l + 1.0_dbl
-           END IF
+  !          IF(node_fine(i,j,k) .EQ. FLUID) THEN
+  !             phiDomain_l = phiDomain_l + phi_fine(i,j,k)
+  !             numFluids_l = numFluids_l + 1.0_dbl
+  !          END IF
 
-        END DO
-     END DO
-  END DO
+  !       END DO
+  !    END DO
+  ! END DO
  
-  CALL MPI_ALLREDUCE(phiDomain_l , phiDomainFine , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
-  phiDomainFine = phiDomainFine*zcf3
+  ! CALL MPI_ALLREDUCE(phiDomain_l , phiDomainFine , 1, MPI_DOUBLE_PRECISION, MPI_SUM, MPI_COMM_WORLD, mpierr)
+  ! phiDomainFine = phiDomainFine*zcf3
 
 !  write(31,*) ''
   overlappedPhi = 0.0_dbl
@@ -495,9 +497,9 @@ SUBROUTINE PrintDrugConservation! prints the total amount of scalar absorbed thr
   Drug_Loss = (Drug_Released_Total + Drug_Initial) - (Drug_Absorbed + Drug_Remained_in_Domain)
   Drug_Loss_Modified = (Drug_Released_Total+ Drug_Initial- Negative_phi_Total) - (Drug_Absorbed + Drug_Remained_in_Domain)
 
-  IF (Drug_Released_Total .LT. 1e-20) THEN
-     Drug_Released_Total =1e-20
-  END IF
+!  IF (Drug_Released_Total .LT. 1e-20) THEN
+!     Drug_Released_Total =1e-20
+!  END IF
 
   Drug_Loss_Percent = (Drug_Loss / (Drug_Released_Total+Drug_Initial)) * 100.0_lng
   Drug_Loss_Modified_Percent = (Drug_Loss_Modified / (Drug_Released_Total+Drug_Initial)) * 100.0_lng

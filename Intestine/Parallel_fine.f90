@@ -74,45 +74,44 @@ INTEGER(lng) :: f_SendSize_fine, ds_SendSize_fine, uvw_SendSize_fine, total_Send
 
 
 ! Fill out the size arrays
-YZ_FaceSize_fine		= nySub_fine*nzSub_fine	 ! number of nodes on a subdomain face oriented in the ZY plane
-ZX_FaceSize_fine		= nzSub_fine*nxSub_fine	 ! number of nodes on a subdomain face oriented in the ZX plane
-XY_FaceSize_fine		= nxSub_fine*nySub_fine	 ! number of nodes on a subdomain face oriented in the XY plane
+YZ_FaceSize_fine	= nySub_fine*nzSub_fine	 ! number of nodes on a subdomain face oriented in the ZY plane
+ZX_FaceSize_fine	= nzSub_fine*nxSub_fine	 ! number of nodes on a subdomain face oriented in the ZX plane
+XY_FaceSize_fine	= nxSub_fine*nySub_fine	 ! number of nodes on a subdomain face oriented in the XY plane
 
 fSize_fine		= 0_lng			! initialize array
 dsSize_fine		= 0_lng			! initialize array
 uvwSize_fine		= 0_lng			! initialize array
 
 fSize_fine(1:2)		= YZ_FaceSize_fine*NumFs_face	! YZ faces
-fSize_fine(3:4)		= ZX_FaceSize_fine*NumFs_face			! ZX faces
-fSize_fine(5:6)		= XY_FaceSize_fine*NumFs_face			! XY faces
-fSize_fine(7:10)		= nzSub_fine*NumFs_side					! Z sides
-fSize_fine(11:14)	= nxSub_fine*NumFs_side					! X sides
-fSize_fine(15:18)	= nySub_fine*NumFs_side					! Y sides
-fSize_fine(19:26)	= 1_lng*NumFs_corner					! corners
+fSize_fine(3:4)		= ZX_FaceSize_fine*NumFs_face	! ZX faces
+fSize_fine(5:6)		= XY_FaceSize_fine*NumFs_face	! XY faces
+fSize_fine(7:10)	= nzSub_fine*NumFs_side		! Z sides
+fSize_fine(11:14)	= nxSub_fine*NumFs_side		! X sides
+fSize_fine(15:18)	= nySub_fine*NumFs_side		! Y sides
+fSize_fine(19:26)	= 1_lng*NumFs_corner		! corners
 
-dsSize_fine(1:2)		= YZ_FaceSize_fine							! YZ faces
-dsSize_fine(3:4)		= ZX_FaceSize_fine							! ZX faces
-dsSize_fine(5:6)		= XY_FaceSize_fine							! XY faces
-dsSize_fine(7:10)	= nzSub_fine									! Z sides
-dsSize_fine(11:14)	= nxSub_fine									! X sides
-dsSize_fine(15:18)	= nySub_fine									! Y sides
-dsSize_fine(19:26)	= 1_lng									! corners
+dsSize_fine(1:2)	= YZ_FaceSize_fine		! YZ faces
+dsSize_fine(3:4)	= ZX_FaceSize_fine		! ZX faces
+dsSize_fine(5:6)	= XY_FaceSize_fine		! XY faces
+dsSize_fine(7:10)	= nzSub_fine			! Z sides
+dsSize_fine(11:14)	= nxSub_fine			! X sides
+dsSize_fine(15:18)	= nySub_fine			! Y sides
+dsSize_fine(19:26)	= 1_lng				! corners
 
-
-uvwSize_fine(1:2)		= YZ_FaceSize_fine							! YZ faces
-uvwSize_fine(3:4)		= ZX_FaceSize_fine							! ZX faces
-uvwSize_fine(5:6)		= XY_FaceSize_fine							! XY faces
-uvwSize_fine(7:10)	= nzSub_fine									! Z sides
-uvwSize_fine(11:14)	= nxSub_fine									! X sides
-uvwSize_fine(15:18)	= nySub_fine									! Y sides
-uvwSize_fine(19:26)	= 1_lng									! corners
+uvwSize_fine(1:2)	= YZ_FaceSize_fine		! YZ faces
+uvwSize_fine(3:4)	= ZX_FaceSize_fine		! ZX faces
+uvwSize_fine(5:6)	= XY_FaceSize_fine		! XY faces
+uvwSize_fine(7:10)	= nzSub_fine			! Z sides
+uvwSize_fine(11:14)	= nxSub_fine			! X sides
+uvwSize_fine(15:18)	= nySub_fine			! Y sides
+uvwSize_fine(19:26)	= 1_lng				! corners
 
 msgSize_fine(:)		= fSize_fine(:) + 2_lng*(dsSize_fine(:))+3_lng*(uvwSize_fine(:))	! total message sizes
 
-f_SendSize_fine	= SUM(fSize_fine)
+f_SendSize_fine	        = SUM(fSize_fine)
 ds_SendSize_fine	= SUM(dsSize_fine)
-uvw_SendSize_fine	= SUM(dsSize_fine)
-total_SendSize_fine  = SUM(msgSize_fine)
+uvw_SendSize_fine	= SUM(uvwSize_fine)
+total_SendSize_fine     = SUM(msgSize_fine)
 
 ALLOCATE(msgSend_fine(total_SendSize_fine))						
 ALLOCATE(msgRecv_fine(total_SendSize_fine))
@@ -301,9 +300,9 @@ Corner_RecvIndex_fine(26,3) = 0_lng
 
 ! Fill out the 'CommDataStart' arrays
 ! Initialize arrays
-CommDataStart_f_fine  		= 0_lng					! distribution functions
-CommDataStart_rho_fine  	= 0_lng					! density
-CommDataStart_phi_fine  	= 0_lng					! scalar
+CommDataStart_f_fine  	= 0_lng					! distribution functions
+CommDataStart_rho_fine  = 0_lng					! density
+CommDataStart_phi_fine  = 0_lng					! scalar
 CommDataStart_u_fine  	= 0_lng					! velocity
 CommDataStart_v_fine  	= 0_lng					! velocity
 CommDataStart_w_fine  	= 0_lng					! velocity
@@ -312,14 +311,14 @@ CommDataStart_f_fine(1)	= 1_lng
 CommDataStart_rho_fine(1) = CommDataStart_f_fine(1)	+ fSize_fine(1)
 CommDataStart_phi_fine(1) = CommDataStart_rho_fine(1)	+ dsSize_fine(1)
 CommDataStart_u_fine(1) = CommDataStart_phi_fine(1)	+ dsSize_fine(1)
-CommDataStart_v_fine(1) = CommDataStart_u_fine(1)		+ uvwSize_fine(1)
-CommDataStart_w_fine(1) = CommDataStart_v_fine(1)		+ uvwSize_fine(1)
+CommDataStart_v_fine(1) = CommDataStart_u_fine(1)	+ uvwSize_fine(1)
+CommDataStart_w_fine(1) = CommDataStart_v_fine(1)	+ uvwSize_fine(1)
 
 DO iComm=2,NumCommDirs							! fill out for communication directions 2-NumCommDirs
-  CommDataStart_f_fine(iComm)	= CommDataStart_w_fine(iComm-1) 	+ uvwSize_fine(iComm-1)
+  CommDataStart_f_fine(iComm)	= CommDataStart_w_fine(iComm-1)	+ uvwSize_fine(iComm-1)
   CommDataStart_rho_fine(iComm)	= CommDataStart_f_fine(iComm)	+ fSize_fine(iComm)
-  CommDataStart_phi_fine(iComm)	= CommDataStart_rho_fine(iComm) 	+ dsSize_fine(iComm)
-  CommDataStart_u_fine(iComm)	= CommDataStart_phi_fine(iComm) 	+ dsSize_fine(iComm)
+  CommDataStart_phi_fine(iComm)	= CommDataStart_rho_fine(iComm)	+ dsSize_fine(iComm)
+  CommDataStart_u_fine(iComm)	= CommDataStart_phi_fine(iComm)	+ dsSize_fine(iComm)
   CommDataStart_v_fine(iComm)	= CommDataStart_u_fine(iComm) 	+ uvwSize_fine(iComm)
   CommDataStart_w_fine(iComm)	= CommDataStart_v_fine(iComm) 	+ uvwSize_fine(iComm)
 END DO

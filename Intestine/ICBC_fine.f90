@@ -114,9 +114,9 @@ IF(iter .EQ. phiStart) THEN
           DO i=0,nxSub_fine+1
 
              if ( (abs(x_fine(i)) .lt. 0.0002) .and. (abs(y_fine(j)) .lt. 0.0002) ) then
-                phi_fine(i,j,k) = 1.0
+                phi_fine(i,j,k) = 1.0_dbl
              else
-                phi_fine(i,j,k) = 0.0
+                phi_fine(i,j,k) = 0.0_dbl
              end if
 
           END DO

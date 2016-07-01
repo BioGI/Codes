@@ -2402,14 +2402,14 @@ ENDDO
           rho_fine(i,ny_fine,k) = 1.0 !temporalInterpolate(dsCtoF_topXZ(1,1,i,k),dsCtoF_topXZ(1,2,i,k),dsCtoF_topXZ(1,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
           phi_fine(i,ny_fine,k) = phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))) !temporalInterpolate(dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
 !          if ( (mod((i-1),gridRatio) .eq. 0) .and. (mod((k-1),gridRatio) .eq. 0)) then
-             tmp = phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))) - dsCtoF_topXZ(2,2,i,k) 
-             if (abs(tmp)/dsCtoF_topXZ(2,2,i,k) .gt. 1e-30) then
-                write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))
-                write(31,*) 'Fine mesh indices = ', i,ny_fine,k
-                write(31,*) 'Fine Coarse phi = ', phi_fine(i,ny_fine,k), dsCtoF_topXZ(2,2,i,k), phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k)))
-                !             write(31,*) '3 time coarse = ', dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k)
-             end if
-!          end if
+          !    tmp = phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))) - dsCtoF_topXZ(2,2,i,k) 
+          !    if (abs(tmp)/dsCtoF_topXZ(2,2,i,k) .gt. 1e-30) then
+          !       write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k))
+          !       write(31,*) 'Fine mesh indices = ', i,ny_fine,k
+          !       write(31,*) 'Fine Coarse phi = ', phi_fine(i,ny_fine,k), dsCtoF_topXZ(2,2,i,k), phiTemp(lowerCoarseXIndex(i),lowerCoarseYIndex(ny_fine), closestCoarseZIndex(z_fine(k)))
+          !       !             write(31,*) '3 time coarse = ', dsCtoF_topXZ(2,1,i,k),dsCtoF_topXZ(2,2,i,k),dsCtoF_topXZ(2,3,i,k)
+          !    end if
+          ! end if
           u_fine(i,ny_fine,k) = 0.0 !temporalInterpolate(velCtoF_topXZ(1,1,i,k),velCtoF_topXZ(1,2,i,k),velCtoF_topXZ(1,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
           v_fine(i,ny_fine,k) = 0.0 !temporalInterpolate(velCtoF_topXZ(2,1,i,k),velCtoF_topXZ(2,2,i,k),velCtoF_topXZ(2,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
           w_fine(i,ny_fine,k) = 0.0 !temporalInterpolate(velCtoF_topXZ(3,1,i,k),velCtoF_topXZ(3,2,i,k),velCtoF_topXZ(3,3,i,k), node_fine_topXZ(1,i,k), node_fine_topXZ(2,i,k), node_fine_topXZ(3,i,k), tInterp)
@@ -2427,13 +2427,13 @@ ENDDO
           rho_fine(1,j,k) = 1.0 !temporalInterpolate(dsCtoF_frontYZ(1,1,j,k),dsCtoF_frontYZ(1,2,j,k),dsCtoF_frontYZ(1,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
           phi_fine(1,j,k) = phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) !temporalInterpolate(dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
 !          if ( (mod((j-1),gridRatio) .eq. 0) .and. (mod((k-1),gridRatio) .eq. 0)) then          
-             tmp = phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) - dsCtoF_frontYZ(2,2,j,k)
-             if (abs(tmp)/dsCtoF_frontYZ(2,2,j,k) .gt. 1e-30) then
-                write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))
-                write(31,*) 'Fine mesh indices = ', 1,j,k
-                write(31,*) 'Fine Coarse phi = ', phi_fine(1,j,k), dsCtoF_frontYZ(2,2,j,k), phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k)))
-                !             write(31,*) '3 time coarse = ', dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k)            
-             end if
+             ! tmp = phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) - dsCtoF_frontYZ(2,2,j,k)
+             ! if (abs(tmp)/dsCtoF_frontYZ(2,2,j,k) .gt. 1e-30) then
+             !    write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))
+             !    write(31,*) 'Fine mesh indices = ', 1,j,k
+             !    write(31,*) 'Fine Coarse phi = ', phi_fine(1,j,k), dsCtoF_frontYZ(2,2,j,k), phiTemp(lowerCoarseXIndex(1),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k)))
+             !    !             write(31,*) '3 time coarse = ', dsCtoF_frontYZ(2,1,j,k),dsCtoF_frontYZ(2,2,j,k),dsCtoF_frontYZ(2,3,j,k)            
+             ! end if
 !          end if
           u_fine(1,j,k) = 0.0 !temporalInterpolate(velCtoF_frontYZ(1,1,j,k),velCtoF_frontYZ(1,2,j,k),velCtoF_frontYZ(1,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
           v_fine(1,j,k) = 0.0 !temporalInterpolate(velCtoF_frontYZ(2,1,j,k),velCtoF_frontYZ(2,2,j,k),velCtoF_frontYZ(2,3,j,k), node_fine_frontYZ(1,j,k), node_fine_frontYZ(2,j,k), node_fine_frontYZ(3,j,k), tInterp)
@@ -2442,13 +2442,13 @@ ENDDO
           rho_fine(nx_fine,j,k) = 1.0 !temporalInterpolate(dsCtoF_backYZ(1,1,j,k),dsCtoF_backYZ(1,2,j,k),dsCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           phi_fine(nx_fine,j,k) = phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) !temporalInterpolate(dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
 !          if ( (mod((j-1),gridRatio) .eq. 0) .and. (mod((k-1),gridRatio) .eq. 0)) then          
-             tmp = phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) - dsCtoF_backYZ(2,2,j,k)
-             if (abs(tmp)/dsCtoF_backYZ(2,2,j,k) .gt. 1e-30) then
-                write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))
-                write(31,*) 'Fine mesh indices = ', nx_fine,j,k
-                write(31,*) 'Fine Coarse phi = ', phi_fine(nx_fine,j,k), dsCtoF_backYZ(2,2,j,k), phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k)))
-                !             write(31,*) '3 time coarse = ', dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k)            
-             end if
+             ! tmp = phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))) - dsCtoF_backYZ(2,2,j,k)
+             ! if (abs(tmp)/dsCtoF_backYZ(2,2,j,k) .gt. 1e-30) then
+             !    write(31,*) 'Coarse mesh indices = ', lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k))
+             !    write(31,*) 'Fine mesh indices = ', nx_fine,j,k
+             !    write(31,*) 'Fine Coarse phi = ', phi_fine(nx_fine,j,k), dsCtoF_backYZ(2,2,j,k), phiTemp(lowerCoarseXIndex(nx_fine),lowerCoarseYIndex(j), closestCoarseZIndex(z_fine(k)))
+             !    !             write(31,*) '3 time coarse = ', dsCtoF_backYZ(2,1,j,k),dsCtoF_backYZ(2,2,j,k),dsCtoF_backYZ(2,3,j,k)            
+             ! end if
 !          end if
           u_fine(nx_fine,j,k) = 0.0 !temporalInterpolate(velCtoF_backYZ(1,1,j,k),velCtoF_backYZ(1,2,j,k),velCtoF_backYZ(1,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
           v_fine(nx_fine,j,k) = 0.0 !temporalInterpolate(velCtoF_backYZ(2,1,j,k),velCtoF_backYZ(2,2,j,k),velCtoF_backYZ(2,3,j,k), node_fine_backYZ(1,j,k), node_fine_backYZ(2,j,k), node_fine_backYZ(3,j,k), tInterp)
@@ -2571,12 +2571,17 @@ ENDDO
     do k=1,nzSub
        do i=46,56
           do m=0,NumDistDirs
-             f(m,i,46,k) = feqFC_bottomXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) -  feqFC_bottomXZ(m,i,k))
-             f(m,i,56,k) = feqFC_topXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) - feqFC_topXZ(m,i,k))
+             f(m,i,46,k) = f_fine(m,i-45+1,1,k) !feqFC_bottomXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k))) -  feqFC_bottomXZ(m,i,k))
+             f(m,i,56,k) = f_fine(m,i-45+1,13,k) !feqFC_topXZ(m,i,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k))) - feqFC_topXZ(m,i,k))
           end do
           rho(i,46,k) = rho_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
-          phi(i,46,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
           rho(i,56,k) = rho_fine(closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))
+       end do
+    end do
+
+    do k=2,nzSub-1
+       do i=46,56
+          phi(i,46,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
           phi(i,56,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))        
        end do
     end do
@@ -2585,10 +2590,16 @@ ENDDO
     do k=1,nzSub
        do j=47,55
           do m=0,NumDistDirs
-             f(m,46,j,k) = feqFC_frontYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_frontYZ(m,j,k))
-             f(m,56,j,k) = feqFC_backYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_backYZ(m,j,k))
+             f(m,46,j,k) = f_fine(m,1,j-45+1,k) !feqFC_frontYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_frontYZ(m,j,k))
+             f(m,56,j,k) = f_fine(m,13,j-45+1,k) !feqFC_backYZ(m,j,k) + gridRatio * (tau - 1.0)/(tau_fine - 1.0) * (f_fine(m,closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k))) - feqFC_backYZ(m,j,k))
           end do
           rho(46,j,k) = rho_fine(closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k)))
+          rho(56,j,k) = rho_fine(closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
+       end do
+    end do
+
+    do k=2,nzSub-1
+       do j=47,55
           phi(46,j,k) = phi_fine(closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k)))
           rho(56,j,k) = rho_fine(closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
           phi(56,j,k) = phi_fine(closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))

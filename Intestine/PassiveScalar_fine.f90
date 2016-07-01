@@ -39,18 +39,18 @@ phiDomain = 0.0_dbl
 numFluids_l = 0.0_dbl
 phiDomain_l = 0.0_dbl
 
-DO k=1,nzSub_fine
-   DO j=1,nySub_fine
-      DO i=1,nxSub_fine
+! DO k=1,nzSub_fine
+!    DO j=1,nySub_fine
+!       DO i=1,nxSub_fine
          
-         IF(node_fine(i,j,k) .EQ. FLUID) THEN
-            phiDomain_l = phiDomain_l + phi_fine(i,j,k)
-            numFluids_l = numFluids_l + 1.0_dbl
-         END IF
+!          IF(node_fine(i,j,k) .EQ. FLUID) THEN
+!             phiDomain_l = phiDomain_l + phi_fine(i,j,k)
+!             numFluids_l = numFluids_l + 1.0_dbl
+!          END IF
 
-      END DO
-   END DO
-END DO
+!       END DO
+!    END DO
+! END DO
 
 DO k=1,nzSub
    DO j=1,nySub
@@ -105,18 +105,15 @@ DO k=1,nzSub_fine
           km1 = k - ez(m)
 
           IF(node_fine(im1,jm1,km1) .EQ. FLUID) THEN
-             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-             if( (i .eq. closestFineIindex(x(46))) .and. (j .eq. closestFineJindex(y(50))) .and. (k .eq. closestFineKindex(z(5))) ) then
-                write(31,*) m, phi_fine(i,j,k), fplus_fine(m,im1,jm1,km1), rho_fine(im1,jm1,km1), wt(m), Delta_fine, phiTemp_fine(im1,jm1,km1)
+             if( (i .eq. 2) .and. (j .eq. 6) .and. (k .eq. 1) ) then
+!                write(31,*) m, phiTemp_fine(i,j,k), fplus_fine(m,im1,jm1,km1), rho_fine(im1,jm1,km1), wt(m), Delta_fine, phiTemp_fine(im1,jm1,km1)
              end if
-          ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
-!             if ( abs(rho_fine(im1,jm1,km1) - 1.0) .gt. 0.5) then
-!               rho_fine(im1,jm1,km1) = 1.0
-!            end if
              phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
-             if( (i .eq. closestFineIindex(x(46))) .and. (j .eq. closestFineJindex(y(50))) .and. (k .eq. closestFineKindex(z(5))) ) then
-                write(31,*) m, phi_fine(i,j,k), fplus_fine(m,im1,jm1,km1), rho_fine(im1,jm1,km1), wt(m), Delta_fine, phiTemp_fine(im1,jm1,km1)
+          ELSE IF (node_fine(im1,jm1,km1) .EQ. COARSEMESH) THEN
+             if( (i .eq. 2) .and. (j .eq. 6) .and. (k .eq. 1) ) then
+!                write(31,*) m, phiTemp_fine(i,j,k), fplus_fine(m,im1,jm1,km1), rho_fine(im1,jm1,km1), wt(m), Delta_fine, phiTemp_fine(im1,jm1,km1)
              end if             
+             phi_fine(i,j,k) = phi_fine(i,j,k) + (fplus_fine(m,im1,jm1,km1)/rho_fine(im1,jm1,km1) - wt(m)*Delta_fine)*phiTemp_fine(im1,jm1,km1)
           ELSE IF(node_fine(im1,jm1,km1) .EQ. SOLID) THEN ! macro- boundary
             CALL ScalarBC_fine(m,i,j,k,im1,jm1,km1,phiBC) ! implement scalar boundary condition (using BB f's)	[MODULE: ICBC]
             phi_fine(i,j,k) = phi_fine(i,j,k) + phiBC     

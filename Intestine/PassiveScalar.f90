@@ -40,7 +40,7 @@ phiWall		= 0.0_dbl								! value of scalar at the boundary
 sigma = 0.1_dbl*D										! 1/10 of the Diameter
 
 ! determine scalar starting iteration
-phiStart = 1
+phiStart = 0
 !phiStart 	= NINT((phiPer*Tmix)/tcf)
 !IF (phiPer.EQ.0.0) THEN
 !	phiStart 	= NINT((phiPer*Tmix)/tcf) ! Balaji changed this to add 1 as for phiPer=0, phiSTart=0. But iter never has a value 0.
@@ -98,6 +98,9 @@ DO k=1,nzSub
           km1 = k - ez(m)
 
           IF(node(im1,jm1,km1) .EQ. FLUID) THEN 
+             if( (i .eq. 46) .and. (j .eq. 50) .and. (k .eq. 1) ) then
+!                write(31,*) m, phiTemp(i,j,k), fplus(m,im1,jm1,km1), rho(im1,jm1,km1), wt(m), Delta, phiTemp(im1,jm1,km1)
+             end if
              phi(i,j,k) = phi(i,j,k) + (fplus(m,im1,jm1,km1)/rho(im1,jm1,km1) - wt(m)*Delta)*phiTemp(im1,jm1,km1)
           ELSE IF(node(im1,jm1,km1) .EQ. FINEMESH) THEN
              if (phiTemp(im1,jm1,km1) .gt. phiMaxInterface) then

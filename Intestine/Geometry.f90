@@ -860,7 +860,8 @@ DO k=1,nzSub
       IF(rijk .LT. r(k)) THEN
 
          IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
-            node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+!            node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+            node(i,j,k) = FLUID
 
          ELSE
 
@@ -921,7 +922,8 @@ DO iComm=1,2
        IF(rijk .LT. r(k)) THEN
 
           IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
-             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+!             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+             node(i,j,k) = FLUID
              
           ELSE
 
@@ -964,7 +966,8 @@ DO iComm=3,4
 
 
           IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
-             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+!             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+             node(i,j,k) = FLUID
              
           ELSE
              
@@ -1006,7 +1009,8 @@ DO iComm=5,6
       IF(rijk .LT. r(k)) THEN
 
           IF( (i .gt. 45) .and. (i .lt. 57) .and. (j .gt. 45) .and. (j .lt. 57) ) THEN !Trying to find the inner nodes corresponding to FINEMESH. Hard coded for now.
-             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+!             node(i,j,k) = FINEMESH  !No computations to be carried out in these nodes
+             node(i,j,k) = FLUID
              
           ELSE
              
