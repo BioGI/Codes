@@ -39,18 +39,18 @@ phiDomain = 0.0_dbl
 numFluids_l = 0.0_dbl
 phiDomain_l = 0.0_dbl
 
-! DO k=1,nzSub_fine
-!    DO j=1,nySub_fine
-!       DO i=1,nxSub_fine
+DO k=1,nzSub_fine
+   DO j=1,nySub_fine
+      DO i=1,nxSub_fine
          
-!          IF(node_fine(i,j,k) .EQ. FLUID) THEN
-!             phiDomain_l = phiDomain_l + phi_fine(i,j,k)
-!             numFluids_l = numFluids_l + 1.0_dbl
-!          END IF
+         IF(node_fine(i,j,k) .EQ. FLUID) THEN
+            phiDomain_l = phiDomain_l + phi_fine(i,j,k)
+            numFluids_l = numFluids_l + 1.0_dbl
+         END IF
 
-!       END DO
-!    END DO
-! END DO
+      END DO
+   END DO
+END DO
 
 DO k=1,nzSub
    DO j=1,nySub

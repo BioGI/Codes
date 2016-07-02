@@ -56,12 +56,12 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
   write(*,*) 'Using iter=0 for initializing SetNodesInterface_nPlus1_fine. Has to be modified for restart'
   CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
   CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
-  CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
-  CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
-  CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
-  CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
-  CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
-  CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
+ CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
+ CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
+ CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
+ CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
+ CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
+ CALL InitializeAllTemporalInterpolation          ! To begin with set all the 3 values for temporal interpolation to the latest available value
   
   iter=0
   subIter=0
@@ -86,8 +86,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
   
   CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)	! synchronize all processes before starting simulation [Intrinsic]
   
-  
-  !	CALL PrintTime 				! print time (scalability) information [MODULE: Output]
   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simulation Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   DO iter=iter0,nt
@@ -98,11 +96,7 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
      CALL Macro			! calcuate the macroscopic quantities [MODULE: Algorithm]
      
      IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
-        !	   CALL Calc_Global_Bulk_Scalar_Conc				! Estimate bluk	scalar concentration in each partition
-        !	   CALL Collect_Distribute_Global_Bulk_Scalar_Conc		! Collect Cb_Global from different processors, average it and distribute it to all the processors.
-        
         CALL Particle_Track
-        !	   CALL Particle_MPI_Transfer
      ENDIF
      
      IF(iter .GE. phiStart) THEN
@@ -115,34 +109,41 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
      
      CALL SetNodesInterface_nPlus1_fine               ! Calculate the node values on the fine mesh boundary at the next time step for temporal interpolation
      CALL ComputeEquilibriumForFineGrid               ! Compute the equilibrium distribution function at the coarse grid interface for the fine grid 
-     CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
-     CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
-     CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
-     CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
-     CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
+    CALL XYSpatialInterpolateBufferToFineGrid        ! Do the XY spatial interpolation on the buffer nodes for required variables to fine grid
+    CALL PackAndSendDataBufferInterpolation          ! Send the data on the buffer nodes
+    CALL XYSpatialInterpolateInternalNodesToFineGrid ! Do the XY spatial interpolation on the internal nodes for required variables to fine grid
+    CALL ReceiveAndUnpackDataBufferInterpolation     ! Receive the buffer data
+    CALL ZSpatialInterpolateToFineGrid               ! Do the Z spatial interpolation for required variables to fine grid
      
      DO subiter=1,gridRatio
         CALL AdvanceGeometry_Fine   ! Advance the geometry on the fine grid
         CALL temporalInterpolateToFineGrid !Using the spatial interpolation at the three time points, n-1, n and n+1, perform temporal interpolation to the current sub Iteration
-        !           fPlus_fine = f_fine
+
+        do i=1,nx_fine
+           do j = 1,ny_fine
+                 phi_fine(i,j,0) = phi_fine(i,j,10)
+                 phi_fine(i,j,11) = phi_fine(i,j,1)
+           end do
+        end do
+
         CALL Stream_Fine            ! Stream fine grid
         CALL Macro_Fine             ! Calculate Macro properties on fine grid
         
         IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
            CALL Particle_Track_fine
-           !              CALL Particle_MPI_Transfer !The first time this is called, it should technically do the work for any particles in the coarse mesh that have to be transferred across processors as well.
         ENDIF
         CALL Scalar_Fine       ! Calculate Scalar stuff on fine grid
         phi = phi + delphi_particle
-        
+
         CALL Collision_Fine     ! Collision step on the fine grid
         CALL MPI_Transfer_Fine  ! Transfer the data across processor boundaries on the fine grid
-        
+
      END DO
      
      CALL ComputeEquilibriumForCoarseGrid ! Compute the equilibrium distribution function at the fine grid interface for the coarse grid 
      CALL InterpolateToCoarseGrid    ! Interpolate required variable to coarse grid
-     
+     CALL MPI_Transfer		! transfer the data (distribution functions, density, scalar) [MODULE: Parallel]
+
      IF(ParticleTrack.EQ.ParticleOn .AND. iter .GE. phiStart) THEN 	! If particle tracking is 'on' then do the following
         CALL PrintParticles						! output the particle velocity, radius, position and con. [MODULE: Output]
      ENDIF
@@ -163,8 +164,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
   END DO
   
   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ End Simulation Loop ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  !	CALL PrintTime 			! print time (scalability) information [MODULE: Output]
-  
   CALL PrintFinalRestart		! print a final set of restart files to continue if desired [MODULE: Output]
   
   CALL DEAllocateArrays		! clean up the memory [MODULE: Setup]
@@ -172,8 +171,6 @@ PROGRAM LBM3D	! 3D Parallelized LBM Simulation
   
   CALL CloseOutputFiles		! closes output files [MODULE: Output.f90]
   CALL CloseOutputFiles_fine		! closes output files [MODULE: Output_fine.f90]
-  
-  !   CALL MergeOutput		! combine the subdomain output into an output file for the entire computational domain [MODULE: Output]
   
   CALL MPI_FINALIZE(mpierr)	! end the MPI simulation [Intrinsic]
   

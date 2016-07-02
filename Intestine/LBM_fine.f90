@@ -2579,7 +2579,7 @@ ENDDO
        end do
     end do
 
-    do k=2,nzSub-1
+    do k=1,nzSub
        do i=46,56
           phi(i,46,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(46)), closestFineKindex(z(k)))
           phi(i,56,k) = phi_fine(closestFineIindex(x(i)), closestFineJindex(y(56)), closestFineKindex(z(k)))        
@@ -2598,10 +2598,9 @@ ENDDO
        end do
     end do
 
-    do k=2,nzSub-1
+    do k=1,nzSub
        do j=47,55
           phi(46,j,k) = phi_fine(closestFineIindex(x(46)), closestFineJindex(y(j)), closestFineKindex(z(k)))
-          rho(56,j,k) = rho_fine(closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
           phi(56,j,k) = phi_fine(closestFineIindex(x(56)), closestFineJindex(y(j)), closestFineKindex(z(k)))
        end do
     end do

@@ -90,7 +90,7 @@ DO iter = iter0-0_lng,nt
 !  CALL PrintVolume							! print the volume in the system (TEST)
    CALL PrintStatus 							! print current status [MODULE: Output]
    CALL MPI_BARRIER(MPI_COMM_WORLD,mpierr)				! synchronize all processing units before next loop [Intrinsic]
-!   write(*,*) phi(46,50,5), phi(44,50,5)
+   write(*,*) phi(46,50,5), phi(44,50,5)
 
 END DO
 
